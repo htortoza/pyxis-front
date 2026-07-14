@@ -26,20 +26,14 @@ body {
 :root {
   --aurora-gradient: linear-gradient(135deg, #8400c8 0%, #4c1d95 45%, #2010c0 70%, #0271ed 100%);
   --aurora-glow: 0 4px 16px -4px rgba(101, 45, 211, 0.35), 0 2px 8px -2px rgba(32, 16, 192, 0.2);
-
-  /* Radius tiers by element "weight" (containers > sub-panels > controls > pills) */
-  --radius-lg: 18px;
-  --radius-md: 12px;
 }
 
 /*
- * PrimeNG Card ships shadow-only elevation with no border. This project's
- * reference design (flat cards, hairline border, shadow reserved for hover/
- * floating elements only) inverts that -- so it's overridden globally here,
- * per the project's own "PrimeNG overrides go in styles.css" convention.
+ * Card's radius/shadow are set via design tokens in app.config.ts (PyxisPreset),
+ * not here -- Card has no "border" token though, so the hairline border (used
+ * by every card site-wide) is the one legitimate global override left, per
+ * css-architecture.md's "reusable semantic utility used across 3+ components".
  */
 .p-card {
   border: 1px solid var(--p-content-border-color);
-  border-radius: var(--radius-lg);
-  box-shadow: none;
 }

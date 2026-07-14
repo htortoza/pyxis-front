@@ -29,6 +29,18 @@ const PyxisPreset = definePreset(Aura, {
       950: '{violet.950}',
     },
   },
+  components: {
+    // Flat cards (hairline border only, no shadow at rest -- shadow is added
+    // back in per-component CSS for the :hover state only) and a larger
+    // container-tier radius, set via design tokens rather than fighting
+    // PrimeNG's own CSS with a blanket ".p-card" override.
+    card: {
+      root: {
+        borderRadius: '18px',
+        shadow: 'none',
+      },
+    },
+  },
 });
 
 export const appConfig: ApplicationConfig = {

@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "angular-best-practices-primeng": {
+      "source": "alfredoperez/angular-best-practices",
+      "sourceType": "github",
+      "skillPath": "skills/angular-best-practices-primeng/SKILL.md",
+      "computedHash": "9cbe2d007fde9ada2627fd60474b48490010f9f2071e2107ced9add84c1b2403"
+    },
     "create-skill": {
       "source": "siviter-xyz/dot-agent",
       "sourceType": "github",

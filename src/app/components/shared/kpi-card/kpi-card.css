@@ -1,7 +1,6 @@
 :host { display: block; }
 
 p-card {
-  display: block;
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
