@@ -1,0 +1,34 @@
+<p-card>
+  <div class="ranking-header">
+    <h3 class="ranking-title">{{ title() }}</h3>
+
+    @if (sortOptions()) {
+      <p-select
+        [options]="sortOptions()"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="sortValue()"
+        (onChange)="onSortChange($event.value)"
+      />
+    }
+  </div>
+
+  <div class="ranking-list">
+    @for (item of visibleItems(); track item.id) {
+      <button
+        type="button"
+        class="ranking-row"
+        [class.is-active]="item.id === activeId()"
+        (click)="itemSelected.emit(item.id)"
+      >
+        <div class="ranking-bar" [style.width.%]="barWidth(item)"></div>
+        <span class="ranking-label">{{ item.label }}</span>
+        <span class="ranking-amount">{{ formattedAmount(item) }}</span>
+      </button>
+    }
+  </div>
+
+  @if (hasMore()) {
+    <button type="button" class="ranking-more" (click)="showMore()">Ver más...</button>
+  }
+</p-card>

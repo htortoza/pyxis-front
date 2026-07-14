@@ -1,0 +1,47 @@
+:host { display: block; }
+
+.heatmap {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  overflow-x: auto;
+}
+
+.heatmap-row {
+  display: grid;
+  grid-template-columns: 2.5rem repeat(24, minmax(1.5rem, 1fr));
+  gap: 3px;
+  align-items: center;
+}
+
+.heatmap-corner {
+  height: 1.25rem;
+}
+
+.heatmap-col-label {
+  font-size: 0.65rem;
+  color: var(--p-text-muted-color);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.heatmap-day-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--p-text-color);
+}
+
+.heat-cell {
+  background: var(--p-primary-color);
+  border-radius: 3px;
+  aspect-ratio: 1 / 1;
+  min-height: 1.25rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, outline 0.15s ease;
+}
+
+.heat-cell:hover {
+  transform: scale(1.15);
+  outline: 2px solid var(--p-primary-color);
+  outline-offset: 1px;
+}

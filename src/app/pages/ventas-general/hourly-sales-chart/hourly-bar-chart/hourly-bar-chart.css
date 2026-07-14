@@ -1,0 +1,5 @@
+:host { display: block; }
+
+.chart-container {
+  min-height: 320px;
+}

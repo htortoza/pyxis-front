@@ -1,0 +1,36 @@
+<p-card>
+  <div class="chart-header">
+    <h2 class="chart-title">Ventas por Hora</h2>
+    <div class="view-toggle">
+      <p-button
+        label="Gráfico de Barras"
+        size="small"
+        [outlined]="viewMode() !== 'bars'"
+        (onClick)="setViewMode('bars')"
+      />
+      <p-button
+        label="Gráfico de Calor"
+        size="small"
+        [outlined]="viewMode() !== 'heatmap'"
+        (onClick)="setViewMode('heatmap')"
+      />
+    </div>
+  </div>
+
+  @if (salesData.loading()) {
+    <app-loading-skeleton height="320px" />
+  } @else {
+    @switch (viewMode()) {
+      @case ('bars') {
+        <app-hourly-bar-chart
+          [seriesByPeriod]="salesData.hourlySeriesByPeriod()"
+          [periods]="salesData.periods"
+          [selectedPeriodIds]="salesData.selectedPeriodIds()"
+        />
+      }
+      @case ('heatmap') {
+        <app-sales-heatmap [matrix]="salesData.heatmapMatrix()" />
+      }
+    }
+  }
+</p-card>

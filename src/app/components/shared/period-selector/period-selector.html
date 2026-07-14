@@ -1,0 +1,13 @@
+<div class="period-selector-list">
+  @for (period of periods(); track period.id) {
+    <label class="period-chip" [class.is-active]="isSelected(period.id)">
+      <p-checkbox
+        class="period-chip-input"
+        [binary]="true"
+        [ngModel]="isSelected(period.id)"
+        (onChange)="toggle(period.id)"
+      />
+      <span class="period-chip-label">{{ period.label }}</span>
+    </label>
+  }
+</div>

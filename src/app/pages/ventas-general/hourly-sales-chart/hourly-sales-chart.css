@@ -1,0 +1,22 @@
+:host { display: block; }
+
+.chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.chart-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--p-text-color);
+  margin: 0;
+}
+
+.view-toggle {
+  display: flex;
+  gap: 0.5rem;
+}

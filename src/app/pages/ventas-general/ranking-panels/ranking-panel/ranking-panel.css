@@ -1,0 +1,92 @@
+:host { display: block; }
+
+.ranking-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.ranking-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--p-text-color);
+  margin: 0;
+}
+
+.ranking-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.ranking-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: var(--p-border-radius-md, 6px);
+  background: var(--p-surface-100);
+  cursor: pointer;
+  overflow: hidden;
+  font: inherit;
+  text-align: left;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.ranking-row:hover {
+  border-color: var(--p-primary-color);
+}
+
+.ranking-row.is-active {
+  border-color: var(--p-primary-color);
+  background: var(--p-surface-0);
+}
+
+.ranking-bar {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--p-primary-color);
+  opacity: 0.15;
+  transition: width 0.3s ease;
+}
+
+.ranking-label {
+  position: relative;
+  z-index: 1;
+  color: var(--p-text-color);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ranking-amount {
+  position: relative;
+  z-index: 1;
+  color: var(--p-text-color);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ranking-more {
+  display: block;
+  margin: 0.75rem auto 0;
+  padding: 0.25rem 0.5rem;
+  border: none;
+  background: transparent;
+  color: var(--p-primary-color);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.ranking-more:hover {
+  text-decoration: underline;
+}

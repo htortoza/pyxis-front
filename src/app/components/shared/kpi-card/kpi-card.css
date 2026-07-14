@@ -1,0 +1,33 @@
+:host { display: block; }
+
+.kpi-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.kpi-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--p-text-muted-color);
+}
+
+.kpi-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--p-text-color);
+}
+
+.kpi-delta {
+  align-self: flex-start;
+  margin-top: 0.25rem;
+}
+
+.kpi-delta-icon {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 0.25rem;
+}

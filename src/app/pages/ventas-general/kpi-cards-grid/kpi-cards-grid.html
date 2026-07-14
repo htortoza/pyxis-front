@@ -1,0 +1,19 @@
+@if (salesData.loading()) {
+  <div class="kpi-grid">
+    <app-loading-skeleton height="90px" />
+    <app-loading-skeleton height="90px" />
+    <app-loading-skeleton height="90px" />
+    <app-loading-skeleton height="90px" />
+  </div>
+} @else {
+  <div class="kpi-grid">
+    <app-kpi-card label="Ventas Totales" [value]="ventasTotalesValue()" [deltaPct]="ventasTotalesDelta()" />
+    <app-kpi-card label="Transacciones" [value]="transaccionesValue()" [deltaPct]="transaccionesDelta()" />
+    <app-kpi-card
+      label="Unidades por Transacción"
+      [value]="unidadesPorTransaccionValue()"
+      [deltaPct]="unidadesPorTransaccionDelta()"
+    />
+    <app-kpi-card label="Ticket Promedio" [value]="ticketPromedioValue()" [deltaPct]="ticketPromedioDelta()" />
+  </div>
+}

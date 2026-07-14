@@ -1,0 +1,42 @@
+@if (salesData.loading()) {
+  <div class="rankings-grid">
+    <app-loading-skeleton height="260px" />
+    <app-loading-skeleton height="260px" />
+    <app-loading-skeleton height="260px" />
+    <app-loading-skeleton height="260px" />
+  </div>
+} @else {
+  <div class="rankings-grid">
+    <app-ranking-panel
+      title="Sectores"
+      [items]="salesData.rankings().sectores"
+      dimension="sector"
+      [activeId]="activeIdFor('sector')"
+      (itemSelected)="onSelect('sector', $event)"
+    />
+    <app-ranking-panel
+      title="Marcas"
+      [items]="salesData.rankings().marcas"
+      dimension="marca"
+      [activeId]="activeIdFor('marca')"
+      (itemSelected)="onSelect('marca', $event)"
+    />
+    <app-ranking-panel
+      title="Locales"
+      [items]="salesData.rankings().locales"
+      dimension="local"
+      [activeId]="activeIdFor('local')"
+      (itemSelected)="onSelect('local', $event)"
+    />
+    <app-ranking-panel
+      title="Productos"
+      [items]="sortedProductos()"
+      dimension="producto"
+      [activeId]="activeIdFor('producto')"
+      [sortOptions]="productSortOptions"
+      [sortValue]="productSortMode()"
+      (itemSelected)="onSelect('producto', $event)"
+      (sortChanged)="onProductSort($event)"
+    />
+  </div>
+}

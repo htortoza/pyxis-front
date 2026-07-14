@@ -1,0 +1,8 @@
+<p-treeSelect
+  class="context-selector-control"
+  [options]="treeNodes()"
+  [ngModel]="selectedNode()"
+  selectionMode="single"
+  placeholder="Seleccionar contexto"
+  (onNodeSelect)="onNodeSelect($event)"
+/>

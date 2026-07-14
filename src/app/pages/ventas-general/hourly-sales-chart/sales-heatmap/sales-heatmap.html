@@ -1,0 +1,21 @@
+<div class="heatmap">
+  <div class="heatmap-row heatmap-header-row">
+    <div class="heatmap-corner"></div>
+    @for (col of columnHeaders(); track col.hourIndex) {
+      <div class="heatmap-col-label">
+        @if (col.showLabel) {
+          {{ col.label }}
+        }
+      </div>
+    }
+  </div>
+
+  @for (row of rows(); track row.dayLabel) {
+    <div class="heatmap-row">
+      <div class="heatmap-day-label">{{ row.dayLabel }}</div>
+      @for (cell of row.cells; track cell.hourLabel) {
+        <div class="heat-cell" [style.opacity]="0.12 + cell.intensity * 0.88" [title]="cell.tooltip"></div>
+      }
+    </div>
+  }
+</div>

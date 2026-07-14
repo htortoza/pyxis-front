@@ -1,0 +1,7 @@
+:host { display: block; }
+
+.context-selector-control {
+  display: block;
+  width: 100%;
+  min-width: 14rem;
+}

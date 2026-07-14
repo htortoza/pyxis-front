@@ -1,0 +1,16 @@
+:host { display: block; }
+
+.global-header-toolbar {
+  display: block;
+  border: none;
+  border-bottom: 1px solid var(--p-content-border-color);
+  border-radius: 0;
+  background: var(--p-surface-0);
+  padding: 0.875rem 1.5rem;
+}
+
+.global-header-end {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
