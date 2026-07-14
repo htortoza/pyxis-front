@@ -16,19 +16,14 @@
             <polyline points="19 12 12 19 5 12"></polyline>
           </svg>
         }
-        <span>{{ deltaText() }}</span>
+        <span>{{ deltaText() }} vs. periodo anterior</span>
       </p-tag>
     }
 
-    @if (compareBars(); as bars) {
-      <div class="kpi-compare" [attr.data-band]="band()">
-        <div class="kpi-compare-track">
-          <div class="kpi-compare-bar kpi-compare-bar-previous" [style.width.%]="bars.previous"></div>
-        </div>
-        <div class="kpi-compare-track">
-          <div class="kpi-compare-bar kpi-compare-bar-current" [style.width.%]="bars.current"></div>
-        </div>
-        <span class="kpi-compare-caption">vs. periodo anterior</span>
+    @if (compareSegments(); as segments) {
+      <div class="kpi-compare-track" [attr.data-band]="band()">
+        <div class="kpi-compare-segment kpi-compare-segment-previous" [style.width.%]="segments.previousShare"></div>
+        <div class="kpi-compare-segment kpi-compare-segment-current" [style.width.%]="segments.currentShare"></div>
       </div>
     }
   </div>

@@ -4,9 +4,9 @@ import { Tag } from 'primeng/tag';
 
 import { comparisonBand, deltaSeverity } from '../../../pipes/signed-amount';
 
-interface CompareBars {
-  previous: number;
-  current: number;
+interface CompareSegments {
+  previousShare: number;
+  currentShare: number;
 }
 
 @Component({
@@ -34,20 +34,20 @@ export class KpiCardComponent {
   readonly band = computed(() => comparisonBand(this.deltaPct()));
 
   /**
-   * Relative bar widths for a "previous vs. current" comparison, derived purely from
-   * deltaPct (previous is normalized to 100, current = 100 + deltaPct), so no raw
-   * current/previous values need to flow into this presentational component.
-   * Null when there's no previous-period baseline to compare against.
+   * A single bar split into two proportional segments (previous | current), derived
+   * purely from deltaPct (previous normalized to 100, current = 100 + deltaPct), so no
+   * raw current/previous values need to flow into this presentational component.
+   * Shares always sum to 100. Null when there's no previous-period baseline to compare.
    */
-  readonly compareBars = computed<CompareBars | null>(() => {
+  readonly compareSegments = computed<CompareSegments | null>(() => {
     const delta = this.deltaPct();
     if (delta === null) return null;
     const previousBase = 100;
     const currentBase = Math.max(0, 100 + delta);
-    const max = Math.max(previousBase, currentBase, 1);
+    const total = Math.max(previousBase + currentBase, 1);
     return {
-      previous: (previousBase / max) * 100,
-      current: (currentBase / max) * 100,
+      previousShare: (previousBase / total) * 100,
+      currentShare: (currentBase / total) * 100,
     };
   });
 }
