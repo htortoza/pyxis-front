@@ -37,39 +37,41 @@ p-card:hover {
   margin-top: 0.25rem;
 }
 
+/* Element+class beats PrimeNG's own bare ".p-tag" rule regardless of stylesheet order. */
+p-tag.kpi-delta {
+  font-weight: 500;
+}
+
 .kpi-delta-icon {
   display: inline-block;
   vertical-align: middle;
   margin-right: 0.25rem;
 }
 
-/* Single bar, split into two adjacent segments (previous | current) by share. */
+/* Single fill bar against a flat gray baseline -- full means at/above the previous period. */
 .kpi-compare-track {
-  display: flex;
   height: 6px;
   border-radius: 999px;
+  background: var(--p-surface-200);
   overflow: hidden;
   margin-top: 0.5rem;
 }
 
-.kpi-compare-segment {
+.kpi-compare-fill {
   height: 100%;
+  border-radius: 999px;
   transition: width 0.3s ease;
 }
 
-.kpi-compare-segment-previous {
-  background: var(--p-surface-300);
-}
-
-/* Pastel semaphore on the "current" segment: green = good, amber = roughly flat, red = down. */
-.kpi-compare-track[data-band="good"] .kpi-compare-segment-current {
+/* Pastel semaphore: green = good, soft gold = roughly flat, red = down. */
+.kpi-compare-fill[data-band="good"] {
   background: var(--p-green-300);
 }
 
-.kpi-compare-track[data-band="medium"] .kpi-compare-segment-current {
-  background: var(--p-amber-300);
+.kpi-compare-fill[data-band="medium"] {
+  background: var(--p-orange-200);
 }
 
-.kpi-compare-track[data-band="bad"] .kpi-compare-segment-current {
+.kpi-compare-fill[data-band="bad"] {
   background: var(--p-red-300);
 }

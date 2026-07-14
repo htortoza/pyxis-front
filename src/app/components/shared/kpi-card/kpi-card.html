@@ -20,10 +20,9 @@
       </p-tag>
     }
 
-    @if (compareSegments(); as segments) {
-      <div class="kpi-compare-track" [attr.data-band]="band()">
-        <div class="kpi-compare-segment kpi-compare-segment-previous" [style.width.%]="segments.previousShare"></div>
-        <div class="kpi-compare-segment kpi-compare-segment-current" [style.width.%]="segments.currentShare"></div>
+    @if (fillPct() !== null) {
+      <div class="kpi-compare-track">
+        <div class="kpi-compare-fill" [attr.data-band]="band()" [style.width.%]="fillPct()"></div>
       </div>
     }
   </div>
