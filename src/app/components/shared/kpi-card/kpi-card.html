@@ -19,5 +19,17 @@
         <span>{{ deltaText() }}</span>
       </p-tag>
     }
+
+    @if (compareBars(); as bars) {
+      <div class="kpi-compare" [attr.data-band]="band()">
+        <div class="kpi-compare-track">
+          <div class="kpi-compare-bar kpi-compare-bar-previous" [style.width.%]="bars.previous"></div>
+        </div>
+        <div class="kpi-compare-track">
+          <div class="kpi-compare-bar kpi-compare-bar-current" [style.width.%]="bars.current"></div>
+        </div>
+        <span class="kpi-compare-caption">vs. periodo anterior</span>
+      </div>
+    }
   </div>
 </p-card>

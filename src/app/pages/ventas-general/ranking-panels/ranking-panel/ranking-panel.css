@@ -87,6 +87,7 @@ p-card:hover {
   z-index: 1;
   color: var(--p-text-color);
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 

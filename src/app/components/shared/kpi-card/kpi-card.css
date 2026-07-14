@@ -17,17 +17,19 @@ p-card:hover {
 }
 
 .kpi-label {
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--p-text-muted-color);
 }
 
 .kpi-value {
-  font-size: 1.75rem;
-  font-weight: 700;
-  line-height: 1.2;
+  font-size: 1.625rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
   color: var(--p-text-color);
 }
 
@@ -40,4 +42,46 @@ p-card:hover {
   display: inline-block;
   vertical-align: middle;
   margin-right: 0.25rem;
+}
+
+.kpi-compare {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.kpi-compare-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--p-surface-100);
+  overflow: hidden;
+}
+
+.kpi-compare-bar {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.kpi-compare-bar-previous {
+  background: var(--p-surface-300);
+}
+
+.kpi-compare-caption {
+  font-size: 0.6875rem;
+  color: var(--p-text-muted-color);
+}
+
+/* Pastel semaphore: green = good, amber = roughly flat, red = down. */
+.kpi-compare[data-band="good"] .kpi-compare-bar-current {
+  background: var(--p-green-300);
+}
+
+.kpi-compare[data-band="medium"] .kpi-compare-bar-current {
+  background: var(--p-amber-300);
+}
+
+.kpi-compare[data-band="bad"] .kpi-compare-bar-current {
+  background: var(--p-red-300);
 }

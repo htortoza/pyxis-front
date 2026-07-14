@@ -45,3 +45,6 @@ Thumbs.db
 
 # Unrelated backend project — not part of this frontend repo
 /bipyxis3-server-production
+
+# Design reference only (plain HTML/JSX, not part of the Angular app) — studied for taste, not built
+/valbifrut-main
