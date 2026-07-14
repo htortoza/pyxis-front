@@ -105,3 +105,11 @@ p-card:hover {
 .ranking-more:hover {
   text-decoration: underline;
 }
+
+.ranking-empty {
+  margin: 0;
+  padding: 1rem 0.75rem;
+  color: var(--p-text-muted-color);
+  font-size: 0.875rem;
+  text-align: center;
+}

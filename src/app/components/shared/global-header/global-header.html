@@ -1,10 +1,13 @@
 <p-toolbar class="global-header-toolbar">
   <ng-template pTemplate="start">
-    <app-context-selector
-      [treeNodes]="salesData.treeNodes()"
-      [selectedId]="salesData.selectedContextId()"
-      (nodeSelected)="salesData.selectedContextId.set($event)"
-    />
+    <div class="global-header-start">
+      <img class="app-logo" src="logo.svg" alt="Pyxis" />
+      <app-context-selector
+        [treeNodes]="salesData.treeNodes()"
+        [selectedId]="salesData.selectedContextId()"
+        (nodeSelected)="salesData.selectedContextId.set($event)"
+      />
+    </div>
   </ng-template>
 
   <ng-template pTemplate="end">

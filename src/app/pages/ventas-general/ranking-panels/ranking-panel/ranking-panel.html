@@ -14,17 +14,21 @@
   </div>
 
   <div class="ranking-list">
-    @for (item of visibleItems(); track item.id) {
-      <button
-        type="button"
-        class="ranking-row"
-        [class.is-active]="item.id === activeId()"
-        (click)="itemSelected.emit(item.id)"
-      >
-        <div class="ranking-bar" [style.width.%]="barWidth(item)"></div>
-        <span class="ranking-label">{{ item.label }}</span>
-        <span class="ranking-amount">{{ formattedAmount(item) }}</span>
-      </button>
+    @if (items().length === 0) {
+      <p class="ranking-empty">Sin datos para el filtro actual.</p>
+    } @else {
+      @for (item of visibleItems(); track item.id) {
+        <button
+          type="button"
+          class="ranking-row"
+          [class.is-active]="item.id === activeId()"
+          (click)="itemSelected.emit(item.id)"
+        >
+          <div class="ranking-bar" [style.width.%]="barWidth(item)"></div>
+          <span class="ranking-label">{{ item.label }}</span>
+          <span class="ranking-amount">{{ formattedAmount(item) }}</span>
+        </button>
+      }
     }
   </div>
 

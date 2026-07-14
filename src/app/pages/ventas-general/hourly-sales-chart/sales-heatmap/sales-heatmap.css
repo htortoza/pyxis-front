@@ -45,3 +45,32 @@
   outline: 2px solid var(--p-primary-color);
   outline-offset: 1px;
 }
+
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.heatmap-legend-label {
+  font-size: 0.75rem;
+  color: var(--p-text-muted-color);
+}
+
+.heatmap-legend-scale {
+  display: flex;
+  gap: 3px;
+}
+
+.heatmap-legend-swatch {
+  width: 1.25rem;
+  height: 1.25rem;
+  cursor: default;
+}
+
+.heatmap-legend-swatch:hover {
+  transform: none;
+  outline: none;
+}

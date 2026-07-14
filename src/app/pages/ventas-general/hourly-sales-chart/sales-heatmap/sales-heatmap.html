@@ -19,3 +19,13 @@
     </div>
   }
 </div>
+
+<div class="heatmap-legend">
+  <span class="heatmap-legend-label">Menor</span>
+  <div class="heatmap-legend-scale">
+    @for (step of legendSteps; track step) {
+      <div class="heat-cell heatmap-legend-swatch" [style.opacity]="step"></div>
+    }
+  </div>
+  <span class="heatmap-legend-label">Mayor</span>
+</div>

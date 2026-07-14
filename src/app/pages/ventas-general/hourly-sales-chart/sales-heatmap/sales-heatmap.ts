@@ -37,6 +37,9 @@ interface HeatmapRow {
 export class SalesHeatmapComponent {
   readonly matrix = input.required<number[][]>();
 
+  /** Fixed opacity steps for the legend swatch — mirrors the 0.12-1.0 range used per cell. */
+  protected readonly legendSteps = [0.12, 0.32, 0.52, 0.72, 1];
+
   private readonly hourLabels = OPERATIONAL_HOURS.map((hour) => `${hour.toString().padStart(2, '0')}:00`);
 
   protected readonly columnHeaders = computed<HeatmapColumnHeader[]>(() =>
