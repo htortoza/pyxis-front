@@ -7,7 +7,7 @@ import type { KpiSet } from '../data/models/kpi.model';
 import type { Period } from '../data/models/period.model';
 import type { RankingDimension, RankingSet } from '../data/models/ranking.model';
 import type { SalesFact } from '../data/models/sales-fact.model';
-import { CONTEXT_TREE } from '../data/mock/context-tree.mock';
+import { CONTEXT_TREE, MARCAS, SECTORES } from '../data/mock/context-tree.mock';
 import { DEFAULT_SELECTED_PERIOD_IDS, PERIODS } from '../data/mock/periods.mock';
 import { PRODUCTS } from '../data/mock/products.mock';
 import { SALES_FACTS } from '../data/mock/sales-facts.mock';
@@ -44,7 +44,7 @@ interface DashboardData {
  */
 @Injectable({ providedIn: 'root' })
 export class SalesDataService {
-  /** Currently selected node in the context tree (holding/sector/marca/local). */
+  /** Currently selected node in the context tree (holding/empresa/tienda). */
   readonly selectedContextId = signal<string>('holding');
 
   /** Currently selected period ids (checkbox multi-select over PERIODS). */
@@ -127,13 +127,15 @@ export class SalesDataService {
 
     const ancestryMap = buildStoreAncestryMap(CONTEXT_TREE);
     const nodeMap = buildNodeMap(CONTEXT_TREE);
+    const marcaNameById = new Map(MARCAS.map((marca) => [marca.id, marca.label]));
+    const sectorNameById = new Map(SECTORES.map((sector) => [sector.id, sector.label]));
     const productNameById = new Map(PRODUCTS.map((product) => [product.id, product.name]));
 
-    // Step 1 + 2: resolve in-scope stores, narrowed by a sector/marca/local cross-filter.
+    // Step 1 + 2: resolve in-scope stores, narrowed by a sector/marca/tienda cross-filter.
     // A 'producto' cross-filter does NOT narrow the store set — it narrows facts instead (below).
     let scopedStoreIds = getDescendantLeafIds(CONTEXT_TREE, contextId);
     if (crossFilter) {
-      if (crossFilter.dimension === 'local') {
+      if (crossFilter.dimension === 'tienda') {
         scopedStoreIds = scopedStoreIds.filter((id) => id === crossFilter.id);
       } else if (crossFilter.dimension === 'sector') {
         scopedStoreIds = scopedStoreIds.filter(
@@ -183,21 +185,21 @@ export class SalesDataService {
     // Step 7: combined heatmap across all selected periods.
     const heatmap = buildHeatmapMatrix(currentFacts);
 
-    // Step 8: rankings. Sector/marca/local rankings use the store+period scope only (not
+    // Step 8: rankings. Sector/marca/tienda rankings use the store+period scope only (not
     // narrowed by a 'producto' cross-filter) so drilling into a product never empties them.
     // Productos ranking uses the fully narrowed current facts.
     const rankings: RankingSet = {
       sectores: aggregateRanking(
         scopedFacts,
         (fact) => ancestryMap.get(fact.storeId)?.sectorId ?? '',
-        (key) => nodeMap.get(key)?.label ?? key,
+        (key) => sectorNameById.get(key) ?? key,
       ),
       marcas: aggregateRanking(
         scopedFacts,
         (fact) => ancestryMap.get(fact.storeId)?.marcaId ?? '',
-        (key) => nodeMap.get(key)?.label ?? key,
+        (key) => marcaNameById.get(key) ?? key,
       ),
-      locales: aggregateRanking(
+      tiendas: aggregateRanking(
         scopedFacts,
         (fact) => fact.storeId,
         (key) => nodeMap.get(key)?.label ?? key,

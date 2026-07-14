@@ -14,7 +14,7 @@ export function getDescendantLeafIds(tree: ContextNode[], nodeId: string): strin
   if (!target) {
     return [];
   }
-  if (target.type === 'LOCAL') {
+  if (target.type === 'TIENDA') {
     return [target.id];
   }
 
@@ -32,7 +32,7 @@ export function getDescendantLeafIds(tree: ContextNode[], nodeId: string): strin
   const stack: ContextNode[] = [target];
   while (stack.length > 0) {
     const current = stack.pop()!;
-    if (current.type === 'LOCAL') {
+    if (current.type === 'TIENDA') {
       leaves.push(current.id);
       continue;
     }
@@ -42,33 +42,20 @@ export function getDescendantLeafIds(tree: ContextNode[], nodeId: string): strin
   return leaves;
 }
 
+/**
+ * Marca/Sector are horizontal tags directly on each Tienda (leaf) node, not ancestors in the
+ * containment tree -- so this just reads them off, it doesn't walk parentId links.
+ */
 export function buildStoreAncestryMap(
   tree: ContextNode[],
 ): Map<string, { sectorId: string; marcaId: string }> {
-  const nodeMap = buildNodeMap(tree);
   const result = new Map<string, { sectorId: string; marcaId: string }>();
 
   for (const node of tree) {
-    if (node.type !== 'LOCAL') {
+    if (node.type !== 'TIENDA') {
       continue;
     }
-
-    let sectorId = '';
-    let marcaId = '';
-    let current: ContextNode | undefined = node;
-    while (current && current.parentId !== null) {
-      current = nodeMap.get(current.parentId);
-      if (!current) {
-        break;
-      }
-      if (current.type === 'SECTOR') {
-        sectorId = current.id;
-      } else if (current.type === 'MARCA') {
-        marcaId = current.id;
-      }
-    }
-
-    result.set(node.id, { sectorId, marcaId });
+    result.set(node.id, { sectorId: node.sectorId ?? '', marcaId: node.marcaId ?? '' });
   }
 
   return result;

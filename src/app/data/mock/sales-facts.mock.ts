@@ -17,12 +17,12 @@ function mulberry32(seed: number): () => number {
 
 function generateSalesFacts(): SalesFact[] {
   const rng = mulberry32(20260714);
-  const localNodes = CONTEXT_TREE.filter((node) => node.type === 'LOCAL');
+  const tiendaNodes = CONTEXT_TREE.filter((node) => node.type === 'TIENDA');
   const facts: SalesFact[] = [];
   let txCounter = 0;
 
   for (const period of PERIODS) {
-    for (const local of localNodes) {
+    for (const tienda of tiendaNodes) {
       const transactionCount = 38 + Math.floor(rng() * 5); // ~40 transactions per store/period
       for (let t = 0; t < transactionCount; t++) {
         txCounter++;
@@ -41,7 +41,7 @@ function generateSalesFacts(): SalesFact[] {
           facts.push({
             transactionId,
             periodId: period.id,
-            storeId: local.id,
+            storeId: tienda.id,
             productId: product.id,
             dayOfWeek,
             hour,
@@ -59,7 +59,7 @@ function generateSalesFacts(): SalesFact[] {
     {
       transactionId: 'tx-descuento-1',
       periodId: '2026-06',
-      storeId: 'local-costanera-center',
+      storeId: 'tienda-costanera-center',
       productId: 'prod-lomo-saltado',
       dayOfWeek: 4,
       hour: 13,
@@ -69,7 +69,7 @@ function generateSalesFacts(): SalesFact[] {
     {
       transactionId: 'tx-descuento-2',
       periodId: '2026-07',
-      storeId: 'local-parque-arauco',
+      storeId: 'tienda-parque-arauco',
       productId: 'prod-coca-cola-z',
       dayOfWeek: 5,
       hour: 20,
@@ -79,7 +79,7 @@ function generateSalesFacts(): SalesFact[] {
     {
       transactionId: 'tx-descuento-3',
       periodId: '2026-05',
-      storeId: 'local-vespucio-mall',
+      storeId: 'tienda-vespucio-mall',
       productId: 'prod-filete-250',
       dayOfWeek: 1,
       hour: 19,

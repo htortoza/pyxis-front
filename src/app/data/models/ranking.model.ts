@@ -1,4 +1,4 @@
-export type RankingDimension = 'sector' | 'marca' | 'local' | 'producto';
+export type RankingDimension = 'sector' | 'marca' | 'tienda' | 'producto';
 
 export interface RankingItem {
   id: string;
@@ -10,6 +10,6 @@ export interface RankingItem {
 export interface RankingSet {
   sectores: RankingItem[];
   marcas: RankingItem[];
-  locales: RankingItem[];
+  tiendas: RankingItem[];
   productos: RankingItem[];
 }

@@ -24,11 +24,11 @@
       (itemSelected)="onSelect('marca', $event)"
     />
     <app-ranking-panel
-      title="Locales"
-      [items]="salesData.rankings().locales"
-      dimension="local"
-      [activeId]="activeIdFor('local')"
-      (itemSelected)="onSelect('local', $event)"
+      title="Tiendas"
+      [items]="salesData.rankings().tiendas"
+      dimension="tienda"
+      [activeId]="activeIdFor('tienda')"
+      (itemSelected)="onSelect('tienda', $event)"
     />
     <app-ranking-panel
       title="Productos"
