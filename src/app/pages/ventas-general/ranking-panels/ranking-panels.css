@@ -1,5 +1,12 @@
 :host { display: block; }
 
+.rankings-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--p-text-color);
+  margin: 0 0 1rem;
+}
+
 .rankings-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
