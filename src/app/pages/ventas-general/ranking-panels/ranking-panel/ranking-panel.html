@@ -15,7 +15,10 @@
 
   <div class="ranking-list">
     @if (items().length === 0) {
-      <p class="ranking-empty">Sin datos para el filtro actual.</p>
+      <div class="ranking-empty">
+        <img class="ranking-empty-icon" src="constellation-icon.svg" alt="" />
+        <p class="ranking-empty-text">Sin datos para el filtro actual.</p>
+      </div>
     } @else {
       @for (item of visibleItems(); track item.id) {
         <button

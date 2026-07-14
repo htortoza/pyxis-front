@@ -5,6 +5,11 @@
   z-index: 10;
 }
 
+.header-accent {
+  height: 3px;
+  background: var(--aurora-gradient);
+}
+
 .global-header-toolbar {
   display: block;
   border: none;

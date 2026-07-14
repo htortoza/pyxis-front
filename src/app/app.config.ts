@@ -2,9 +2,34 @@ import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZonelessC
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { providePrimeNG } from 'primeng/config';
+import { definePreset } from '@primeuix/themes';
 import Aura from '@primeuix/themes/aura';
 
 import { routes } from './app.routes';
+
+/**
+ * Monochromatic violet primary scale matching the Pyxis logo's dominant hue
+ * (the logo's gradient runs violet #8400c8 -> blue #0271ed; this scale stays
+ * within the violet family rather than spanning both, per the brand direction:
+ * one disciplined hue for UI color, the full gradient reserved for accent use).
+ */
+const PyxisPreset = definePreset(Aura, {
+  semantic: {
+    primary: {
+      50: '{violet.50}',
+      100: '{violet.100}',
+      200: '{violet.200}',
+      300: '{violet.300}',
+      400: '{violet.400}',
+      500: '{violet.500}',
+      600: '{violet.600}',
+      700: '{violet.700}',
+      800: '{violet.800}',
+      900: '{violet.900}',
+      950: '{violet.950}',
+    },
+  },
+});
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -12,6 +37,6 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     provideRouter(routes, withComponentInputBinding()),
     provideAnimationsAsync(),
-    providePrimeNG({ theme: { preset: Aura, options: { darkModeSelector: false } } })
+    providePrimeNG({ theme: { preset: PyxisPreset, options: { darkModeSelector: false } } })
   ]
 };
