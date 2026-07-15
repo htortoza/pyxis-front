@@ -1,5 +1,5 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core';
-import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { providePrimeNG } from 'primeng/config';
 import { definePreset } from '@primeuix/themes';
@@ -84,7 +84,17 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
-    provideRouter(routes, withComponentInputBinding()),
+    // Ventas General and Detalle de Ventas have different content heights -- without this,
+    // the Angular Router keeps whatever scroll position the previous page was at, so
+    // navigating from a scrolled-down Detalle de Ventas to a shorter Ventas General (or
+    // vice versa) looks "broken" (content appears cut off/misplaced) even though the
+    // layout itself is correct. A hard refresh always starts at scrollY 0, which is why
+    // it "looks fine" -- this makes SPA navigation reset scroll the same way.
+    provideRouter(
+      routes,
+      withComponentInputBinding(),
+      withInMemoryScrolling({ scrollPositionRestoration: 'top', anchorScrolling: 'enabled' }),
+    ),
     provideAnimationsAsync(),
     providePrimeNG({ theme: { preset: PyxisPreset, options: { darkModeSelector: false } } })
   ]
