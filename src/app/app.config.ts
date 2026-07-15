@@ -8,25 +8,26 @@ import Aura from '@primeuix/themes/aura';
 import { routes } from './app.routes';
 
 /**
- * Monochromatic indigo primary scale matching the Pyxis logo's dominant hue
- * (the logo's gradient runs violet #8400c8 -> blue #0271ed; indigo sits between
- * the two and leans blue, closer to the gradient's end than plain violet does).
- * One disciplined hue for UI color, the full gradient reserved for accent use.
+ * Primary scale built from the Pyxis logo's own 3 gradient stops (Logo/SVG/icono-color
+ * copia.svg: violet #8400c8 -> indigo #2010c0 -> blue #0271ed), not a generic Tailwind/Aura
+ * hue import. 500/700/900 are the exact brand hexes (blue/indigo/violet respectively);
+ * everything else is a computed white-tint (50-400) or black-shade (950) of that same trio,
+ * so every step in the ramp is either a real brand color or a direct mix of two real ones.
  */
 const PyxisPreset = definePreset(Aura, {
   semantic: {
     primary: {
-      50: '{indigo.50}',
-      100: '{indigo.100}',
-      200: '{indigo.200}',
-      300: '{indigo.300}',
-      400: '{indigo.400}',
-      500: '{indigo.500}',
-      600: '{indigo.600}',
-      700: '{indigo.700}',
-      800: '{indigo.800}',
-      900: '{indigo.900}',
-      950: '{indigo.950}',
+      50: '#e6f1fd',
+      100: '#c0dcfb',
+      200: '#8dbff7',
+      300: '#5ba3f3',
+      400: '#2886f0',
+      500: '#0271ed', // logo blue
+      600: '#0c51de',
+      700: '#2010c0', // logo indigo
+      800: '#5208c4',
+      900: '#8400c8', // logo violet
+      950: '#560082',
     },
   },
   components: {
