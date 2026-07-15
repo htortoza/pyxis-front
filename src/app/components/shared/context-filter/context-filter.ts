@@ -223,7 +223,21 @@ export class ContextFilterComponent {
   }
 
   toggleCheckbox(nodeId: string): void {
+    const wasChecked = this.checkedIds().has(nodeId);
     this.checkedIds.set(toggleNode(this.filterTree, nodeId, this.checkedIds()));
+
+    // Checking (not unchecking) a Sector/Marca also navigates into it, so its children show
+    // up in the next column right away -- a convenience on top of the separate navigate-by-
+    // clicking-the-row-body gesture, which still works independently for browsing without selecting.
+    if (wasChecked) {
+      return;
+    }
+    const node = this.nodeById.get(nodeId);
+    if (node?.type === 'sector') {
+      this.navigateToSector(node);
+    } else if (node?.type === 'marca') {
+      this.navigateToMarca(node);
+    }
   }
 
   /** Leaf(tienda)-count ratio for a Sector/Marca row's descendant badge -- a real leaf tally, not a mixed-state count. */
