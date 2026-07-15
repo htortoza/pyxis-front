@@ -6,6 +6,28 @@ import { formatSignedAmount } from '../../../../pipes/signed-amount';
 /** index 0 = Sunday, matching the standard `Date.getDay()` convention used by `SalesFact.dayOfWeek`. */
 const DAY_LABELS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
+/** Cells are small (a couple rem across) -- a compact "45K" fits, a full "$45.291" doesn't. */
+const COMPACT_FORMATTER = new Intl.NumberFormat('es-CL', { notation: 'compact', maximumFractionDigits: 1 });
+
+/** Above this intensity the red background is saturated enough that dark text stops
+ * being readable -- switches the cell to light text instead. */
+const LIGHT_TEXT_INTENSITY_THRESHOLD = 0.45;
+
+/**
+ * Aura's red.600 (`--p-red-600`), as raw RGB -- needed here (not just the CSS var) because
+ * the cell's background alpha must vary independently of its text, which stays fully
+ * opaque. Baking the alpha into an rgba() string does that; the CSS `opacity` property
+ * would fade the number along with the background. Same accepted "hardcoded hex" exception
+ * as hourly-bar-chart.ts's Chart.js palette, for the same reason (need a literal color a
+ * charting/inline-style context can compute with, not a token reference).
+ */
+const HEAT_COLOR_RGB = '220, 38, 38';
+
+function heatBackground(intensity: number): string {
+  const alpha = 0.12 + intensity * 0.88;
+  return `rgba(${HEAT_COLOR_RGB}, ${alpha.toFixed(2)})`;
+}
+
 interface HeatmapColumnHeader {
   hourIndex: number;
   label: string;
@@ -18,6 +40,9 @@ interface HeatmapCell {
   amount: number;
   intensity: number;
   formattedAmount: string;
+  formattedAmountCompact: string;
+  background: string;
+  useLightText: boolean;
   tooltip: string;
 }
 
@@ -61,12 +86,16 @@ export class SalesHeatmapComponent {
         cells: rowAmounts.map((amount, hourIndex) => {
           const hourLabel = this.hourLabels[hourIndex];
           const formattedAmount = formatSignedAmount(amount).text;
+          const intensity = amount / max;
           return {
             dayLabel,
             hourLabel,
             amount,
-            intensity: amount / max,
+            intensity,
             formattedAmount,
+            formattedAmountCompact: amount === 0 ? '' : COMPACT_FORMATTER.format(amount),
+            background: heatBackground(intensity),
+            useLightText: intensity > LIGHT_TEXT_INTENSITY_THRESHOLD,
             tooltip: `${dayLabel} ${hourLabel}: ${formattedAmount}`,
           };
         }),

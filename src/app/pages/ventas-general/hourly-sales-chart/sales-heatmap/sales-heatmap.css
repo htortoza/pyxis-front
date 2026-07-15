@@ -31,19 +31,35 @@
   color: var(--p-text-color);
 }
 
+/* background-color comes from an inline style per cell (see sales-heatmap.ts) so alpha can
+   vary independently of the number's own opacity -- this is just the legend swatches'
+   fallback (they still fade via the CSS `opacity` property, which is fine since they have
+   no text inside). */
 .heat-cell {
-  background: var(--p-primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--p-red-600);
   border-radius: 3px;
   aspect-ratio: 1 / 1;
   min-height: 1.25rem;
   cursor: pointer;
+  font-size: 0.5625rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--p-red-950);
+  overflow: hidden;
   transition: transform 0.15s ease, outline 0.15s ease;
+}
+
+.heat-cell--light-text {
+  color: var(--p-red-50);
 }
 
 .heat-cell:hover {
   transform: scale(1.15);
-  outline: 2px solid var(--p-primary-color);
+  outline: 2px solid var(--p-red-600);
   outline-offset: 1px;
+  z-index: 1;
 }
 
 .heatmap-legend {
