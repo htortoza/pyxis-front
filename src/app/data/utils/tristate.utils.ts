@@ -1,12 +1,19 @@
 /**
- * Generic tristate checkbox tree algorithm -- ported from the "Propagación Hacia Abajo" spec.
- * Operates on any flat, parentId-linked tree shape (TristateNode), not tied to any domain model,
- * so it's reusable for the Sector/Marca/Tienda filter tree or anything else tree-shaped.
+ * Generic checkbox tree algorithm for the Sector/Marca/Tienda filter (or anything else
+ * tree-shaped -- operates on any flat, parentId-linked TristateNode[], not a domain model).
  *
- * Deviation from a naive port: upward state (parents becoming checked/indeterminate) is never
- * stored -- `checkedIds` is the single source of truth (only ever holds directly-toggled leaf
- * and ancestor ids from downward propagation), and `computeSelectionStates` derives every node's
- * display state fresh on demand. No separate excluded/indeterminate id arrays to keep in sync.
+ * Per an explicit product decision, checking a node does NOT tick its descendants' checkboxes --
+ * clicking a Sector's checkbox only checks that Sector itself (navigation into it, i.e. which
+ * Marcas/Tiendas are *shown* in the next column, is a separate concern entirely -- see
+ * ContextFilterComponent.toggleCheckbox). `checkedIds` therefore only ever holds exactly the
+ * node ids the user explicitly toggled, never anything added by cascading.
+ *
+ * What still cascades: an explicit check on a branch means everything under it is "in scope"
+ * for the actual applied filter (getEffectiveLeafIds expands a checked branch to all its
+ * descendant leaves) -- only the visual checkbox state of the descendants doesn't change.
+ * A branch's own displayed state also still derives from its children when the branch itself
+ * hasn't been explicitly checked (so manually checking individual leaves still surfaces
+ * indeterminate/checked on their ancestors, same as before).
  */
 
 export interface TristateNode {
@@ -47,27 +54,21 @@ export function getDescendantIds(tree: TristateNode[], nodeId: string): string[]
   return result;
 }
 
+/**
+ * Toggles exactly `nodeId` -- no cascading in either direction. Checking a Sector checks only
+ * that Sector; any Marcas/Tiendas individually checked before or after are entirely independent.
+ */
 export function toggleNode(
   tree: TristateNode[],
   nodeId: string,
   checkedIds: ReadonlySet<string>,
 ): Set<string> {
   const next = new Set(checkedIds);
-  const descendantIds = getDescendantIds(tree, nodeId);
-  const isCurrentlyChecked = checkedIds.has(nodeId);
-
-  if (isCurrentlyChecked) {
+  if (next.has(nodeId)) {
     next.delete(nodeId);
-    for (const id of descendantIds) {
-      next.delete(id);
-    }
   } else {
     next.add(nodeId);
-    for (const id of descendantIds) {
-      next.add(id);
-    }
   }
-
   return next;
 }
 
@@ -86,11 +87,18 @@ export function computeSelectionStates(
       return cached;
     }
 
+    // An explicit check always wins, leaf or branch -- a checked Sector displays as solidly
+    // checked even though its Marcas/Tiendas were never individually ticked (see file header).
+    if (checkedIds.has(node.id)) {
+      states.set(node.id, 'checked');
+      return 'checked';
+    }
+
     const children = childrenByParent.get(node.id) ?? [];
     let state: SelectionState;
 
     if (children.length === 0) {
-      state = checkedIds.has(node.id) ? 'checked' : 'unchecked';
+      state = 'unchecked';
     } else {
       const childStates = children.map(resolve);
       const allChecked = childStates.every((s) => s === 'checked');
@@ -109,13 +117,37 @@ export function computeSelectionStates(
   return states;
 }
 
+/**
+ * The actual filtering scope: for every explicitly checked node, either itself (if it's a leaf)
+ * or all of its descendant leaves (if it's a branch) -- since checking a branch no longer ticks
+ * its children's own checkboxes, this is what restores "checking a Sector scopes to everything
+ * under it" for the applied filter, independent of what's visually shown as checked.
+ */
 export function getEffectiveLeafIds(tree: TristateNode[], checkedIds: ReadonlySet<string>): string[] {
   const parentIds = new Set(
     tree.filter((node) => node.parentId !== null).map((node) => node.parentId as string),
   );
   const isLeaf = (node: TristateNode) => !parentIds.has(node.id);
+  const nodeById = new Map(tree.map((node) => [node.id, node]));
 
-  return tree.filter((node) => isLeaf(node) && checkedIds.has(node.id)).map((node) => node.id);
+  const result = new Set<string>();
+  for (const id of checkedIds) {
+    const node = nodeById.get(id);
+    if (!node) {
+      continue;
+    }
+    if (isLeaf(node)) {
+      result.add(id);
+      continue;
+    }
+    for (const descendantId of getDescendantIds(tree, id)) {
+      const descendant = nodeById.get(descendantId);
+      if (descendant && isLeaf(descendant)) {
+        result.add(descendantId);
+      }
+    }
+  }
+  return [...result];
 }
 
 /**

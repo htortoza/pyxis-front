@@ -240,13 +240,18 @@ export class ContextFilterComponent {
     }
   }
 
-  /** Leaf(tienda)-count ratio for a Sector/Marca row's descendant badge -- a real leaf tally, not a mixed-state count. */
+  /**
+   * Leaf(tienda)-count ratio for a Sector/Marca row's descendant badge. Counts *effective*
+   * coverage (getEffectiveLeafIds), not raw checkbox state -- checking a Sector no longer ticks
+   * its Tiendas' own checkboxes, but they ARE all in scope for the applied filter, and the badge
+   * should say so (otherwise a checked Sector would misleadingly show "0/12").
+   */
   descendantBadge(nodeId: string): { checked: number; total: number } {
-    const states = this.selectionStates();
+    const effective = new Set(getEffectiveLeafIds(this.filterTree, this.checkedIds()));
     const leafIds = getDescendantIds(this.filterTree, nodeId).filter(
       (id) => this.nodeById.get(id)?.type === 'tienda',
     );
-    const checked = leafIds.filter((id) => states.get(id) === 'checked').length;
+    const checked = leafIds.filter((id) => effective.has(id)).length;
     return { checked, total: leafIds.length };
   }
 
