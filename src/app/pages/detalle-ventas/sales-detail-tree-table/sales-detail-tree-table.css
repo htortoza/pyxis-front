@@ -1,0 +1,54 @@
+:host {
+  display: block;
+}
+
+.detail-tree-search {
+  display: block;
+  max-width: 22rem;
+  margin-bottom: 1rem;
+}
+
+.detail-tree-table {
+  display: block;
+}
+
+.detail-tree-label-col {
+  min-width: 16rem;
+  text-align: left;
+}
+
+.detail-tree-amount-col {
+  min-width: 9rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.detail-tree-row--familia .detail-tree-label-text {
+  font-weight: 700;
+}
+
+.detail-tree-row--subfamilia .detail-tree-label-text {
+  font-weight: 600;
+}
+
+.detail-tree-row--descuentos .detail-tree-label-text {
+  font-style: italic;
+  color: var(--p-text-muted-color);
+}
+
+.detail-tree-label-text mark {
+  background: var(--p-yellow-200);
+  color: inherit;
+  border-radius: 2px;
+}
+
+.amount-negative {
+  color: var(--p-red-500);
+}
+
+.detail-tree-empty {
+  text-align: center;
+  color: var(--p-text-muted-color);
+  padding: 1.5rem 0.75rem;
+}

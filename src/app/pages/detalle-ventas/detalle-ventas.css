@@ -1,0 +1,17 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background: var(--p-surface-50);
+}
+
+.page-body {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.detalle-ventas-filters {
+  display: flex;
+}

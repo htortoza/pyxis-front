@@ -1,0 +1,68 @@
+<p-iconfield class="detail-tree-search">
+  <p-inputicon>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"></circle>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    </svg>
+  </p-inputicon>
+  <input
+    pInputText
+    type="text"
+    placeholder="Buscar familia, subfamilia o artículo..."
+    [ngModel]="searchRaw()"
+    (ngModelChange)="searchRaw.set($event)"
+  />
+</p-iconfield>
+
+<p-treeTable
+  class="detail-tree-table"
+  [value]="displayTree()"
+  [columns]="columns()"
+  [scrollable]="true"
+  scrollHeight="600px"
+>
+  <ng-template pTemplate="header" let-columns>
+    <tr>
+      <th class="detail-tree-label-col">Familia / Artículo</th>
+      @for (col of columns; track col.field) {
+        <th class="detail-tree-amount-col">{{ col.header }}</th>
+      }
+    </tr>
+  </ng-template>
+
+  <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="columns">
+    <tr
+      [ttRow]="rowNode"
+      class="detail-tree-row"
+      [class.detail-tree-row--familia]="rowData.level === 'familia'"
+      [class.detail-tree-row--subfamilia]="rowData.level === 'subfamilia'"
+      [class.detail-tree-row--descuentos]="rowData.level === 'descuentos'"
+    >
+      <td class="detail-tree-label-col">
+        <p-treeTableToggler [rowNode]="rowNode" />
+        @if (highlight(rowData.label); as h) {
+          <span class="detail-tree-label-text">{{ h.before }}<mark>{{ h.match }}</mark>{{ h.after }}</span>
+        } @else {
+          <span class="detail-tree-label-text">{{ rowData.label }}</span>
+        }
+      </td>
+      @for (col of columns; track col.field) {
+        @if (col.kind === 'total') {
+          <td class="detail-tree-amount-col" [class.amount-negative]="isNegativeAmount(cellValue(rowData, col))">
+            {{ cellValue(rowData, col) | signedAmount }}
+          </td>
+        } @else {
+          <td class="detail-tree-amount-col">{{ formatQuantity(cellValue(rowData, col)) }}</td>
+        }
+      }
+    </tr>
+  </ng-template>
+
+  <ng-template pTemplate="emptymessage">
+    <tr>
+      <td [attr.colspan]="columns().length + 1" class="detail-tree-empty">
+        Sin datos para el filtro actual.
+      </td>
+    </tr>
+  </ng-template>
+</p-treeTable>

@@ -3,6 +3,14 @@
   <ng-template pTemplate="start">
     <div class="global-header-start">
       <img class="app-logo" src="logo.svg" alt="Pyxis" />
+      <nav class="global-header-nav">
+        <a routerLink="/" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }" class="global-header-nav-link">
+          Ventas General
+        </a>
+        <a routerLink="/detalle-ventas" routerLinkActive="is-active" class="global-header-nav-link">
+          Detalle de Ventas
+        </a>
+      </nav>
       <app-context-selector
         [treeNodes]="salesData.treeNodes()"
         [selectedId]="salesData.selectedContextId()"
@@ -13,11 +21,7 @@
 
   <ng-template pTemplate="end">
     <div class="global-header-end">
-      <app-period-selector
-        [periods]="salesData.periods"
-        [selectedIds]="salesData.selectedPeriodIds()"
-        (selectionChanged)="salesData.selectedPeriodIds.set($event)"
-      />
+      <app-period-picker />
 
       @if (salesData.hasActiveFilter()) {
         <p-button

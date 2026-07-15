@@ -53,6 +53,12 @@ export class SalesDataService {
   /** Active drill-down cross-filter coming from a ranking row click, if any. */
   readonly crossFilter = signal<CrossFilter | null>(null);
 
+  /** Detalle de Ventas' own Sector/Marca/Tienda filter -- null means unfiltered. Never read by Ventas General. */
+  readonly detalleContextFilter = signal<string[] | null>(null);
+
+  /** Whether KPI/comparison UI should show the vs-previous-period delta. Defaults to on (matches current always-on behavior). */
+  readonly compareToPrevious = signal<boolean>(true);
+
   /** Static reference data for the header / context-selector component. */
   readonly contextTree: ContextNode[] = CONTEXT_TREE;
   readonly periods: Period[] = PERIODS;
@@ -68,7 +74,12 @@ export class SalesDataService {
       currentPeriods.size !== defaultPeriods.size ||
       [...currentPeriods].some((id) => !defaultPeriods.has(id));
 
-    return contextChanged || periodsChanged || this.crossFilter() !== null;
+    return (
+      contextChanged ||
+      periodsChanged ||
+      this.crossFilter() !== null ||
+      this.detalleContextFilter() !== null
+    );
   });
 
   /** Serialized snapshot of the filter state — recomputing this triggers the loading pipeline. */
@@ -118,6 +129,11 @@ export class SalesDataService {
     this.selectedContextId.set('holding');
     this.selectedPeriodIds.set([...DEFAULT_SELECTED_PERIOD_IDS]);
     this.crossFilter.set(null);
+    this.detalleContextFilter.set(null);
+  }
+
+  setDetalleContextFilter(tiendaIds: string[] | null): void {
+    this.detalleContextFilter.set(tiendaIds);
   }
 
   private computeDashboardData(): DashboardData {

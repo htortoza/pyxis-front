@@ -1,8 +1,50 @@
 :host { display: block; }
 
-.period-selector-list {
+.period-picker-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.125rem;
+  width: 22rem;
+}
+
+.period-picker-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.period-picker-section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--p-text-muted-color);
+}
+
+.period-picker-preset-list {
   display: flex;
   flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.period-picker-year-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.period-picker-year-label {
+  min-width: 3.5rem;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--p-text-color);
+}
+
+.period-picker-month-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 0.5rem;
 }
 
@@ -10,13 +52,14 @@
   position: relative;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.375rem;
-  padding: 0.375rem 0.875rem;
+  padding: 0.375rem 0.75rem;
   border-radius: 999px;
   border: 1px solid var(--p-content-border-color);
   background: var(--p-surface-0);
   color: var(--p-text-color);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   line-height: 1.4;
   cursor: pointer;
@@ -69,4 +112,24 @@
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+.period-picker-compare {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.25rem;
+  border-top: 1px solid var(--p-content-border-color);
+}
+
+.period-picker-compare-label {
+  font-size: 0.875rem;
+  color: var(--p-text-color);
+  cursor: pointer;
+}
+
+.period-picker-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
 }

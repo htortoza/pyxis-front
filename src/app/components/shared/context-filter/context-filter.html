@@ -1,0 +1,324 @@
+<p-button
+  class="context-filter-trigger"
+  [label]="triggerLabel()"
+  severity="secondary"
+  [outlined]="true"
+  (onClick)="op.toggle($event)"
+>
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+  </svg>
+</p-button>
+
+<p-popover #op (onShow)="onPopoverShow()">
+  <div class="context-filter-panel">
+    <p-iconfield class="context-filter-global-search">
+      <p-inputicon>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </p-inputicon>
+      <input
+        pInputText
+        type="text"
+        placeholder="Buscar sector, marca o tienda..."
+        [ngModel]="globalSearch.raw()"
+        (ngModelChange)="globalSearch.raw.set($event)"
+      />
+    </p-iconfield>
+
+    @if (globalSearch.debounced().length > 0) {
+      <div class="context-filter-global-results">
+        @if (globalResults().length === 0) {
+          <p class="context-filter-empty">Sin resultados</p>
+        } @else {
+          @for (result of globalResults(); track result.id) {
+            <button type="button" class="context-filter-global-result" (click)="navigateToResult(result)">
+              <span class="context-filter-result-path">{{ pathFor(result) }}</span>
+            </button>
+          }
+        }
+      </div>
+    }
+
+    <div class="context-filter-breadcrumb">
+      <button type="button" class="context-filter-breadcrumb-item" (click)="resetToAllSectors()">
+        Todos los sectores
+      </button>
+      @if (breadcrumbSectorLabel(); as sectorLabel) {
+        <span class="context-filter-breadcrumb-sep">›</span>
+        <button type="button" class="context-filter-breadcrumb-item" (click)="resetToSector()">
+          {{ sectorLabel }}
+        </button>
+      }
+      @if (breadcrumbMarcaLabel(); as marcaLabel) {
+        <span class="context-filter-breadcrumb-sep">›</span>
+        <span class="context-filter-breadcrumb-item is-current">{{ marcaLabel }}</span>
+      }
+    </div>
+
+    <div class="context-filter-columns">
+      <div class="context-filter-column">
+        <span class="context-filter-column-title">Sectores</span>
+        <p-iconfield class="context-filter-column-search">
+          <p-inputicon>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </p-inputicon>
+          <input
+            pInputText
+            type="text"
+            placeholder="Buscar sector..."
+            [ngModel]="sectorSearch.raw()"
+            (ngModelChange)="sectorSearch.raw.set($event)"
+          />
+        </p-iconfield>
+        <div class="context-filter-column-list">
+          @for (node of sectorRows(); track node.id) {
+            <div class="context-filter-row">
+              <p-checkbox
+                [binary]="true"
+                [ngModel]="isChecked(node.id)"
+                [indeterminate]="isIndeterminate(node.id)"
+                (onChange)="toggleCheckbox(node.id)"
+              />
+              <button
+                type="button"
+                class="context-filter-row-label"
+                [class.is-active]="navSectorId() === node.id"
+                (click)="navigateToSector(node)"
+              >
+                @if (highlight(node.label, sectorSearch.debounced()); as h) {
+                  <span class="context-filter-row-text">{{ h.before }}<mark>{{ h.match }}</mark>{{ h.after }}</span>
+                } @else {
+                  <span class="context-filter-row-text">{{ node.label }}</span>
+                }
+                <span class="context-filter-row-badge">{{ descendantBadge(node.id).checked }}/{{ descendantBadge(node.id).total }}</span>
+              </button>
+            </div>
+          } @empty {
+            <p class="context-filter-empty">Sin resultados</p>
+          }
+        </div>
+      </div>
+
+      <div class="context-filter-column">
+        <span class="context-filter-column-title">Marcas</span>
+        <p-iconfield class="context-filter-column-search">
+          <p-inputicon>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </p-inputicon>
+          <input
+            pInputText
+            type="text"
+            placeholder="Buscar marca..."
+            [disabled]="!navSectorId()"
+            [ngModel]="marcaSearch.raw()"
+            (ngModelChange)="marcaSearch.raw.set($event)"
+          />
+        </p-iconfield>
+        <div class="context-filter-column-list">
+          @if (!navSectorId()) {
+            <p class="context-filter-empty">Selecciona un sector</p>
+          } @else {
+            @for (node of marcaRows(); track node.id) {
+              <div class="context-filter-row">
+                <p-checkbox
+                  [binary]="true"
+                  [ngModel]="isChecked(node.id)"
+                  [indeterminate]="isIndeterminate(node.id)"
+                  (onChange)="toggleCheckbox(node.id)"
+                />
+                <button
+                  type="button"
+                  class="context-filter-row-label"
+                  [class.is-active]="navMarcaId() === node.id"
+                  (click)="navigateToMarca(node)"
+                >
+                  @if (highlight(node.label, marcaSearch.debounced()); as h) {
+                    <span class="context-filter-row-text">{{ h.before }}<mark>{{ h.match }}</mark>{{ h.after }}</span>
+                  } @else {
+                    <span class="context-filter-row-text">{{ node.label }}</span>
+                  }
+                  <span class="context-filter-row-badge">{{ descendantBadge(node.id).checked }}/{{ descendantBadge(node.id).total }}</span>
+                </button>
+              </div>
+            } @empty {
+              <p class="context-filter-empty">Sin resultados</p>
+            }
+          }
+        </div>
+      </div>
+
+      <div class="context-filter-column">
+        <span class="context-filter-column-title">Tiendas</span>
+        <p-iconfield class="context-filter-column-search">
+          <p-inputicon>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </p-inputicon>
+          <input
+            pInputText
+            type="text"
+            placeholder="Buscar tienda..."
+            [disabled]="!navMarcaId()"
+            [ngModel]="tiendaSearch.raw()"
+            (ngModelChange)="tiendaSearch.raw.set($event)"
+          />
+        </p-iconfield>
+        <div class="context-filter-column-list">
+          @if (!navMarcaId()) {
+            <p class="context-filter-empty">Selecciona una marca</p>
+          } @else {
+            @for (node of tiendaRows(); track node.id) {
+              <div class="context-filter-row">
+                <p-checkbox
+                  [binary]="true"
+                  [ngModel]="isChecked(node.id)"
+                  [indeterminate]="isIndeterminate(node.id)"
+                  (onChange)="toggleCheckbox(node.id)"
+                />
+                <span class="context-filter-row-label context-filter-row-label--static">
+                  @if (highlight(node.label, tiendaSearch.debounced()); as h) {
+                    <span class="context-filter-row-text">{{ h.before }}<mark>{{ h.match }}</mark>{{ h.after }}</span>
+                  } @else {
+                    <span class="context-filter-row-text">{{ node.label }}</span>
+                  }
+                </span>
+              </div>
+            } @empty {
+              <p class="context-filter-empty">Sin resultados</p>
+            }
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="context-filter-summary">{{ summaryText() }}</div>
+
+    <div class="context-filter-saved-views">
+      <div class="context-filter-saved-views-header">
+        <span class="context-filter-column-title">Vistas Guardadas</span>
+        <p-button
+          label="Guardar vista actual"
+          size="small"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="!canSaveCurrent()"
+          (onClick)="openSaveForm()"
+        />
+      </div>
+
+      @if (showSaveForm()) {
+        <div class="context-filter-save-form">
+          <input
+            pInputText
+            type="text"
+            placeholder="Nombre de la vista"
+            [ngModel]="saveLabel()"
+            (ngModelChange)="saveLabel.set($event)"
+          />
+          <div class="context-filter-save-scope">
+            <p-button label="Personal" size="small" [outlined]="saveScope() !== 'personal'" (onClick)="saveScope.set('personal')" />
+            @if (savedViews.canCreateTeamViews()) {
+              <p-button label="Equipo" size="small" [outlined]="saveScope() !== 'equipo'" (onClick)="saveScope.set('equipo')" />
+            }
+          </div>
+          <div class="context-filter-save-actions">
+            <p-button label="Cancelar" severity="secondary" [text]="true" size="small" (onClick)="cancelSaveForm()" />
+            <p-button label="Guardar" size="small" (onClick)="confirmSave()" />
+          </div>
+        </div>
+      }
+
+      @if (warningMessage(); as warning) {
+        <p-message severity="warn" [closable]="true" (onClose)="dismissWarning()">{{ warning }}</p-message>
+      }
+
+      <p-iconfield class="context-filter-saved-views-search">
+        <p-inputicon>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </p-inputicon>
+        <input
+          pInputText
+          type="text"
+          placeholder="Buscar vistas..."
+          [ngModel]="savedViewsSearch.raw()"
+          (ngModelChange)="savedViewsSearch.raw.set($event)"
+        />
+      </p-iconfield>
+
+      <div class="context-filter-saved-views-list">
+        @for (view of filteredSavedViews(); track view.id) {
+          <div class="context-filter-saved-view-row">
+            @if (editingViewId() === view.id) {
+              <input
+                pInputText
+                type="text"
+                class="context-filter-saved-view-rename-input"
+                [ngModel]="renameDraft()"
+                (ngModelChange)="renameDraft.set($event)"
+                (keydown.enter)="confirmRename(view.id)"
+                (keydown.escape)="cancelRename()"
+              />
+              <p-button [text]="true" size="small" ariaLabel="Confirmar" (onClick)="confirmRename(view.id)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </p-button>
+            } @else {
+              <button type="button" class="context-filter-saved-view-label" (click)="onApplyView(view.id)">
+                <span class="context-filter-saved-view-name">{{ view.label }}</span>
+                @if (view.scope === 'equipo') {
+                  <span class="context-filter-saved-view-owner">· de {{ view.ownerName }}</span>
+                }
+              </button>
+
+              <div class="context-filter-saved-view-actions">
+                @if (canEditOrDeleteView(view)) {
+                  <p-button [text]="true" size="small" ariaLabel="Renombrar" (onClick)="startRename(view)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4Z"></path>
+                    </svg>
+                  </p-button>
+                  <p-button [text]="true" size="small" severity="danger" ariaLabel="Eliminar" (onClick)="onDeleteView(view.id)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                  </p-button>
+                } @else {
+                  <p-button [text]="true" size="small" ariaLabel="Duplicar" (onClick)="onDuplicateView(view)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                  </p-button>
+                }
+              </div>
+            }
+          </div>
+        } @empty {
+          <p class="context-filter-empty">Sin vistas guardadas</p>
+        }
+      </div>
+    </div>
+
+    <div class="context-filter-actions">
+      <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="cancel(op)" />
+      <p-button label="Aplicar" (onClick)="apply(op)" />
+    </div>
+  </div>
+</p-popover>

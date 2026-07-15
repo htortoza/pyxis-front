@@ -1,0 +1,84 @@
+<p-button
+  class="period-picker-trigger"
+  [label]="summaryLabel()"
+  severity="secondary"
+  [outlined]="true"
+  (onClick)="op.toggle($event)"
+>
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+    <line x1="16" y1="2" x2="16" y2="6"></line>
+    <line x1="8" y1="2" x2="8" y2="6"></line>
+    <line x1="3" y1="10" x2="21" y2="10"></line>
+  </svg>
+</p-button>
+
+<p-popover #op (onShow)="onPopoverShow()">
+  <div class="period-picker-panel">
+    <div class="period-picker-section">
+      <span class="period-picker-section-label">Accesos Rápidos</span>
+      <div class="period-picker-preset-list">
+        @for (preset of presets; track preset.key) {
+          <p-button
+            [label]="preset.label"
+            size="small"
+            severity="secondary"
+            [outlined]="true"
+            (onClick)="applyPreset(preset)"
+          />
+        }
+      </div>
+    </div>
+
+    <div class="period-picker-section">
+      <div class="period-picker-year-nav">
+        <p-button severity="secondary" [text]="true" [rounded]="true" [disabled]="!canGoPrevYear()" (onClick)="goPrevYear()" ariaLabel="Año anterior">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </p-button>
+        <span class="period-picker-year-label">{{ viewedYear() }}</span>
+        <p-button severity="secondary" [text]="true" [rounded]="true" [disabled]="!canGoNextYear()" (onClick)="goNextYear()" ariaLabel="Año siguiente">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </p-button>
+      </div>
+
+      <div class="period-picker-month-grid">
+        @for (period of viewedYearPeriods(); track period.id) {
+          <label class="period-chip" [class.is-active]="isDraftSelected(period.id)">
+            <p-checkbox
+              class="period-chip-input"
+              [binary]="true"
+              [ngModel]="isDraftSelected(period.id)"
+              (onChange)="toggleDraftPeriod(period.id)"
+            />
+            @if (isDraftSelected(period.id)) {
+              <svg class="period-chip-check" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            }
+            <span class="period-chip-label">{{ period.label }}</span>
+          </label>
+        }
+      </div>
+    </div>
+
+    <div class="period-picker-section period-picker-compare">
+      <label class="period-picker-compare-label" for="period-picker-compare-toggle">
+        Comparar contra periodo anterior
+      </label>
+      <p-toggleswitch
+        inputId="period-picker-compare-toggle"
+        [ngModel]="draftCompare()"
+        (onChange)="draftCompare.set($event.checked)"
+      />
+    </div>
+
+    <div class="period-picker-actions">
+      <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="cancel(op)" />
+      <p-button label="Aplicar" (onClick)="apply(op)" />
+    </div>
+  </div>
+</p-popover>

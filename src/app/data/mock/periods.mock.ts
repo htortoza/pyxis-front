@@ -1,12 +1,41 @@
 import type { Period } from '../models/period.model';
 
-export const PERIODS: Period[] = [
-  { id: '2026-02', label: 'Febrero', order: 2 },
-  { id: '2026-03', label: 'Marzo',   order: 3 },
-  { id: '2026-04', label: 'Abril',   order: 4 },
-  { id: '2026-05', label: 'Mayo',    order: 5 },
-  { id: '2026-06', label: 'Junio',   order: 6 },
-  { id: '2026-07', label: 'Julio',   order: 7 },
+/** Fully static/deterministic -- no Date.now()/new Date() here, hardcode the loop bounds. */
+const START_YEAR = 2024;
+const END_YEAR = 2026;
+
+const MONTH_LABELS_ES = [
+  'Enero',
+  'Febrero',
+  'Marzo',
+  'Abril',
+  'Mayo',
+  'Junio',
+  'Julio',
+  'Agosto',
+  'Septiembre',
+  'Octubre',
+  'Noviembre',
+  'Diciembre',
 ];
+
+function buildPeriods(): Period[] {
+  const periods: Period[] = [];
+  for (let year = START_YEAR; year <= END_YEAR; year++) {
+    for (let month = 1; month <= 12; month++) {
+      const id = `${year}-${String(month).padStart(2, '0')}`;
+      periods.push({
+        id,
+        label: MONTH_LABELS_ES[month - 1],
+        year,
+        month,
+        order: year * 12 + month,
+      });
+    }
+  }
+  return periods;
+}
+
+export const PERIODS: Period[] = buildPeriods();
 
 export const DEFAULT_SELECTED_PERIOD_IDS = ['2026-05', '2026-06', '2026-07'];
