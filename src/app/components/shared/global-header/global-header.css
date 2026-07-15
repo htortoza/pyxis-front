@@ -52,7 +52,7 @@
 /* Chips row -- only rendered while a filter is active (see global-header.html) -- showing
    the applied period/Sector/Marca/Tienda selection as removable chips, on both screens. */
 .global-header-chips {
-  padding: 0.625rem 1.5rem;
+  padding: 0.375rem 1.5rem;
   background: var(--p-surface-0);
   border-top: 1px solid var(--p-content-border-color);
 }

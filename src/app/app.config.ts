@@ -86,6 +86,20 @@ const PyxisPreset = definePreset(Aura, {
         padding: '0.625rem 0.875rem',
       },
     },
+    // Smaller footprint for the header's applied-filter chips row -- only used there
+    // (filter-chips-summary.html), so shrinking it globally has no other side effects.
+    // Font-size isn't tokenized for Chip, so that part is a scoped CSS rule instead
+    // (see filter-chips-summary.css).
+    chip: {
+      root: {
+        paddingX: '0.5rem',
+        paddingY: '0.1875rem',
+        gap: '0.375rem',
+      },
+      removeIcon: {
+        size: '0.75rem',
+      },
+    },
   },
 });
 
