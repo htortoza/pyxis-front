@@ -1,13 +1,21 @@
 :host { display: block; }
 
+/* minmax(0, 1fr), not a bare 1fr -- a plain 1fr track's minimum is "auto" (its content's
+   own min-content size), so a card that can't shrink further would push the whole grid
+   wider than .page-body and overflow past its padding instead of the grid shrinking to
+   fit. minmax(0, ...) lets the track (and PrimeNG's Card inside it) actually shrink. */
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1rem;
 }
 
-@media (max-width: 900px) {
+/* Queries the actual remaining width after the sidebar (container-type: inline-size is
+   set on .page-body, see ventas-general.css) instead of the raw viewport -- a plain
+   @media query here would only collapse to 2 columns once the whole *window* narrows
+   past 900px, never accounting for the ~264px the sidebar already reserves. */
+@container (max-width: 900px) {
   .kpi-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

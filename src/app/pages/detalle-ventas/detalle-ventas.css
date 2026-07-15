@@ -9,12 +9,20 @@
   background: var(--p-surface-50);
 }
 
+/* min-width: 0 on every direct child overrides the grid-item default (min-width: auto)
+   -- without it, a child's own intrinsically-wide content can push past .page-body's own
+   padding instead of the grid shrinking that child to fit. */
 .page-body {
   max-width: 1400px;
   margin: 0 auto;
   padding: 2rem 1.5rem;
   display: grid;
   gap: 1rem;
+  container-type: inline-size;
+}
+
+.page-body > * {
+  min-width: 0;
 }
 
 .detalle-ventas-filters {

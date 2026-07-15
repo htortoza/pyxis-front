@@ -8,10 +8,21 @@
   background: var(--p-surface-50);
 }
 
+/* container-type lets descendants (kpi-cards-grid.css, ranking-panels.css) query the
+   actual remaining width after the sidebar via @container instead of the raw viewport.
+   min-width: 0 on every direct child overrides the grid-item default (min-width: auto)
+   -- without it, a child's own intrinsically-wide content (e.g. a KPI/ranking row that
+   can't shrink further) can push past .page-body's own padding instead of the grid
+   shrinking that child to fit. */
 .page-body {
   max-width: 1400px;
   margin: 0 auto;
   padding: 2rem 1.5rem;
   display: grid;
   gap: 2rem;
+  container-type: inline-size;
+}
+
+.page-body > * {
+  min-width: 0;
 }
