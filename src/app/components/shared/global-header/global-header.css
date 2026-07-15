@@ -24,12 +24,6 @@
   gap: 1.25rem;
 }
 
-.app-logo {
-  height: 1.75rem;
-  width: auto;
-  flex-shrink: 0;
-}
-
 .global-header-nav {
   display: flex;
   align-items: center;

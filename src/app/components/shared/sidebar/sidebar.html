@@ -1,0 +1,36 @@
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <img class="sidebar-logo" src="logo.svg" alt="Pyxis" />
+  </div>
+
+  <nav class="sidebar-nav">
+    @for (section of sections; track section.title) {
+      <div class="sidebar-section">
+        <span class="sidebar-section-title">{{ section.title }}</span>
+
+        @for (item of section.items; track item.label) {
+          @if (item.enabled) {
+            <a class="sidebar-item is-enabled" [class.is-active]="isItemActive(item)" [routerLink]="item.route">
+              <app-sidebar-icon class="sidebar-item-icon" [icon]="item.icon" />
+              <span class="sidebar-item-label">{{ item.label }}</span>
+            </a>
+          } @else {
+            <div class="sidebar-item is-disabled" aria-disabled="true">
+              <app-sidebar-icon class="sidebar-item-icon" [icon]="item.icon" />
+              <span class="sidebar-item-label">{{ item.label }}</span>
+              <p-tag class="sidebar-item-soon" value="Pronto" severity="secondary" [rounded]="true" />
+            </div>
+          }
+        }
+      </div>
+    }
+  </nav>
+
+  <div class="sidebar-user">
+    <div class="sidebar-user-avatar">{{ userInitial }}</div>
+    <div class="sidebar-user-info">
+      <span class="sidebar-user-name">{{ currentUser.name }}</span>
+      <span class="sidebar-user-role">{{ roleLabel }}</span>
+    </div>
+  </div>
+</aside>
