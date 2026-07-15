@@ -1,6 +1,7 @@
-:host { display: block; }
+:host { display: block; height: 100%; }
 
 p-card {
+  height: 100%;
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
@@ -9,10 +10,28 @@ p-card:hover {
   transform: translateY(-2px);
 }
 
+/* Two horizontal zones: text on the left (grows), trend graphic on the right (bounded width). */
 .kpi-card-content {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.kpi-card-text {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.kpi-card-trend {
+  flex: 0 0 auto;
+  width: 28%;
+  min-width: 4rem;
+  max-width: 33%;
 }
 
 .kpi-label {
@@ -54,7 +73,6 @@ p-tag.kpi-delta {
   border-radius: 999px;
   background: var(--p-surface-200);
   overflow: hidden;
-  margin-top: 0.5rem;
 }
 
 .kpi-compare-fill {

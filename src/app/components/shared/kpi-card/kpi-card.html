@@ -1,28 +1,32 @@
 <p-card>
   <div class="kpi-card-content">
-    <span class="kpi-label">{{ label() }}</span>
-    <span class="kpi-value">{{ value() }}</span>
+    <div class="kpi-card-text">
+      <span class="kpi-label">{{ label() }}</span>
+      <span class="kpi-value">{{ value() }}</span>
 
-    @if (deltaPct() !== null) {
-      <p-tag class="kpi-delta" [severity]="severity()" [rounded]="true">
-        @if (isPositive()) {
-          <svg class="kpi-delta-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="19" x2="12" y2="5"></line>
-            <polyline points="5 12 12 5 19 12"></polyline>
-          </svg>
-        } @else {
-          <svg class="kpi-delta-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <polyline points="19 12 12 19 5 12"></polyline>
-          </svg>
-        }
-        <span>{{ deltaText() }} vs. periodo anterior</span>
-      </p-tag>
-    }
+      @if (deltaPct() !== null) {
+        <p-tag class="kpi-delta" [severity]="severity()" [rounded]="true">
+          @if (isPositive()) {
+            <svg class="kpi-delta-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="19" x2="12" y2="5"></line>
+              <polyline points="5 12 12 5 19 12"></polyline>
+            </svg>
+          } @else {
+            <svg class="kpi-delta-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <polyline points="19 12 12 19 5 12"></polyline>
+            </svg>
+          }
+          <span>{{ deltaText() }} vs. periodo anterior</span>
+        </p-tag>
+      }
+    </div>
 
     @if (fillPct() !== null) {
-      <div class="kpi-compare-track">
-        <div class="kpi-compare-fill" [attr.data-band]="band()" [style.width.%]="fillPct()"></div>
+      <div class="kpi-card-trend">
+        <div class="kpi-compare-track">
+          <div class="kpi-compare-fill" [attr.data-band]="band()" [style.width.%]="fillPct()"></div>
+        </div>
       </div>
     }
   </div>
