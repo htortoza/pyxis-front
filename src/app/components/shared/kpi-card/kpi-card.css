@@ -61,9 +61,12 @@ p-card:hover {
   margin-top: 0.25rem;
 }
 
-/* Element+class beats PrimeNG's own bare ".p-tag" rule regardless of stylesheet order. */
+/* Element+class beats PrimeNG's own bare ".p-tag" rule regardless of stylesheet order.
+   Smaller than PrimeNG's tag default so "X% vs. periodo anterior" fits on one line. */
 p-tag.kpi-delta {
   font-weight: 500;
+  font-size: 0.625rem;
+  white-space: nowrap;
 }
 
 .kpi-delta-icon {
