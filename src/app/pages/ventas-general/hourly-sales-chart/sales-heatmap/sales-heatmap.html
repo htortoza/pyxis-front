@@ -17,6 +17,7 @@
         <div
           class="heat-cell"
           [class.heat-cell--light-text]="cell.useLightText"
+          [class.heat-cell--top]="cell.isTopCell"
           [style.background-color]="cell.background"
           [title]="cell.tooltip"
         >{{ cell.formattedAmountCompact }}</div>

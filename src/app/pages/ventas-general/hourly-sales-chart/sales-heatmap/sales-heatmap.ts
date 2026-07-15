@@ -43,6 +43,9 @@ interface HeatmapCell {
   formattedAmountCompact: string;
   background: string;
   useLightText: boolean;
+  /** The single highest-selling cell in the whole matrix -- gets a subtle radar-pulse ring
+   * (sales-heatmap.css) to draw the eye to it. True for every cell in a tie at the max. */
+  isTopCell: boolean;
   tooltip: string;
 }
 
@@ -96,6 +99,7 @@ export class SalesHeatmapComponent {
             formattedAmountCompact: amount === 0 ? '' : COMPACT_FORMATTER.format(amount),
             background: heatBackground(intensity),
             useLightText: intensity > LIGHT_TEXT_INTENSITY_THRESHOLD,
+            isTopCell: amount === max,
             tooltip: `${dayLabel} ${hourLabel}: ${formattedAmount}`,
           };
         }),

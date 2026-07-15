@@ -47,7 +47,6 @@
   font-size: 0.5625rem;
   font-variant-numeric: tabular-nums;
   color: var(--p-red-950);
-  overflow: hidden;
   transition: transform 0.15s ease, outline 0.15s ease;
 }
 
@@ -60,6 +59,29 @@
   outline: 2px solid var(--p-red-600);
   outline-offset: 1px;
   z-index: 1;
+}
+
+/* Subtle "radar ping" ring drawing the eye to the single highest-selling cell in the whole
+   heatmap -- a slow, low-opacity expanding ring (not a flashy attention-grab), same red as
+   the cell itself so it reads as "this one" rather than a generic alert. */
+@keyframes heat-cell-radar-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.45);
+  }
+  100% {
+    box-shadow: 0 0 0 8px rgba(220, 38, 38, 0);
+  }
+}
+
+.heat-cell--top {
+  animation: heat-cell-radar-pulse 2s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heat-cell--top {
+    animation: none;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.35);
+  }
 }
 
 .heatmap-legend {
