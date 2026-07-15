@@ -68,7 +68,8 @@ export class HourlyBarChartComponent {
       legend: {
         display: true,
         position: 'top' as const,
-        labels: { usePointStyle: true },
+        align: 'start' as const,
+        labels: { usePointStyle: true, padding: 20 },
       },
       tooltip: {
         callbacks: {

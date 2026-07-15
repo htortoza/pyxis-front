@@ -9,10 +9,22 @@
   margin-bottom: 1rem;
 }
 
+.chart-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
 .chart-title {
   font-size: 1.125rem;
   font-weight: 700;
   color: var(--p-text-color);
+  margin: 0;
+}
+
+.chart-subtitle {
+  font-size: 0.8125rem;
+  color: var(--p-text-muted-color);
   margin: 0;
 }
 
