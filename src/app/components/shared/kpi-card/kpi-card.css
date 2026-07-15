@@ -27,11 +27,16 @@ p-card:hover {
   flex: 1 1 auto;
 }
 
+/* Stretches to the card's full height so it reads as a background watermark, not a small
+   discrete widget -- fades out toward the text via a mask instead of a hard column edge. */
 .kpi-card-trend {
   flex: 0 0 auto;
-  width: 28%;
+  align-self: stretch;
+  width: 30%;
   min-width: 4rem;
   max-width: 33%;
+  -webkit-mask-image: linear-gradient(to left, black 0%, black 55%, transparent 100%);
+  mask-image: linear-gradient(to left, black 0%, black 55%, transparent 100%);
 }
 
 .kpi-label {
@@ -74,31 +79,45 @@ p-tag.kpi-delta {
   color: var(--p-text-muted-color);
 }
 
-/* Trend sparkline: a real time series, not a proportion -- stretches to fill its zone. */
+/* Trend sparkline: a real time series, not a proportion -- fills its zone edge to edge. */
 .kpi-sparkline {
   display: block;
   width: 100%;
-  height: 2rem;
+  height: 100%;
+  opacity: 0.85;
 }
 
-.kpi-sparkline polyline {
+.kpi-sparkline-line {
   vector-effect: non-scaling-stroke;
 }
 
+.kpi-sparkline-area {
+  stroke: none;
+}
+
 /* Same sign convention as the delta badge: green = trending up, red = trending down. */
-.kpi-sparkline[data-trend="up"] polyline {
+.kpi-sparkline[data-trend="up"] .kpi-sparkline-line {
   stroke: var(--p-green-500);
 }
 
-.kpi-sparkline[data-trend="down"] polyline {
+.kpi-sparkline[data-trend="up"] .kpi-sparkline-area {
+  fill: var(--p-green-500);
+  fill-opacity: 0.16;
+}
+
+.kpi-sparkline[data-trend="down"] .kpi-sparkline-line {
   stroke: var(--p-red-500);
+}
+
+.kpi-sparkline[data-trend="down"] .kpi-sparkline-area {
+  fill: var(--p-red-500);
+  fill-opacity: 0.16;
 }
 
 .kpi-card-trend--empty {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 2rem;
 }
 
 .kpi-trend-empty-text {

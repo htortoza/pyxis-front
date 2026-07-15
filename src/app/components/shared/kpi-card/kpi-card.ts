@@ -8,9 +8,9 @@ import { bandSeverity, comparisonBand } from '../../../pipes/signed-amount';
 
 /** Fixed sparkline viewBox -- coordinates are computed as percentages of this, not real px. */
 const SPARKLINE_VIEWBOX_WIDTH = 100;
-const SPARKLINE_VIEWBOX_HEIGHT = 32;
+const SPARKLINE_VIEWBOX_HEIGHT = 50;
 /** Vertical inset so peaks/valleys never touch the very top/bottom edge. */
-const SPARKLINE_Y_INSET = 4;
+const SPARKLINE_Y_INSET = 6;
 
 @Component({
   selector: 'app-kpi-card',
@@ -71,6 +71,13 @@ export class KpiCardComponent {
         return `${x.toFixed(2)},${y.toFixed(2)}`;
       })
       .join(' ');
+  });
+
+  /** Same points closed down to the baseline -- the translucent area fill under the line. */
+  readonly sparklineAreaPoints = computed(() => {
+    const line = this.sparklinePoints();
+    if (!line) return '';
+    return `0,${SPARKLINE_VIEWBOX_HEIGHT} ${line} ${SPARKLINE_VIEWBOX_WIDTH},${SPARKLINE_VIEWBOX_HEIGHT}`;
   });
 
   readonly sparklineViewBox = `0 0 ${SPARKLINE_VIEWBOX_WIDTH} ${SPARKLINE_VIEWBOX_HEIGHT}`;
