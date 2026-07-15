@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import type { ScriptableContext } from 'chart.js';
 import { UIChart } from 'primeng/chart';
 
 import type { Period } from '../../../../data/models/period.model';
@@ -11,51 +10,22 @@ import { formatSignedAmount } from '../../../../pipes/signed-amount';
  * period always renders in the same color regardless of which periods are selected.
  * Chart.js needs literal color strings, it cannot resolve CSS custom properties,
  * so hardcoding this small named palette here (not in a page CSS file) is the
- * accepted exception to the "no hardcoded hex" rule. These 6 colors are sampled
- * directly off the Pyxis logo's own gradient (Logo/SVG/icono-color copia.svg:
- * violet #8400c8 at 0% -> indigo #2010c0 at 50% -> blue #0271ed at 100%) at
- * evenly spaced points, not a generic Tailwind/Aura hue ramp.
+ * accepted exception to the "no hardcoded hex" rule. Monochromatic: light-to-dark
+ * tints/shades of a single hue, the logo's own brand blue #0271ed (see app.config.ts),
+ * solid colors -- no opacity/fade.
  */
 const PERIOD_COLOR_PALETTE = [
-  '#8400c8',
-  '#5c06c5',
-  '#340dc2',
-  '#1a23c9',
-  '#0e4adb',
+  '#9ac6f8',
+  '#5ba3f3',
   '#0271ed',
+  '#025abe',
+  '#01448e',
+  '#012d5f',
 ];
 
 function colorForPeriod(order: number): string {
   const index = ((order % PERIOD_COLOR_PALETTE.length) + PERIOD_COLOR_PALETTE.length) % PERIOD_COLOR_PALETTE.length;
   return PERIOD_COLOR_PALETTE[index];
-}
-
-function hexToRgba(hex: string, alpha: number): string {
-  const value = hex.replace('#', '');
-  const r = parseInt(value.substring(0, 2), 16);
-  const g = parseInt(value.substring(2, 4), 16);
-  const b = parseInt(value.substring(4, 6), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
-
-/**
- * Vertical gradient (solid at the top, fading toward the base) spanning the whole plot area.
- * Deliberately NOT keyed to each bar's own pixel geometry (context.chart.getDatasetMeta(...)
- * .data[i].y/.base) -- those can still be undefined/non-finite on the pass where Chart.js
- * resolves element style before it finishes computing element geometry, and passing a
- * non-finite value to createLinearGradient throws, crashing the whole chart's initial render.
- * chartArea's bounds are always finite once chartArea itself exists.
- */
-function createBarGradient(hex: string) {
-  return (context: ScriptableContext<'bar'>) => {
-    const { ctx, chartArea } = context.chart;
-    if (!chartArea) return hex; // first layout pass, before chartArea is known
-
-    const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-    gradient.addColorStop(0, hex);
-    gradient.addColorStop(1, hexToRgba(hex, 0.35));
-    return gradient;
-  };
 }
 
 const COMPACT_FORMATTER = new Intl.NumberFormat('es-CL', { notation: 'compact' });
@@ -103,18 +73,12 @@ export class HourlyBarChartComponent {
 
     return {
       labels: this.hourLabels,
-      datasets: orderedSelected.map((period) => {
-        const color = colorForPeriod(period.order);
-        return {
-          label: period.label,
-          data: series[period.id] ?? [],
-          backgroundColor: createBarGradient(color),
-          borderRadius: 4,
-          // Scriptable backgroundColor functions aren't resolved by Chart.js's default legend
-          // swatch renderer -- generateLabels below reads this flat color instead.
-          legendColor: color,
-        };
-      }),
+      datasets: orderedSelected.map((period) => ({
+        label: period.label,
+        data: series[period.id] ?? [],
+        backgroundColor: colorForPeriod(period.order),
+        borderRadius: 4,
+      })),
     };
   });
 
@@ -127,19 +91,7 @@ export class HourlyBarChartComponent {
         display: true,
         position: 'top' as const,
         align: 'start' as const,
-        labels: {
-          usePointStyle: true,
-          padding: 20,
-          generateLabels: (chart: { data: { datasets: { label?: string; legendColor?: string }[] }; isDatasetVisible: (index: number) => boolean }) =>
-            chart.data.datasets.map((dataset, index) => ({
-              text: dataset.label ?? '',
-              fillStyle: dataset.legendColor,
-              strokeStyle: dataset.legendColor,
-              pointStyle: 'rect' as const,
-              hidden: !chart.isDatasetVisible(index),
-              index,
-            })),
-        },
+        labels: { usePointStyle: true, padding: 20 },
       },
       tooltip: {
         callbacks: {
