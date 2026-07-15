@@ -3,19 +3,13 @@
 <p-toolbar class="global-header-toolbar">
   <ng-template pTemplate="start">
     <div class="global-header-start">
-      <app-context-selector
-        [treeNodes]="salesData.treeNodes()"
-        [selectedId]="salesData.selectedContextId()"
-        (nodeSelected)="salesData.selectedContextId.set($event)"
-      />
       <app-context-filter />
+      <app-period-picker />
     </div>
   </ng-template>
 
   <ng-template pTemplate="end">
     <div class="global-header-end">
-      <app-period-picker />
-
       @if (salesData.hasActiveFilter()) {
         <p-button label="Limpiar filtros" severity="secondary" [text]="true" (onClick)="salesData.clearFilters()" />
       }

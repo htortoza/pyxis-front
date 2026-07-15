@@ -11,7 +11,10 @@
 
 /* min-width: 0 on every direct child overrides the grid-item default (min-width: auto)
    -- without it, a child's own intrinsically-wide content can push past .page-body's own
-   padding instead of the grid shrinking that child to fit. */
+   padding instead of the grid shrinking that child to fit. overflow-x: hidden is the hard
+   backstop against that same overflow -- kept here (not on .app-content, a sticky
+   GlobalHeaderComponent's ancestor) so it can't turn that box into an accidental scroll
+   container and break sticky positioning (see app.css's comment on .app-content). */
 .page-body {
   max-width: 1400px;
   margin: 0 auto;
@@ -19,6 +22,7 @@
   display: grid;
   gap: 1rem;
   container-type: inline-size;
+  overflow-x: hidden;
 }
 
 .page-body > * {

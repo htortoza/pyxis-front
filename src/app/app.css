@@ -9,18 +9,20 @@
    for it. margin-left reserves that space explicitly instead, reading the same
    --sidebar-width variable the sidebar itself uses (styles.css) so both sides can never
    drift out of sync, whether the sidebar's width grows or shrinks.
-   width/max-width pin this box to exactly the remaining space (never wider, never
-   narrower), and overflow-x:hidden is a hard backstop: no descendant -- however wide its
-   own intrinsic content (e.g. a data table with many columns) -- can ever bleed past this
-   box and expand the page itself. Anything that needs to scroll horizontally must do so
-   inside its own bounded container, not by pushing this one wider. */
+   width/max-width pin this box to exactly the remaining space (never wider, never narrower).
+   No overflow-x here on purpose: setting it without an explicit overflow-y forces the
+   computed overflow-y to "auto" (CSS overflow's visible-promotion rule), which turns this
+   box into its own scroll container and breaks GlobalHeaderComponent's position:sticky (it
+   was sticking to *this* box's own scrollport, which never scrolls, instead of the real
+   page). The equivalent overflow protection lives one level down, on each page's own
+   .page-body (a sibling of the header, not its ancestor) -- see ventas-general.css /
+   detalle-ventas.css. */
 .app-content {
   margin-left: var(--sidebar-width);
   width: calc(100% - var(--sidebar-width));
   max-width: calc(100% - var(--sidebar-width));
   min-width: 0;
   min-height: 100vh;
-  overflow-x: hidden;
   display: flex;
   flex-direction: column;
 }
