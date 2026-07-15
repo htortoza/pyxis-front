@@ -39,12 +39,15 @@ p-card:hover {
   mask-image: linear-gradient(to left, black 0%, black 55%, transparent 100%);
 }
 
+/* Smaller + tighter tracking than a generic label so long names (e.g. "Unidades por
+   Transacción") fit on one line within the text column's narrower, trend-sharing width. */
 .kpi-label {
-  font-size: 0.6875rem;
+  font-size: 0.625rem;
   font-weight: 600;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--p-text-muted-color);
+  white-space: nowrap;
 }
 
 .kpi-value {
