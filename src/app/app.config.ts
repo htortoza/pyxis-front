@@ -42,27 +42,39 @@ const PyxisPreset = definePreset(Aura, {
     // The sidebar's static (non-popup) p-menu: transparent root (the drawer around it
     // already supplies background/border), muted uppercase section headers via the
     // submenuLabel token group.
+    //
+    // Item/submenuLabel padding is the normal, symmetric 0.75rem -- so the active/hover
+    // highlight pill still has real padding around its icon and text, not touching its
+    // own edge. To still line the icon/header text up with the logo (drawer.content.padding
+    // below is reduced by that same 0.75rem on the left), the list itself adds no extra
+    // horizontal offset: 0.5rem (reduced content padding) + 0.75rem (item/label padding)
+    // = 1.25rem, matching the header/logo's own left inset exactly.
     menu: {
       root: {
         background: 'transparent',
         borderColor: 'transparent',
       },
-      // Left padding is 0 at both the list and item level -- the drawer's own content
-      // padding (1.25rem, the same token the header/logo uses) is the sole left inset,
-      // so menu items and the group headers line up exactly with the logo's left edge.
       list: {
-        padding: '0.5rem 0 0.5rem 0',
+        padding: '0.5rem 0',
         gap: '0.25rem',
       },
       item: {
-        padding: '0.5rem 0.75rem 0.5rem 0',
+        padding: '0.5rem 0.75rem',
         gap: '0.625rem',
       },
       submenuLabel: {
-        padding: '0.75rem 0.75rem 0.375rem 0',
+        padding: '0.75rem 0.75rem 0.375rem 0.75rem',
         fontWeight: '600',
         color: '{text.muted.color}',
         background: 'transparent',
+      },
+    },
+    // content.padding's left is reduced from the default {overlay.modal.padding} (1.25rem)
+    // so the menu's own item padding (0.75rem, restored above) can supply the rest --
+    // see the menu comment above for the full 0.5rem + 0.75rem = 1.25rem reasoning.
+    drawer: {
+      content: {
+        padding: '0 {overlay.modal.padding} {overlay.modal.padding} 0.5rem',
       },
     },
   },
