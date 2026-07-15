@@ -61,26 +61,27 @@
   z-index: 1;
 }
 
-/* Subtle "radar ping" ring drawing the eye to the single highest-selling cell in the whole
-   heatmap -- a slow, low-opacity expanding ring (not a flashy attention-grab), same red as
-   the cell itself so it reads as "this one" rather than a generic alert. */
+/* "Radar ping" ring drawing the eye to the single highest-selling cell in the whole
+   heatmap -- an expanding ring, same red as the cell itself so it reads as "this one"
+   rather than a generic alert. Still soft (not solid, still fades out), just visible
+   enough to notice without hunting for the darkest cell. */
 @keyframes heat-cell-radar-pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.45);
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7);
   }
   100% {
-    box-shadow: 0 0 0 8px rgba(220, 38, 38, 0);
+    box-shadow: 0 0 0 11px rgba(220, 38, 38, 0);
   }
 }
 
 .heat-cell--top {
-  animation: heat-cell-radar-pulse 2s ease-out infinite;
+  animation: heat-cell-radar-pulse 1.6s ease-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .heat-cell--top {
     animation: none;
-    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.35);
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.5);
   }
 }
 
