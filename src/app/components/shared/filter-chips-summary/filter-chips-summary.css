@@ -1,8 +1,16 @@
-:host { display: block; }
+/* flex-shrink: 0 -- this sits as one item inside GlobalHeaderComponent's own scrollable flex
+   row (.global-header-chips-scroll, alongside the sticky "Limpiar filtros" button), and
+   shouldn't get compressed to make room for that button. */
+:host {
+  display: block;
+  flex-shrink: 0;
+}
 
+/* nowrap, not wrap -- this is meant to overflow and scroll horizontally as one continuous
+   strip (see global-header.css), not wrap onto multiple lines. */
 .filter-chips-summary-row {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 0.375rem;
 }
@@ -12,11 +20,15 @@
   font-weight: 600;
   color: var(--p-text-muted-color);
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* Chip's own padding/gap shrink via design tokens (app.config.ts) -- font-size isn't
    tokenized there, so it's set here instead, on the literal host tag this component's own
-   template writes (p-chip), which is reachable from this scoped stylesheet. */
+   template writes (p-chip), which is reachable from this scoped stylesheet.
+   flex-shrink: 0 keeps each chip at its natural width instead of getting squeezed as the
+   row overflows -- the row scrolls instead of compressing its children. */
 p-chip {
   font-size: 0.75rem;
+  flex-shrink: 0;
 }
