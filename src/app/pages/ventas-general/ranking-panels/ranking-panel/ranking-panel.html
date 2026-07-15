@@ -21,13 +21,16 @@
       </div>
     } @else {
       @for (item of visibleItems(); track item.id) {
+        @let tooltip = comparisonTooltip(item);
         <button
           type="button"
           class="ranking-row"
           [class.is-active]="item.id === activeId()"
+          [pTooltip]="tooltip"
+          [tooltipDisabled]="!tooltip"
+          tooltipPosition="top"
           (click)="itemSelected.emit(item.id)"
         >
-          <div class="ranking-bar" [style.width.%]="barWidth(item)"></div>
           <span class="ranking-label">{{ item.label }}</span>
           <span class="ranking-amount">{{ formattedAmount(item) }}</span>
         </button>

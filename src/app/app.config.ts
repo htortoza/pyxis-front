@@ -77,6 +77,15 @@ const PyxisPreset = definePreset(Aura, {
         padding: '0 {overlay.modal.padding} {overlay.modal.padding} 0.5rem',
       },
     },
+    // Default maxWidth (12.5rem) is too narrow for a full sentence (e.g. the ranking rows'
+    // "Vendió X% menos que Y" comparison) and wraps awkwardly -- widened, with a bit more
+    // padding, via the token system rather than a one-off ".p-tooltip" CSS override.
+    tooltip: {
+      root: {
+        maxWidth: '18rem',
+        padding: '0.625rem 0.875rem',
+      },
+    },
   },
 });
 

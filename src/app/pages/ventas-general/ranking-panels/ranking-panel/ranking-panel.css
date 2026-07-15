@@ -32,7 +32,6 @@ p-card:hover {
 }
 
 .ranking-row {
-  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -43,7 +42,6 @@ p-card:hover {
   border-radius: var(--p-border-radius-md, 6px);
   background: var(--p-surface-100);
   cursor: pointer;
-  overflow: hidden;
   font: inherit;
   text-align: left;
   transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease-out;
@@ -62,30 +60,19 @@ p-card:hover {
   background: var(--p-surface-0);
 }
 
-.ranking-bar {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background: var(--p-primary-color);
-  opacity: 0.15;
-  transition: width 0.3s ease;
-}
-
 .ranking-label {
-  position: relative;
-  z-index: 1;
   color: var(--p-text-color);
   font-weight: 500;
+  font-size: 0.8125rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .ranking-amount {
-  position: relative;
-  z-index: 1;
   color: var(--p-text-color);
   font-weight: 600;
+  font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
