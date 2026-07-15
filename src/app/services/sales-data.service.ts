@@ -171,6 +171,15 @@ export class SalesDataService {
         ? scopedFacts.filter((fact) => fact.productId === crossFilter.id)
         : scopedFacts;
 
+    // Store-scoped facts across ALL periods (not just the selected ones) -- feeds the KPI
+    // sparklines, which need to look at periods outside the current selection.
+    const scopedStoreIdSet = new Set(scopedStoreIds);
+    const storeScopedAllPeriodFacts = SALES_FACTS.filter((fact) => scopedStoreIdSet.has(fact.storeId));
+    const trendSourceFacts =
+      crossFilter?.dimension === 'producto'
+        ? storeScopedAllPeriodFacts.filter((fact) => fact.productId === crossFilter.id)
+        : storeScopedAllPeriodFacts;
+
     // Step 4: previous-period window — same-length window shifted back by the number of
     // selected periods, using Period.order; periods below the available range are skipped.
     const selectedPeriods = PERIODS.filter((period) => periodIds.includes(period.id));
@@ -188,8 +197,8 @@ export class SalesDataService {
         ? scopedPreviousFacts.filter((fact) => fact.productId === crossFilter.id)
         : scopedPreviousFacts;
 
-    // Step 5: KPIs (current vs previous).
-    const kpis = computeKpis(currentFacts, previousFacts);
+    // Step 5: KPIs (current vs previous) + each metric's sparkline trend points.
+    const kpis = computeKpis(currentFacts, previousFacts, trendSourceFacts, PERIODS, periodIds);
 
     // Step 6: hourly series per selected period, ordered as PERIODS defines them.
     const hourlySeries: Record<string, number[]> = {};

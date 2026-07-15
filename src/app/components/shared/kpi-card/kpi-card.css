@@ -67,29 +67,42 @@ p-tag.kpi-delta {
   margin-right: 0.25rem;
 }
 
-/* Single fill bar against a flat gray baseline -- full means at/above the previous period. */
-.kpi-compare-track {
-  height: 6px;
-  border-radius: 999px;
-  background: var(--p-surface-200);
-  overflow: hidden;
+.kpi-no-history {
+  align-self: flex-start;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--p-text-muted-color);
 }
 
-.kpi-compare-fill {
-  height: 100%;
-  border-radius: 999px;
-  transition: width 0.3s ease;
+/* Trend sparkline: a real time series, not a proportion -- stretches to fill its zone. */
+.kpi-sparkline {
+  display: block;
+  width: 100%;
+  height: 2rem;
 }
 
-/* Pastel semaphore: green = good, soft gold = roughly flat, red = down. */
-.kpi-compare-fill[data-band="good"] {
-  background: var(--p-green-300);
+.kpi-sparkline polyline {
+  vector-effect: non-scaling-stroke;
 }
 
-.kpi-compare-fill[data-band="medium"] {
-  background: var(--p-orange-200);
+/* Same sign convention as the delta badge: green = trending up, red = trending down. */
+.kpi-sparkline[data-trend="up"] polyline {
+  stroke: var(--p-green-500);
 }
 
-.kpi-compare-fill[data-band="bad"] {
-  background: var(--p-red-300);
+.kpi-sparkline[data-trend="down"] polyline {
+  stroke: var(--p-red-500);
+}
+
+.kpi-card-trend--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 2rem;
+}
+
+.kpi-trend-empty-text {
+  font-size: 0.6875rem;
+  color: var(--p-text-muted-color);
+  text-align: center;
 }

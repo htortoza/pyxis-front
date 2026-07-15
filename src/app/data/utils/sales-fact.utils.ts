@@ -1,5 +1,6 @@
 import type { SalesFact } from '../models/sales-fact.model';
-import type { KpiSet, KpiValue } from '../models/kpi.model';
+import type { KpiSet, KpiValue, TrendPoint } from '../models/kpi.model';
+import type { Period } from '../models/period.model';
 import type { RankingItem } from '../models/ranking.model';
 
 export const OPERATIONAL_HOURS: number[] = [
@@ -19,7 +20,7 @@ export function computeKpiValue(
   currentFacts: SalesFact[],
   previousFacts: SalesFact[],
   pick: (facts: SalesFact[]) => number,
-): KpiValue {
+): Omit<KpiValue, 'trend'> {
   const current = pick(currentFacts);
   const previous = pick(previousFacts);
   const deltaPct = previous === 0 ? null : ((current - previous) / Math.abs(previous)) * 100;
@@ -38,22 +39,96 @@ export function sumQuantity(facts: SalesFact[]): number {
   return facts.reduce((sum, f) => sum + f.quantity, 0);
 }
 
-export function computeKpis(currentFacts: SalesFact[], previousFacts: SalesFact[]): KpiSet {
-  const unidadesPorTransaccion = (facts: SalesFact[]): number => {
-    const tx = countDistinctTransactions(facts);
-    return tx === 0 ? 0 : sumQuantity(facts) / tx;
-  };
+export function pickUnidadesPorTransaccion(facts: SalesFact[]): number {
+  const tx = countDistinctTransactions(facts);
+  return tx === 0 ? 0 : sumQuantity(facts) / tx;
+}
 
-  const ticketPromedio = (facts: SalesFact[]): number => {
-    const tx = countDistinctTransactions(facts);
-    return tx === 0 ? 0 : sumAmount(facts) / tx;
-  };
+export function pickTicketPromedio(facts: SalesFact[]): number {
+  const tx = countDistinctTransactions(facts);
+  return tx === 0 ? 0 : sumAmount(facts) / tx;
+}
+
+/** Minimum candidate points for a sparkline to be considered representative of a real trend. */
+export const MIN_TREND_POINTS = 3;
+/** How far back to walk when only a single period is selected. */
+const MAX_TRAILING_TREND_POINTS = 12;
+
+/**
+ * Candidate sparkline points for one KPI metric. Never fabricates a point for a period with no
+ * real loaded facts (Read-Only principle -- no zero-fill, no repeat-current, no projection):
+ *
+ * - Exactly one period selected: walks backward from it by Period.order collecting periods that
+ *   have at least one fact for this scope, stopping at the first gap (an entity's real history
+ *   starts somewhere; a gap isn't skipped over), capped at MAX_TRAILING_TREND_POINTS.
+ * - Multiple periods selected: the selected periods themselves, chronological order, filtered to
+ *   only those that actually have fact data (so a wide range on a young entity doesn't render
+ *   fabricated points for periods before it existed).
+ *
+ * `trendSourceFacts` must be scoped by store/context (and any producto cross-filter) but NOT by
+ * period -- the whole point is looking at periods outside the currently selected range.
+ */
+export function buildKpiTrendPoints(
+  trendSourceFacts: SalesFact[],
+  allPeriods: Period[],
+  selectedPeriodIds: string[],
+  pick: (facts: SalesFact[]) => number,
+): TrendPoint[] {
+  const periodById = new Map(allPeriods.map((period) => [period.id, period]));
+  const factsByPeriod = new Map<string, SalesFact[]>();
+  for (const fact of trendSourceFacts) {
+    const list = factsByPeriod.get(fact.periodId) ?? [];
+    list.push(fact);
+    factsByPeriod.set(fact.periodId, list);
+  }
+  const hasData = (periodId: string) => (factsByPeriod.get(periodId)?.length ?? 0) > 0;
+
+  const selectedPeriods = selectedPeriodIds
+    .map((id) => periodById.get(id))
+    .filter((period): period is Period => !!period)
+    .sort((a, b) => a.order - b.order);
+
+  let candidatePeriods: Period[];
+
+  if (selectedPeriods.length === 1) {
+    const targetOrder = selectedPeriods[0].order;
+    const orderToPeriod = new Map(allPeriods.map((period) => [period.order, period]));
+    const trailing: Period[] = [];
+    for (let offset = 1; offset <= MAX_TRAILING_TREND_POINTS; offset++) {
+      const candidate = orderToPeriod.get(targetOrder - offset);
+      if (!candidate || !hasData(candidate.id)) {
+        break;
+      }
+      trailing.push(candidate);
+    }
+    candidatePeriods = trailing.reverse();
+  } else {
+    candidatePeriods = selectedPeriods.filter((period) => hasData(period.id));
+  }
+
+  return candidatePeriods.map((period) => ({
+    periodId: period.id,
+    value: pick(factsByPeriod.get(period.id) ?? []),
+  }));
+}
+
+export function computeKpis(
+  currentFacts: SalesFact[],
+  previousFacts: SalesFact[],
+  trendSourceFacts: SalesFact[],
+  allPeriods: Period[],
+  selectedPeriodIds: string[],
+): KpiSet {
+  const build = (pick: (facts: SalesFact[]) => number): KpiValue => ({
+    ...computeKpiValue(currentFacts, previousFacts, pick),
+    trend: buildKpiTrendPoints(trendSourceFacts, allPeriods, selectedPeriodIds, pick),
+  });
 
   return {
-    ventasTotales: computeKpiValue(currentFacts, previousFacts, sumAmount),
-    transacciones: computeKpiValue(currentFacts, previousFacts, countDistinctTransactions),
-    unidadesPorTransaccion: computeKpiValue(currentFacts, previousFacts, unidadesPorTransaccion),
-    ticketPromedio: computeKpiValue(currentFacts, previousFacts, ticketPromedio),
+    ventasTotales: build(sumAmount),
+    transacciones: build(countDistinctTransactions),
+    unidadesPorTransaccion: build(pickUnidadesPorTransaccion),
+    ticketPromedio: build(pickTicketPromedio),
   };
 }
 

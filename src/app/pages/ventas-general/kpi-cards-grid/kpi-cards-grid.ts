@@ -22,11 +22,13 @@ export class KpiCardsGridComponent {
     formatSignedAmount(this.salesData.kpis().ventasTotales.current).text,
   );
   protected readonly ventasTotalesDelta = computed(() => this.salesData.kpis().ventasTotales.deltaPct);
+  protected readonly ventasTotalesTrend = computed(() => this.salesData.kpis().ventasTotales.trend);
 
   protected readonly transaccionesValue = computed(() =>
     INT_FORMATTER.format(this.salesData.kpis().transacciones.current),
   );
   protected readonly transaccionesDelta = computed(() => this.salesData.kpis().transacciones.deltaPct);
+  protected readonly transaccionesTrend = computed(() => this.salesData.kpis().transacciones.trend);
 
   protected readonly unidadesPorTransaccionValue = computed(() =>
     this.salesData.kpis().unidadesPorTransaccion.current.toFixed(1),
@@ -34,9 +36,13 @@ export class KpiCardsGridComponent {
   protected readonly unidadesPorTransaccionDelta = computed(
     () => this.salesData.kpis().unidadesPorTransaccion.deltaPct,
   );
+  protected readonly unidadesPorTransaccionTrend = computed(
+    () => this.salesData.kpis().unidadesPorTransaccion.trend,
+  );
 
   protected readonly ticketPromedioValue = computed(() =>
     formatSignedAmount(this.salesData.kpis().ticketPromedio.current).text,
   );
   protected readonly ticketPromedioDelta = computed(() => this.salesData.kpis().ticketPromedio.deltaPct);
+  protected readonly ticketPromedioTrend = computed(() => this.salesData.kpis().ticketPromedio.trend);
 }

@@ -4,7 +4,9 @@
       <span class="kpi-label">{{ label() }}</span>
       <span class="kpi-value">{{ value() }}</span>
 
-      @if (deltaPct() !== null) {
+      @if (trendState() === 'none') {
+        <span class="kpi-no-history">Sin histórico previo</span>
+      } @else if (deltaPct() !== null) {
         <p-tag class="kpi-delta" [severity]="severity()" [rounded]="true">
           @if (isPositive()) {
             <svg class="kpi-delta-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
@@ -22,11 +24,20 @@
       }
     </div>
 
-    @if (fillPct() !== null) {
+    @if (trendState() === 'chart') {
       <div class="kpi-card-trend">
-        <div class="kpi-compare-track">
-          <div class="kpi-compare-fill" [attr.data-band]="band()" [style.width.%]="fillPct()"></div>
-        </div>
+        <svg
+          class="kpi-sparkline"
+          [attr.viewBox]="sparklineViewBox"
+          preserveAspectRatio="none"
+          [attr.data-trend]="isPositive() ? 'up' : 'down'"
+        >
+          <polyline [attr.points]="sparklinePoints()" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </div>
+    } @else if (trendState() === 'insufficient') {
+      <div class="kpi-card-trend kpi-card-trend--empty">
+        <span class="kpi-trend-empty-text">Historial insuficiente</span>
       </div>
     }
   </div>

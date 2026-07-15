@@ -7,13 +7,29 @@
   </div>
 } @else {
   <div class="kpi-grid">
-    <app-kpi-card label="Ventas Totales" [value]="ventasTotalesValue()" [deltaPct]="salesData.compareToPrevious() ? ventasTotalesDelta() : null" />
-    <app-kpi-card label="Transacciones" [value]="transaccionesValue()" [deltaPct]="salesData.compareToPrevious() ? transaccionesDelta() : null" />
+    <app-kpi-card
+      label="Ventas Totales"
+      [value]="ventasTotalesValue()"
+      [deltaPct]="salesData.compareToPrevious() ? ventasTotalesDelta() : null"
+      [trendPoints]="salesData.compareToPrevious() ? ventasTotalesTrend() : []"
+    />
+    <app-kpi-card
+      label="Transacciones"
+      [value]="transaccionesValue()"
+      [deltaPct]="salesData.compareToPrevious() ? transaccionesDelta() : null"
+      [trendPoints]="salesData.compareToPrevious() ? transaccionesTrend() : []"
+    />
     <app-kpi-card
       label="Unidades por Transacción"
       [value]="unidadesPorTransaccionValue()"
       [deltaPct]="salesData.compareToPrevious() ? unidadesPorTransaccionDelta() : null"
+      [trendPoints]="salesData.compareToPrevious() ? unidadesPorTransaccionTrend() : []"
     />
-    <app-kpi-card label="Ticket Promedio" [value]="ticketPromedioValue()" [deltaPct]="salesData.compareToPrevious() ? ticketPromedioDelta() : null" />
+    <app-kpi-card
+      label="Ticket Promedio"
+      [value]="ticketPromedioValue()"
+      [deltaPct]="salesData.compareToPrevious() ? ticketPromedioDelta() : null"
+      [trendPoints]="salesData.compareToPrevious() ? ticketPromedioTrend() : []"
+    />
   </div>
 }
