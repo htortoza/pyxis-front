@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import type { ScriptableContext } from 'chart.js';
 import { UIChart } from 'primeng/chart';
 
 import type { Period } from '../../../../data/models/period.model';
@@ -26,6 +27,37 @@ const PERIOD_COLOR_PALETTE = [
 function colorForPeriod(order: number): string {
   const index = ((order % PERIOD_COLOR_PALETTE.length) + PERIOD_COLOR_PALETTE.length) % PERIOD_COLOR_PALETTE.length;
   return PERIOD_COLOR_PALETTE[index];
+}
+
+function hexToRgba(hex: string, alpha: number): string {
+  const value = hex.replace('#', '');
+  const r = parseInt(value.substring(0, 2), 16);
+  const g = parseInt(value.substring(2, 4), 16);
+  const b = parseInt(value.substring(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+/**
+ * Per-bar vertical gradient (solid at the top, fading toward the base) using the bar's own
+ * pixel geometry -- not the whole chart area -- so short and tall bars each fade over their
+ * own height instead of sampling different slices of one shared gradient.
+ */
+function createBarGradient(hex: string) {
+  return (context: ScriptableContext<'bar'>) => {
+    const { chart, datasetIndex, dataIndex } = context;
+    const { ctx, chartArea } = chart;
+    if (!chartArea) return hex; // first layout pass, before bar geometry is known
+
+    const bar = chart.getDatasetMeta(datasetIndex).data[dataIndex] as unknown as
+      | { y: number; base: number }
+      | undefined;
+    if (!bar) return hex;
+
+    const gradient = ctx.createLinearGradient(0, bar.y, 0, bar.base);
+    gradient.addColorStop(0, hex);
+    gradient.addColorStop(1, hexToRgba(hex, 0.35));
+    return gradient;
+  };
 }
 
 const COMPACT_FORMATTER = new Intl.NumberFormat('es-CL', { notation: 'compact' });
@@ -73,12 +105,18 @@ export class HourlyBarChartComponent {
 
     return {
       labels: this.hourLabels,
-      datasets: orderedSelected.map((period) => ({
-        label: period.label,
-        data: series[period.id] ?? [],
-        backgroundColor: colorForPeriod(period.order),
-        borderRadius: 4,
-      })),
+      datasets: orderedSelected.map((period) => {
+        const color = colorForPeriod(period.order);
+        return {
+          label: period.label,
+          data: series[period.id] ?? [],
+          backgroundColor: createBarGradient(color),
+          borderRadius: 4,
+          // Scriptable backgroundColor functions aren't resolved by Chart.js's default legend
+          // swatch renderer -- generateLabels below reads this flat color instead.
+          legendColor: color,
+        };
+      }),
     };
   });
 
@@ -91,7 +129,19 @@ export class HourlyBarChartComponent {
         display: true,
         position: 'top' as const,
         align: 'start' as const,
-        labels: { usePointStyle: true, padding: 20 },
+        labels: {
+          usePointStyle: true,
+          padding: 20,
+          generateLabels: (chart: { data: { datasets: { label?: string; legendColor?: string }[] }; isDatasetVisible: (index: number) => boolean }) =>
+            chart.data.datasets.map((dataset, index) => ({
+              text: dataset.label ?? '',
+              fillStyle: dataset.legendColor,
+              strokeStyle: dataset.legendColor,
+              pointStyle: 'rect' as const,
+              hidden: !chart.isDatasetVisible(index),
+              index,
+            })),
+        },
       },
       tooltip: {
         callbacks: {
