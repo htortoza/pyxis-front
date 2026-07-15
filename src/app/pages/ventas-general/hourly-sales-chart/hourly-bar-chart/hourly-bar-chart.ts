@@ -29,6 +29,25 @@ function colorForPeriod(order: number): string {
 
 const COMPACT_FORMATTER = new Intl.NumberFormat('es-CL', { notation: 'compact' });
 
+/**
+ * Chart.js has no built-in "margin below the legend" option -- `labels.padding` only pads
+ * between legend items, not the gap before the plot area. This patches the legend's own
+ * `fit()` (the standard workaround) to add fixed extra height, keeping the bars from
+ * visually touching the legend row above them.
+ */
+const LEGEND_MARGIN_PLUGIN = {
+  id: 'legendMargin',
+  afterInit(chart: { legend?: { fit: () => void; height: number } }) {
+    const legend = chart.legend;
+    if (!legend) return;
+    const originalFit = legend.fit;
+    legend.fit = function (this: { height: number }) {
+      originalFit.call(this);
+      this.height += 20;
+    };
+  },
+};
+
 @Component({
   selector: 'app-hourly-bar-chart',
   standalone: true,
@@ -43,6 +62,8 @@ export class HourlyBarChartComponent {
   readonly selectedPeriodIds = input.required<string[]>();
 
   private readonly hourLabels = OPERATIONAL_HOURS.map((hour) => `${hour.toString().padStart(2, '0')}:00`);
+
+  protected readonly chartPlugins = [LEGEND_MARGIN_PLUGIN];
 
   protected readonly chartData = computed(() => {
     const selectedIds = new Set(this.selectedPeriodIds());
