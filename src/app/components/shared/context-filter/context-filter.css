@@ -11,7 +11,7 @@
 
 .context-filter-body {
   display: grid;
-  grid-template-columns: 1fr 19rem;
+  grid-template-columns: 1fr 23rem;
   gap: 1.5rem;
   align-items: start;
 }
@@ -219,8 +219,13 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.75rem;
+}
+
+.context-filter-saved-views-header .context-filter-column-title {
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* Text button: primary-colored label, no fill/border -- recognizable via color, lighter than Aplicar. */
