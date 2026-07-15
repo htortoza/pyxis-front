@@ -1,5 +1,10 @@
+/* min-width: 0 overrides the flex-item default (min-width: auto) -- without it, the
+   tree-table's own intrinsically-wide columns could force .app-content (its flex parent,
+   see app.css) to grow past the space reserved for the sidebar instead of shrinking to
+   fit (the table already scrolls internally via its own [scrollable]="true"). */
 :host {
   display: block;
+  min-width: 0;
   min-height: 100vh;
   background: var(--p-surface-50);
 }

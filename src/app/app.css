@@ -6,11 +6,21 @@
 /* PrimeNG's Drawer is always `position: fixed` regardless of `modal` (a rule in
    primeng-drawer.mjs layered on top of @primeuix/styles' own .p-drawer{position:relative}),
    so it never participates in normal flow/flexbox -- flex on :host wouldn't reserve space
-   for it. This margin (matching the sidebar's fixed 264px width, see styles.css) is what
-   actually keeps page content from rendering underneath the fixed sidebar. */
+   for it. margin-left reserves that space explicitly instead, reading the same
+   --sidebar-width variable the sidebar itself uses (styles.css) so both sides can never
+   drift out of sync, whether the sidebar's width grows or shrinks.
+   width/max-width pin this box to exactly the remaining space (never wider, never
+   narrower), and overflow-x:hidden is a hard backstop: no descendant -- however wide its
+   own intrinsic content (e.g. a data table with many columns) -- can ever bleed past this
+   box and expand the page itself. Anything that needs to scroll horizontally must do so
+   inside its own bounded container, not by pushing this one wider. */
 .app-content {
-  margin-left: 264px;
+  margin-left: var(--sidebar-width);
+  width: calc(100% - var(--sidebar-width));
+  max-width: calc(100% - var(--sidebar-width));
+  min-width: 0;
   min-height: 100vh;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
 }

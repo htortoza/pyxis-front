@@ -1,5 +1,9 @@
+/* min-width: 0 overrides the flex-item default (min-width: auto) -- without it, this
+   page's own intrinsically-wide content could force .app-content (its flex parent, see
+   app.css) to grow past the space reserved for the sidebar instead of shrinking to fit. */
 :host {
   display: block;
+  min-width: 0;
   min-height: 100vh;
   background: var(--p-surface-50);
 }

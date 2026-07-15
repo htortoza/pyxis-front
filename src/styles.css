@@ -37,6 +37,16 @@ body {
 }
 
 /*
+ * Single source of truth for the sidebar's width -- both the sidebar itself
+ * (.app-sidebar.p-drawer below) and the main content area (app.css's
+ * .app-content) read this same variable, so they can never drift out of sync:
+ * if the sidebar's width ever changes, both sides update together automatically.
+ */
+:root {
+  --sidebar-width: 264px;
+}
+
+/*
  * Card's radius/shadow are set via design tokens in app.config.ts (PyxisPreset),
  * not here -- Card has no "border" token though, so the hairline border (used
  * by every card site-wide) is the one legitimate global override left, per
@@ -54,7 +64,7 @@ body {
  * here can leak onto an unrelated future p-menu/p-drawer elsewhere in the app.
  */
 .app-sidebar.p-drawer {
-  width: 264px;
+  width: var(--sidebar-width);
   height: 100%;
 }
 
