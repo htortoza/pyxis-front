@@ -10,16 +10,17 @@ import { formatSignedAmount } from '../../../../pipes/signed-amount';
  * period always renders in the same color regardless of which periods are selected.
  * Chart.js needs literal color strings, it cannot resolve CSS custom properties,
  * so hardcoding this small named palette here (not in a page CSS file) is the
- * accepted exception to the "no hardcoded hex" rule. Monochromatic violet ramp
- * (light -> dark), matching the app's brand hue rather than a rainbow of hues.
+ * accepted exception to the "no hardcoded hex" rule. Monochromatic indigo ramp
+ * (light -> dark), matching the app's brand hue (see app.config.ts) rather than
+ * a rainbow of hues.
  */
 const PERIOD_COLOR_PALETTE = [
-  '#c4b5fd',
-  '#a78bfa',
-  '#8b5cf6',
-  '#7c3aed',
-  '#5b21b6',
-  '#4c1d95',
+  '#a5b4fc',
+  '#818cf8',
+  '#6366f1',
+  '#4f46e5',
+  '#3730a3',
+  '#312e81',
 ];
 
 function colorForPeriod(order: number): string {
