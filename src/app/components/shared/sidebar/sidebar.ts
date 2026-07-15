@@ -1,54 +1,62 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { NavigationEnd, Router, RouterLink } from '@angular/router';
-import { filter, map } from 'rxjs';
-import { Tag } from 'primeng/tag';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { PrimeTemplate, type MenuItem } from 'primeng/api';
+import { Drawer } from 'primeng/drawer';
+import { Menu } from 'primeng/menu';
 
 import { CURRENT_USER } from '../../../data/mock/mock-user.mock';
 import type { UserRole } from '../../../data/models/mock-user.model';
-import { SidebarIconComponent, type SidebarIconKey } from './sidebar-icon/sidebar-icon';
 
-interface SidebarItem {
-  label: string;
-  icon: SidebarIconKey;
-  enabled: boolean;
-  route?: string;
-  /** Routes (besides its own) that should also count as "this item is active" -- e.g. Ventas
-   * owns both the General and Detalle routes but is a single sidebar entry, not two. */
-  matchPrefixes?: string[];
+type SidebarIconKey =
+  | 'ventas'
+  | 'margenes'
+  | 'comparativos'
+  | 'erp'
+  | 'carga'
+  | 'gobernanza'
+  | 'tenant'
+  | 'backoffice';
+
+/** `item.icon`'s string value is applied verbatim as a CSS class on p-menu's icon span
+ * (see MenuStyle.classes.itemIcon) -- these classes get their shape via a CSS mask-image
+ * in styles.css (global, since Menu's internal DOM is unreachable from this component's
+ * own scoped stylesheet per Angular's emulated-encapsulation rules). Deliberately not
+ * `pi pi-*` font icons, per this project's inline-SVG-only icon convention. */
+function iconClass(key: SidebarIconKey): string {
+  return `sidebar-menu-icon sidebar-menu-icon--${key}`;
 }
 
-interface SidebarSection {
-  title: string;
-  items: SidebarItem[];
-}
+const SOON_BADGE = { badge: 'Pronto', badgeStyleClass: 'sidebar-badge-soon' };
 
 /**
  * Static roadmap of every module, enabled or not -- the sidebar deliberately shows disabled
  * items (grayed out, tagged "Pronto") so the product's full scope is visible, not just what's
  * live today. No tenant/rubro branching: the same structure renders for every tenant.
+ *
+ * Ventas is a single entry routed to '/' -- the General/Detalle split lives as sub-navigation
+ * inside the global header, not as two sidebar items. Its default routerLinkActiveOptions
+ * ({ exact: false }) is exactly what makes it read active on both '/' and '/detalle-ventas'.
  */
-const SIDEBAR_SECTIONS: SidebarSection[] = [
+const MENU_MODEL: MenuItem[] = [
   {
-    title: 'Visor Estratégico',
+    label: 'Visor Estratégico',
     items: [
-      { label: 'Ventas', icon: 'ventas', enabled: true, route: '/', matchPrefixes: ['/', '/detalle-ventas'] },
-      { label: 'Márgenes', icon: 'margenes', enabled: false },
-      { label: 'Comparativos', icon: 'comparativos', enabled: false },
+      { label: 'Ventas', icon: iconClass('ventas'), routerLink: '/' },
+      { label: 'Márgenes', icon: iconClass('margenes'), disabled: true, ...SOON_BADGE },
+      { label: 'Comparativos', icon: iconClass('comparativos'), disabled: true, ...SOON_BADGE },
     ],
   },
   {
-    title: 'Administración',
+    label: 'Administración',
     items: [
-      { label: 'Motor de mapeo ERP', icon: 'erp', enabled: false },
-      { label: 'Carga de datos', icon: 'carga', enabled: false },
-      { label: 'Gobernanza y permisos', icon: 'gobernanza', enabled: false },
-      { label: 'Panel del tenant', icon: 'tenant', enabled: false },
+      { label: 'Motor de mapeo ERP', icon: iconClass('erp'), disabled: true, ...SOON_BADGE },
+      { label: 'Carga de datos', icon: iconClass('carga'), disabled: true, ...SOON_BADGE },
+      { label: 'Gobernanza y permisos', icon: iconClass('gobernanza'), disabled: true, ...SOON_BADGE },
+      { label: 'Panel del tenant', icon: iconClass('tenant'), disabled: true, ...SOON_BADGE },
     ],
   },
   {
-    title: 'BI Pyxis Interno',
-    items: [{ label: 'Backoffice multi-tenant', icon: 'backoffice', enabled: false }],
+    label: 'BI Pyxis Interno',
+    items: [{ label: 'Backoffice multi-tenant', icon: iconClass('backoffice'), disabled: true, ...SOON_BADGE }],
   },
 ];
 
@@ -61,30 +69,14 @@ const ROLE_LABELS: Record<UserRole, string> = {
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [RouterLink, Tag, SidebarIconComponent],
+  imports: [Drawer, Menu, PrimeTemplate],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.css',
 })
 export class SidebarComponent {
-  private readonly router = inject(Router);
-
-  protected readonly sections = SIDEBAR_SECTIONS;
+  protected readonly menuModel = MENU_MODEL;
   protected readonly currentUser = CURRENT_USER;
   protected readonly roleLabel = ROLE_LABELS[CURRENT_USER.role];
   protected readonly userInitial = CURRENT_USER.name.charAt(0).toUpperCase();
-
-  private readonly currentUrl = toSignal(
-    this.router.events.pipe(
-      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
-      map((event) => event.urlAfterRedirects),
-    ),
-    { initialValue: this.router.url },
-  );
-
-  protected isItemActive(item: SidebarItem): boolean {
-    if (!item.matchPrefixes) return false;
-    const url = this.currentUrl();
-    return item.matchPrefixes.some((prefix) => (prefix === '/' ? url === '/' : url.startsWith(prefix)));
-  }
 }

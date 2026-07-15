@@ -39,6 +39,29 @@ const PyxisPreset = definePreset(Aura, {
         shadow: 'none',
       },
     },
+    // The sidebar's static (non-popup) p-menu: transparent root (the drawer around it
+    // already supplies background/border), muted uppercase section headers via the
+    // submenuLabel token group.
+    menu: {
+      root: {
+        background: 'transparent',
+        borderColor: 'transparent',
+      },
+      list: {
+        padding: '0.5rem 0.75rem',
+        gap: '0.25rem',
+      },
+      item: {
+        padding: '0.5rem 0.75rem',
+        gap: '0.625rem',
+      },
+      submenuLabel: {
+        padding: '0.75rem 0.75rem 0.375rem',
+        fontWeight: '600',
+        color: '{text.muted.color}',
+        background: 'transparent',
+      },
+    },
   },
 });
 
