@@ -1,12 +1,6 @@
 <app-global-header />
 
 <main class="page-body">
-  <div class="detalle-ventas-filters">
-    <app-context-filter />
-  </div>
-
-  <app-filter-chips-summary />
-
   @if (salesData.loading()) {
     <app-loading-skeleton height="480px" />
   } @else {

@@ -24,7 +24,3 @@
 .page-body > * {
   min-width: 0;
 }
-
-.detalle-ventas-filters {
-  display: flex;
-}

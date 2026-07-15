@@ -43,9 +43,10 @@ function createDebouncedSearch(): DebouncedSearch {
 }
 
 /**
- * Detalle-de-Ventas-only Sector/Marca/Tienda context filter, with an embedded "Vistas Guardadas"
- * panel per the product spec (saved views live in the same filter panel, not a separate popover).
- * Follows the same draft/apply popover shell as PeriodPickerComponent.
+ * Sector/Marca/Tienda context filter, with an embedded "Vistas Guardadas" panel per the
+ * product spec (saved views live in the same filter panel, not a separate popover). Lives in
+ * GlobalHeaderComponent, so it applies to (and is editable from) both Ventas General and
+ * Detalle de Ventas. Follows the same draft/apply popover shell as PeriodPickerComponent.
  */
 @Component({
   selector: 'app-context-filter',
@@ -158,7 +159,7 @@ export class ContextFilterComponent {
 
   /** Live summary of the APPLIED (not draft) filter, shown on the trigger button. */
   protected readonly triggerLabel = computed(() => {
-    const applied = this.salesData.detalleContextFilter();
+    const applied = this.salesData.sectorMarcaTiendaFilter();
     if (!applied || applied.length === 0) return 'Sin filtro de contexto';
     return `${applied.length} tienda${applied.length === 1 ? '' : 's'} seleccionada${applied.length === 1 ? '' : 's'}`;
   });
@@ -197,7 +198,7 @@ export class ContextFilterComponent {
 
   /** Reseeds the draft (and resets navigation/search/save-form UI) every time the popover opens. */
   onPopoverShow(): void {
-    this.checkedIds.set(new Set(this.salesData.detalleContextFilter() ?? []));
+    this.checkedIds.set(new Set(this.salesData.sectorMarcaTiendaFilter() ?? []));
     this.navSectorId.set(null);
     this.navMarcaId.set(null);
     this.sectorSearch.raw.set('');
@@ -317,7 +318,7 @@ export class ContextFilterComponent {
     );
     // applyView writes straight into SalesDataService, bypassing this component's own draft --
     // resync so further manual edits in this session build on the just-applied state.
-    this.checkedIds.set(new Set(this.salesData.detalleContextFilter() ?? []));
+    this.checkedIds.set(new Set(this.salesData.sectorMarcaTiendaFilter() ?? []));
   }
 
   onDeleteView(viewId: string): void {
@@ -373,13 +374,13 @@ export class ContextFilterComponent {
 
   apply(popover: Popover): void {
     if (this.checkedIds().size === 0) {
-      this.salesData.setDetalleContextFilter(null);
+      this.salesData.setSectorMarcaTiendaFilter(null);
     } else {
       const effectiveLeafIds = getEffectiveLeafIds(this.filterTree, this.checkedIds());
       const tiendaContextIds = effectiveLeafIds
         .map((id) => this.nodeById.get(id)?.tiendaContextId)
         .filter((id): id is string => !!id);
-      this.salesData.setDetalleContextFilter(tiendaContextIds);
+      this.salesData.setSectorMarcaTiendaFilter(tiendaContextIds);
     }
     popover.hide();
   }

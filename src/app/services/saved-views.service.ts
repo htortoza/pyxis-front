@@ -17,7 +17,8 @@ import { getEffectiveLeafIds } from '../data/utils/tristate.utils';
 import { SalesDataService } from './sales-data.service';
 
 /**
- * Owns saved-views state for the Detalle de Ventas screen. There is no backend in this app --
+ * Owns saved-views state for the header's Sector/Marca/Tienda filter (shared by both Ventas
+ * General and Detalle de Ventas). There is no backend in this app --
  * `currentUser` is a hardcoded mock standing in for real auth (see CURRENT_USER doc comment),
  * and persistence goes through the localStorage-backed utils in saved-views.utils.ts, which are
  * themselves a documented stand-in for real per-tenant server-side storage.
@@ -157,7 +158,7 @@ export class SavedViewsService {
     // fall back to "unfiltered" -- that would leak access to data the view never granted.
     // It becomes an explicit empty allowlist (show nothing) instead.
     const hadOriginalFilter = view.checkedNodeIds.length > 0;
-    this.salesData.setDetalleContextFilter(hadOriginalFilter ? tiendaContextIds : null);
+    this.salesData.setSectorMarcaTiendaFilter(hadOriginalFilter ? tiendaContextIds : null);
 
     const touched = touchLastUsed(view);
     const next = this._views().map((candidate) => (candidate.id === viewId ? touched : candidate));

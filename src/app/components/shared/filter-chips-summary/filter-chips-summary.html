@@ -6,8 +6,4 @@
   @for (chip of tiendaChips(); track chip.id) {
     <p-chip [label]="chip.label" [removable]="true" (onRemove)="removeTienda(chip.id)" />
   }
-
-  @if (salesData.hasActiveFilter()) {
-    <p-button label="Limpiar todo" severity="secondary" [text]="true" size="small" (onClick)="salesData.clearFilters()" />
-  }
 </div>

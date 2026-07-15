@@ -38,9 +38,11 @@ interface DashboardData {
 }
 
 /**
- * Single source of truth for the "Ventas General" dashboard screen.
- * Owns the filter state (context/period/cross-filter) and derives every
- * chart/KPI/ranking dataset from the local mock data — there is no backend.
+ * Single source of truth for both the "Ventas General" and "Detalle de Ventas" screens.
+ * Owns the filter state (context/period/sector-marca-tienda/cross-filter) and derives every
+ * chart/KPI/ranking/fact-list dataset from the local mock data — there is no backend.
+ * All filters live in the shared GlobalHeaderComponent, so applying one here is instantly
+ * reflected -- and editable -- on whichever of the two screens is currently active.
  */
 @Injectable({ providedIn: 'root' })
 export class SalesDataService {
@@ -50,11 +52,11 @@ export class SalesDataService {
   /** Currently selected period ids (checkbox multi-select over PERIODS). */
   readonly selectedPeriodIds = signal<string[]>([...DEFAULT_SELECTED_PERIOD_IDS]);
 
-  /** Active drill-down cross-filter coming from a ranking row click, if any. */
+  /** Active drill-down cross-filter coming from a ranking row click, if any (Ventas General only). */
   readonly crossFilter = signal<CrossFilter | null>(null);
 
-  /** Detalle de Ventas' own Sector/Marca/Tienda filter -- null means unfiltered. Never read by Ventas General. */
-  readonly detalleContextFilter = signal<string[] | null>(null);
+  /** The header's Sector/Marca/Tienda filter -- null means unfiltered. Applies to both screens. */
+  readonly sectorMarcaTiendaFilter = signal<string[] | null>(null);
 
   /** Whether KPI/comparison UI should show the vs-previous-period delta. Defaults to on (matches current always-on behavior). */
   readonly compareToPrevious = signal<boolean>(true);
@@ -78,7 +80,7 @@ export class SalesDataService {
       contextChanged ||
       periodsChanged ||
       this.crossFilter() !== null ||
-      this.detalleContextFilter() !== null
+      this.sectorMarcaTiendaFilter() !== null
     );
   });
 
@@ -88,6 +90,7 @@ export class SalesDataService {
       ctx: this.selectedContextId(),
       periods: [...this.selectedPeriodIds()].sort(),
       xf: this.crossFilter(),
+      smt: this.sectorMarcaTiendaFilter(),
     }),
   );
 
@@ -114,6 +117,19 @@ export class SalesDataService {
   readonly heatmapMatrix = computed(() => this.dashboardData().heatmap);
   readonly rankings = computed(() => this.dashboardData().rankings);
 
+  /**
+   * Store+period scoped facts (header context + the Sector/Marca/Tienda filter, but NOT the
+   * ranking cross-filter, which is a Ventas General-only drill-down concept). This is the raw
+   * fact list Detalle de Ventas' tree-table needs; Ventas General instead reads the aggregated
+   * kpis/rankings/etc. above, which apply this same scoping internally (see computeDashboardData).
+   */
+  readonly scopedFacts = computed(() =>
+    filterFacts(SALES_FACTS, {
+      storeIds: this.scopedStoreIdsForContext(),
+      periodIds: this.selectedPeriodIds(),
+    }),
+  );
+
   /** Toggles a ranking-row cross-filter: clicking the active row again clears it. */
   setCrossFilter(dimension: RankingDimension, id: string): void {
     const current = this.crossFilter();
@@ -124,20 +140,30 @@ export class SalesDataService {
     this.crossFilter.set({ dimension, id });
   }
 
-  /** Resets context, periods and cross-filter back to their defaults. */
+  /** Resets context, periods, cross-filter and the Sector/Marca/Tienda filter to their defaults. */
   clearFilters(): void {
     this.selectedContextId.set('holding');
     this.selectedPeriodIds.set([...DEFAULT_SELECTED_PERIOD_IDS]);
     this.crossFilter.set(null);
-    this.detalleContextFilter.set(null);
+    this.sectorMarcaTiendaFilter.set(null);
   }
 
-  setDetalleContextFilter(tiendaIds: string[] | null): void {
-    this.detalleContextFilter.set(tiendaIds);
+  setSectorMarcaTiendaFilter(tiendaIds: string[] | null): void {
+    this.sectorMarcaTiendaFilter.set(tiendaIds);
+  }
+
+  /** Header context (holding/empresa/tienda) narrowed by the Sector/Marca/Tienda filter, if any. */
+  private scopedStoreIdsForContext(): string[] {
+    let ids = getDescendantLeafIds(CONTEXT_TREE, this.selectedContextId());
+    const sectorMarcaTiendaFilter = this.sectorMarcaTiendaFilter();
+    if (sectorMarcaTiendaFilter !== null) {
+      const allowed = new Set(sectorMarcaTiendaFilter);
+      ids = ids.filter((id) => allowed.has(id));
+    }
+    return ids;
   }
 
   private computeDashboardData(): DashboardData {
-    const contextId = this.selectedContextId();
     const periodIds = this.selectedPeriodIds();
     const crossFilter = this.crossFilter();
 
@@ -147,9 +173,10 @@ export class SalesDataService {
     const sectorNameById = new Map(SECTORES.map((sector) => [sector.id, sector.label]));
     const productNameById = new Map(PRODUCTS.map((product) => [product.id, product.name]));
 
-    // Step 1 + 2: resolve in-scope stores, narrowed by a sector/marca/tienda cross-filter.
-    // A 'producto' cross-filter does NOT narrow the store set — it narrows facts instead (below).
-    let scopedStoreIds = getDescendantLeafIds(CONTEXT_TREE, contextId);
+    // Step 1 + 2: resolve in-scope stores (header context + Sector/Marca/Tienda filter),
+    // narrowed further by a sector/marca/tienda ranking cross-filter. A 'producto' cross-filter
+    // does NOT narrow the store set — it narrows facts instead (below).
+    let scopedStoreIds = this.scopedStoreIdsForContext();
     if (crossFilter) {
       if (crossFilter.dimension === 'tienda') {
         scopedStoreIds = scopedStoreIds.filter((id) => id === crossFilter.id);

@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { Button } from 'primeng/button';
 import { Chip } from 'primeng/chip';
 
 import { CONTEXT_TREE } from '../../../data/mock/context-tree.mock';
@@ -13,14 +12,16 @@ interface TiendaChip {
 
 /**
  * Reads only the APPLIED filter state (never a draft) -- one chip for the applied period
- * selection (if non-default) and one chip per Tienda id currently in `detalleContextFilter`.
+ * selection (if non-default) and one chip per Tienda id currently in `sectorMarcaTiendaFilter`.
  * That signal only stores a flat array of Tienda ids, so there's no way to reconstruct which
  * Sector/Marca the user originally checked -- this component doesn't try to fake that context.
+ * Lives in GlobalHeaderComponent (which already has its own "Limpiar Filtros" button), so this
+ * doesn't duplicate a clear-all action.
  */
 @Component({
   selector: 'app-filter-chips-summary',
   standalone: true,
-  imports: [Button, Chip],
+  imports: [Chip],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './filter-chips-summary.html',
   styleUrl: './filter-chips-summary.css',
@@ -41,7 +42,7 @@ export class FilterChipsSummaryComponent {
   });
 
   protected readonly tiendaChips = computed<TiendaChip[]>(() => {
-    const ids = this.salesData.detalleContextFilter() ?? [];
+    const ids = this.salesData.sectorMarcaTiendaFilter() ?? [];
     return ids.map((id) => ({ id, label: this.tiendaLabelById.get(id) ?? id }));
   });
 
@@ -50,8 +51,8 @@ export class FilterChipsSummaryComponent {
   }
 
   removeTienda(tiendaId: string): void {
-    const current = this.salesData.detalleContextFilter() ?? [];
+    const current = this.salesData.sectorMarcaTiendaFilter() ?? [];
     const next = current.filter((id) => id !== tiendaId);
-    this.salesData.setDetalleContextFilter(next.length > 0 ? next : null);
+    this.salesData.setSectorMarcaTiendaFilter(next.length > 0 ? next : null);
   }
 }

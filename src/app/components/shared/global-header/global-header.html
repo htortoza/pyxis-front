@@ -15,6 +15,7 @@
         [selectedId]="salesData.selectedContextId()"
         (nodeSelected)="salesData.selectedContextId.set($event)"
       />
+      <app-context-filter />
     </div>
   </ng-template>
 
@@ -38,3 +39,9 @@
     </div>
   </ng-template>
 </p-toolbar>
+
+@if (salesData.hasActiveFilter()) {
+  <div class="global-header-chips">
+    <app-filter-chips-summary />
+  </div>
+}
