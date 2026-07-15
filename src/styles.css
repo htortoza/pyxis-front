@@ -89,3 +89,25 @@ body {
   font-weight: 500;
   font-size: 0.625rem;
 }
+
+/*
+ * Ranking Comercial's "Por Monto / Por Cantidad" sort select (ranking-panel.html) renders
+ * its own internal .p-select-label -- unreachable from ranking-panel.css per the same
+ * encapsulation rule as above. PrimeNG hardcodes font-size: 1rem directly on .p-select-label
+ * with no design token to override it from app.config.ts, so this is the one legitimate
+ * escape hatch: matches .ranking-title's font-size so the select's height comes from its own
+ * line height (already borderless/padding-less via tokens) instead of a 1rem line.
+ *
+ * The dropdown chevron icon is a sibling of the label (not a descendant), so shrinking the
+ * label's font-size doesn't touch it -- it needs its own explicit size, otherwise its
+ * unchanged 1rem/16px height becomes the tallest thing in the row and still pads the select
+ * out taller than the panel titles.
+ */
+.ranking-sort-select .p-select-label {
+  font-size: 0.6875rem;
+}
+
+.ranking-sort-select .p-select-dropdown .p-icon {
+  width: 0.625rem;
+  height: 0.625rem;
+}

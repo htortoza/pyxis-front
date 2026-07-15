@@ -100,6 +100,29 @@ const PyxisPreset = definePreset(Aura, {
         size: '0.75rem',
       },
     },
+    // Ranking Comercial's "Por Monto / Por Cantidad" sort select -- the only p-select in the
+    // app, so shrinking it globally is safe. No padding/border at all so its height matches
+    // the panel title's line height exactly instead of the default form-field box. Font-size
+    // has no token at all here (PrimeNG hardcodes 1rem directly in .p-select-label's base
+    // CSS) -- that part is a global override instead, scoped under .ranking-sort-select (see
+    // styles.css), the same "reach into PrimeNG's internal DOM" pattern already used there.
+    select: {
+      root: {
+        paddingX: '0',
+        paddingY: '0',
+        borderColor: 'transparent',
+        hoverBorderColor: 'transparent',
+        focusBorderColor: 'transparent',
+        color: '{text.muted.color}',
+        focusRing: {
+          width: '0',
+          shadow: 'none',
+        },
+      },
+      dropdown: {
+        width: '0.875rem',
+      },
+    },
   },
 });
 

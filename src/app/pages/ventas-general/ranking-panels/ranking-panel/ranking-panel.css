@@ -30,6 +30,11 @@ p-card:hover {
   margin: 0;
 }
 
+/* Border/padding/color are already handled via design tokens (app.config.ts). The select's
+   internal label font-size is a global override instead -- see styles.css's
+   .ranking-sort-select rule -- since PrimeNG hardcodes 1rem directly on .p-select-label with
+   no token to override from here. */
+
 .ranking-list {
   display: flex;
   flex-direction: column;
