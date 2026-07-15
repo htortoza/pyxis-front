@@ -18,10 +18,15 @@ p-card:hover {
   margin-bottom: 0.75rem;
 }
 
+/* Same label recipe as the KPI cards' .kpi-label (kpi-card.css), for a consistent title
+   style between the two card families on this screen. */
 .ranking-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--p-text-color);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--p-text-muted-color);
+  white-space: nowrap;
   margin: 0;
 }
 
