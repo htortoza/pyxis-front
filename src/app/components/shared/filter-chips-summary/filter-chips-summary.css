@@ -6,3 +6,10 @@
   align-items: center;
   gap: 0.5rem;
 }
+
+.filter-chips-summary-legend {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--p-text-muted-color);
+  white-space: nowrap;
+}

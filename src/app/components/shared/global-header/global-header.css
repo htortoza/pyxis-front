@@ -15,19 +15,12 @@
   border-radius: 0;
   background: var(--p-surface-0);
   padding: 0.875rem 1.5rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
 }
 
 .global-header-start {
   display: flex;
   align-items: center;
   gap: 1.25rem;
-}
-
-.global-header-nav {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
 }
 
 .global-header-nav-link {
@@ -56,10 +49,22 @@
   gap: 1rem;
 }
 
-/* Second row -- only rendered while a filter is active (see global-header.html) -- showing
+/* Chips row -- only rendered while a filter is active (see global-header.html) -- showing
    the applied period/Sector/Marca/Tienda selection as removable chips, on both screens. */
 .global-header-chips {
   padding: 0.625rem 1.5rem;
   background: var(--p-surface-0);
   border-top: 1px solid var(--p-content-border-color);
+}
+
+/* Tabs row -- always the last row of the header block, so its shadow reads as the header's
+   own bottom edge regardless of whether the chips row above it is currently shown. */
+.global-header-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.625rem 1.5rem;
+  background: var(--p-surface-0);
+  border-top: 1px solid var(--p-content-border-color);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
 }

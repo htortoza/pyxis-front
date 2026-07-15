@@ -1,4 +1,6 @@
 <div class="filter-chips-summary-row">
+  <span class="filter-chips-summary-legend">Filtros aplicados</span>
+
   @if (periodsChipLabel(); as label) {
     <p-chip [label]="label" [removable]="true" (onRemove)="resetPeriods()" />
   }
