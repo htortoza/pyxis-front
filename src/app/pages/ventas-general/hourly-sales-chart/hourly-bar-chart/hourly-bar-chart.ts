@@ -38,22 +38,19 @@ function hexToRgba(hex: string, alpha: number): string {
 }
 
 /**
- * Per-bar vertical gradient (solid at the top, fading toward the base) using the bar's own
- * pixel geometry -- not the whole chart area -- so short and tall bars each fade over their
- * own height instead of sampling different slices of one shared gradient.
+ * Vertical gradient (solid at the top, fading toward the base) spanning the whole plot area.
+ * Deliberately NOT keyed to each bar's own pixel geometry (context.chart.getDatasetMeta(...)
+ * .data[i].y/.base) -- those can still be undefined/non-finite on the pass where Chart.js
+ * resolves element style before it finishes computing element geometry, and passing a
+ * non-finite value to createLinearGradient throws, crashing the whole chart's initial render.
+ * chartArea's bounds are always finite once chartArea itself exists.
  */
 function createBarGradient(hex: string) {
   return (context: ScriptableContext<'bar'>) => {
-    const { chart, datasetIndex, dataIndex } = context;
-    const { ctx, chartArea } = chart;
-    if (!chartArea) return hex; // first layout pass, before bar geometry is known
+    const { ctx, chartArea } = context.chart;
+    if (!chartArea) return hex; // first layout pass, before chartArea is known
 
-    const bar = chart.getDatasetMeta(datasetIndex).data[dataIndex] as unknown as
-      | { y: number; base: number }
-      | undefined;
-    if (!bar) return hex;
-
-    const gradient = ctx.createLinearGradient(0, bar.y, 0, bar.base);
+    const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
     gradient.addColorStop(0, hex);
     gradient.addColorStop(1, hexToRgba(hex, 0.35));
     return gradient;
