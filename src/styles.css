@@ -10,6 +10,14 @@ html, body {
   padding: 0;
 }
 
+/* Ventas General and Detalle de Ventas have different content heights -- one needs a
+   vertical scrollbar, the other doesn't. Without this, switching between them toggles the
+   scrollbar and reflows the whole page horizontally by its width (content visibly shifts/
+   "sticks" to one side). Reserving the gutter always keeps that width constant. */
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Roboto, sans-serif;
   background: var(--p-surface-50);
