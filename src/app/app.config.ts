@@ -47,16 +47,19 @@ const PyxisPreset = definePreset(Aura, {
         background: 'transparent',
         borderColor: 'transparent',
       },
+      // Left padding is 0 at both the list and item level -- the drawer's own content
+      // padding (1.25rem, the same token the header/logo uses) is the sole left inset,
+      // so menu items and the group headers line up exactly with the logo's left edge.
       list: {
-        padding: '0.5rem 0.75rem',
+        padding: '0.5rem 0 0.5rem 0',
         gap: '0.25rem',
       },
       item: {
-        padding: '0.5rem 0.75rem',
+        padding: '0.5rem 0.75rem 0.5rem 0',
         gap: '0.625rem',
       },
       submenuLabel: {
-        padding: '0.75rem 0.75rem 0.375rem',
+        padding: '0.75rem 0.75rem 0.375rem 0',
         fontWeight: '600',
         color: '{text.muted.color}',
         background: 'transparent',

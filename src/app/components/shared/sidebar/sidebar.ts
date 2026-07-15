@@ -6,25 +6,6 @@ import { Menu } from 'primeng/menu';
 import { CURRENT_USER } from '../../../data/mock/mock-user.mock';
 import type { UserRole } from '../../../data/models/mock-user.model';
 
-type SidebarIconKey =
-  | 'ventas'
-  | 'margenes'
-  | 'comparativos'
-  | 'erp'
-  | 'carga'
-  | 'gobernanza'
-  | 'tenant'
-  | 'backoffice';
-
-/** `item.icon`'s string value is applied verbatim as a CSS class on p-menu's icon span
- * (see MenuStyle.classes.itemIcon) -- these classes get their shape via a CSS mask-image
- * in styles.css (global, since Menu's internal DOM is unreachable from this component's
- * own scoped stylesheet per Angular's emulated-encapsulation rules). Deliberately not
- * `pi pi-*` font icons, per this project's inline-SVG-only icon convention. */
-function iconClass(key: SidebarIconKey): string {
-  return `sidebar-menu-icon sidebar-menu-icon--${key}`;
-}
-
 const SOON_BADGE = { badge: 'Pronto', badgeStyleClass: 'sidebar-badge-soon' };
 
 /**
@@ -40,23 +21,23 @@ const MENU_MODEL: MenuItem[] = [
   {
     label: 'Visor Estratégico',
     items: [
-      { label: 'Ventas', icon: iconClass('ventas'), routerLink: '/' },
-      { label: 'Márgenes', icon: iconClass('margenes'), disabled: true, ...SOON_BADGE },
-      { label: 'Comparativos', icon: iconClass('comparativos'), disabled: true, ...SOON_BADGE },
+      { label: 'Ventas', icon: 'pi pi-chart-line', routerLink: '/' },
+      { label: 'Márgenes', icon: 'pi pi-percentage', disabled: true, ...SOON_BADGE },
+      { label: 'Comparativos', icon: 'pi pi-clone', disabled: true, ...SOON_BADGE },
     ],
   },
   {
     label: 'Administración',
     items: [
-      { label: 'Motor de mapeo ERP', icon: iconClass('erp'), disabled: true, ...SOON_BADGE },
-      { label: 'Carga de datos', icon: iconClass('carga'), disabled: true, ...SOON_BADGE },
-      { label: 'Gobernanza y permisos', icon: iconClass('gobernanza'), disabled: true, ...SOON_BADGE },
-      { label: 'Panel del tenant', icon: iconClass('tenant'), disabled: true, ...SOON_BADGE },
+      { label: 'Motor de mapeo ERP', icon: 'pi pi-sitemap', disabled: true, ...SOON_BADGE },
+      { label: 'Carga de datos', icon: 'pi pi-upload', disabled: true, ...SOON_BADGE },
+      { label: 'Gobernanza y permisos', icon: 'pi pi-shield', disabled: true, ...SOON_BADGE },
+      { label: 'Panel del tenant', icon: 'pi pi-building', disabled: true, ...SOON_BADGE },
     ],
   },
   {
     label: 'BI Pyxis Interno',
-    items: [{ label: 'Backoffice multi-tenant', icon: iconClass('backoffice'), disabled: true, ...SOON_BADGE }],
+    items: [{ label: 'Backoffice multi-tenant', icon: 'pi pi-server', disabled: true, ...SOON_BADGE }],
   },
 ];
 
