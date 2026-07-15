@@ -8,26 +8,24 @@ import Aura from '@primeuix/themes/aura';
 import { routes } from './app.routes';
 
 /**
- * Primary scale built from the Pyxis logo's own 3 gradient stops (Logo/SVG/icono-color
- * copia.svg: violet #8400c8 -> indigo #2010c0 -> blue #0271ed), not a generic Tailwind/Aura
- * hue import. 500/700/900 are the exact brand hexes (blue/indigo/violet respectively);
- * everything else is a computed white-tint (50-400) or black-shade (950) of that same trio,
- * so every step in the ramp is either a real brand color or a direct mix of two real ones.
+ * Primary scale anchored on the brand's primary color, #182bcd. 500 is that exact hex;
+ * every other step is a computed white-tint (50-400) or black-shade (600-950) of it --
+ * monochromatic, not a multi-hue ramp.
  */
 const PyxisPreset = definePreset(Aura, {
   semantic: {
     primary: {
-      50: '#e6f1fd',
-      100: '#c0dcfb',
-      200: '#8dbff7',
-      300: '#5ba3f3',
-      400: '#2886f0',
-      500: '#0271ed', // logo blue
-      600: '#0c51de',
-      700: '#2010c0', // logo indigo
-      800: '#5208c4',
-      900: '#8400c8', // logo violet
-      950: '#560082',
+      50: '#edeefb',
+      100: '#d1d5f5',
+      200: '#a3aaeb',
+      300: '#7480e1',
+      400: '#4655d7',
+      500: '#182bcd',
+      600: '#1425ae',
+      700: '#111e90',
+      800: '#0d1871',
+      900: '#0a1152',
+      950: '#060b33',
     },
   },
   components: {

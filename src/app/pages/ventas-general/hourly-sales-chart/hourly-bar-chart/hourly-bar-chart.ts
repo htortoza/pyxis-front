@@ -11,16 +11,16 @@ import { formatSignedAmount } from '../../../../pipes/signed-amount';
  * Chart.js needs literal color strings, it cannot resolve CSS custom properties,
  * so hardcoding this small named palette here (not in a page CSS file) is the
  * accepted exception to the "no hardcoded hex" rule. Monochromatic: light-to-dark
- * tints/shades of a single hue, the logo's own brand blue #0271ed (see app.config.ts),
- * solid colors -- no opacity/fade.
+ * tints/shades of the app's primary color #182bcd (see app.config.ts), solid colors
+ * -- no opacity/fade.
  */
 const PERIOD_COLOR_PALETTE = [
-  '#9ac6f8',
-  '#5ba3f3',
-  '#0271ed',
-  '#025abe',
-  '#01448e',
-  '#012d5f',
+  '#a3aaeb',
+  '#6975df',
+  '#182bcd',
+  '#1322a4',
+  '#0e1a7b',
+  '#0a1152',
 ];
 
 function colorForPeriod(order: number): string {
