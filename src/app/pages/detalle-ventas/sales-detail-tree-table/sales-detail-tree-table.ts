@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
   afterNextRender,
   computed,
@@ -230,6 +231,7 @@ export class SalesDetailTreeTableComponent {
   readonly subfamiliaFocused = output<string>();
 
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly searchRaw = signal('');
   protected readonly searchDebounced = toSignal(
@@ -253,6 +255,12 @@ export class SalesDetailTreeTableComponent {
   /** Measured height of PrimeNG's own (already-sticky) column header row, so this label bar
    * sits directly beneath it rather than at a guessed pixel offset. */
   protected readonly stickyLabelTop = signal('0px');
+
+  /** CSS height string for p-treeTable's own [scrollHeight] -- computed from the wrapper's
+   * real top offset (same technique as stickyLabelTop above) so the table fills the rest of
+   * the viewport instead of a fixed guessed pixel value. 600px is only the pre-measurement
+   * fallback for the very first paint. */
+  protected readonly scrollHeight = signal('600px');
 
   protected readonly displayTree = computed<DisplayNode[]>(() => {
     const query = this.searchDebounced().trim();
@@ -289,6 +297,12 @@ export class SalesDetailTreeTableComponent {
       if (header) {
         this.stickyLabelTop.set(`${header.getBoundingClientRect().height}px`);
       }
+
+      this.updateScrollHeight();
+
+      const onResize = () => this.updateScrollHeight();
+      window.addEventListener('resize', onResize);
+      this.destroyRef.onDestroy(() => window.removeEventListener('resize', onResize));
 
       let rafPending = false;
       scrollBody.addEventListener(
@@ -346,6 +360,17 @@ export class SalesDetailTreeTableComponent {
     }
 
     this.stickyLabel.set(familiaLabel ? [familiaLabel, subfamiliaLabel].filter(Boolean).join(' · ') : '');
+  }
+
+  /** .page-body's own bottom padding (detalle-ventas.css) -- kept as a named constant here
+   * since this component has no dependency on that page's CSS to read it from. */
+  private static readonly PAGE_BOTTOM_PADDING_PX = 32;
+
+  private updateScrollHeight(): void {
+    const wrapper = this.elementRef.nativeElement.querySelector<HTMLElement>('.detail-tree-table-wrapper');
+    if (!wrapper) return;
+    const top = wrapper.getBoundingClientRect().top;
+    this.scrollHeight.set(`calc(100vh - ${top}px - ${SalesDetailTreeTableComponent.PAGE_BOTTOM_PADDING_PX}px)`);
   }
 
   protected isLoadMoreRow(data: DetailTreeNodeData | LoadMoreRowData): data is LoadMoreRowData {

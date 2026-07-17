@@ -35,7 +35,7 @@
     [value]="displayTree()"
     [columns]="columns()"
     [scrollable]="true"
-    scrollHeight="600px"
+    [scrollHeight]="scrollHeight()"
     (onNodeExpand)="onNodeExpand($event)"
     (onNodeCollapse)="onNodeCollapse($event)"
   >
