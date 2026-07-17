@@ -111,3 +111,14 @@ body {
   width: 0.625rem;
   height: 0.625rem;
 }
+
+/*
+ * Vista Mapa's "+N más" long-tail dialog (sales-detail-treemap.html) -- p-dialog renders its
+ * overlay appended to <body>, unreachable from that component's own scoped CSS per the same
+ * encapsulation rule as the sidebar's Drawer/Menu internals above. Just a compact width so the
+ * searchable list reads as a focused lookup, not a full-screen modal.
+ */
+.treemap-long-tail-dialog.p-dialog {
+  width: 26rem;
+  max-width: 90vw;
+}

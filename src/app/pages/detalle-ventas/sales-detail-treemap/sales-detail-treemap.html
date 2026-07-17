@@ -1,0 +1,125 @@
+<div class="treemap-band">
+  <span class="treemap-band-label">Familia</span>
+  <div class="treemap-canvas">
+    @for (laid of familiaLayout(); track laid.entry.id) {
+      <button
+        type="button"
+        class="treemap-block"
+        [class.is-focused]="!laid.entry.isLongTail && laid.entry.id === focusedFamiliaNode()?.key"
+        [class.is-long-tail]="laid.entry.isLongTail"
+        [style]="blockStyle(laid.entry, laid.rect)"
+        [pTooltip]="blockTooltip(laid.entry)"
+        tooltipPosition="top"
+        (click)="onFamiliaBlockClick(laid.entry)"
+      >
+        <span class="treemap-block-label">{{ laid.entry.label }}</span>
+        <span class="treemap-block-amount">{{ formattedAmount(laid.entry.consolidadoTotal) }}</span>
+        @if (!laid.entry.isLongTail) {
+          <span class="treemap-block-dots">
+            @for (point of laid.entry.periodPoints; track point.periodId) {
+              <span class="treemap-block-dot" [style.height.%]="point.heightPct"></span>
+            }
+          </span>
+        }
+      </button>
+    }
+  </div>
+</div>
+
+<div class="treemap-band">
+  <span class="treemap-band-label">Subfamilia @if (focusedFamiliaNode(); as node) { <span class="treemap-band-context">· {{ node.data.label }}</span> }</span>
+  <div class="treemap-canvas">
+    @if (subfamiliaLayout().length === 0) {
+      <p class="treemap-empty">Sin subfamilias para esta familia en el periodo seleccionado.</p>
+    }
+    @for (laid of subfamiliaLayout(); track laid.entry.id) {
+      <button
+        type="button"
+        class="treemap-block"
+        [class.is-focused]="!laid.entry.isLongTail && laid.entry.id === focusedSubfamiliaNode()?.key"
+        [class.is-long-tail]="laid.entry.isLongTail"
+        [style]="blockStyle(laid.entry, laid.rect)"
+        [pTooltip]="blockTooltip(laid.entry)"
+        tooltipPosition="top"
+        (click)="onSubfamiliaBlockClick(laid.entry)"
+      >
+        <span class="treemap-block-label">{{ laid.entry.label }}</span>
+        <span class="treemap-block-amount">{{ formattedAmount(laid.entry.consolidadoTotal) }}</span>
+        @if (!laid.entry.isLongTail) {
+          <span class="treemap-block-dots">
+            @for (point of laid.entry.periodPoints; track point.periodId) {
+              <span class="treemap-block-dot" [style.height.%]="point.heightPct"></span>
+            }
+          </span>
+        }
+      </button>
+    }
+  </div>
+</div>
+
+<div class="treemap-band">
+  <span class="treemap-band-label">Artículo @if (focusedSubfamiliaNode(); as node) { <span class="treemap-band-context">· {{ node.data.label }}</span> }</span>
+  <div class="treemap-canvas">
+    @if (articuloLayout().length === 0) {
+      <p class="treemap-empty">Sin artículos para esta subfamilia en el periodo seleccionado.</p>
+    }
+    @for (laid of articuloLayout(); track laid.entry.id) {
+      <button
+        type="button"
+        class="treemap-block"
+        [class.is-long-tail]="laid.entry.isLongTail"
+        [style]="blockStyle(laid.entry, laid.rect)"
+        [pTooltip]="blockTooltip(laid.entry)"
+        tooltipPosition="top"
+        (click)="laid.entry.isLongTail ? openLongTail(laid.entry) : null"
+      >
+        <span class="treemap-block-label">{{ laid.entry.label }}</span>
+        <span class="treemap-block-amount">{{ formattedAmount(laid.entry.consolidadoTotal) }}</span>
+        @if (!laid.entry.isLongTail) {
+          <span class="treemap-block-dots">
+            @for (point of laid.entry.periodPoints; track point.periodId) {
+              <span class="treemap-block-dot" [style.height.%]="point.heightPct"></span>
+            }
+          </span>
+        }
+      </button>
+    }
+  </div>
+</div>
+
+<p-dialog
+  [visible]="!!longTailDialog()"
+  (visibleChange)="!$event ? closeLongTail() : null"
+  [modal]="true"
+  [header]="longTailDialog()?.label ?? ''"
+  styleClass="treemap-long-tail-dialog"
+>
+  @if (longTailDialog(); as dialog) {
+    <p-iconfield>
+      <p-inputicon>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </p-inputicon>
+      <input
+        pInputText
+        type="text"
+        placeholder="Buscar en la cola larga..."
+        [ngModel]="longTailSearch()"
+        (ngModelChange)="longTailSearch.set($event)"
+      />
+    </p-iconfield>
+
+    <div class="treemap-long-tail-list">
+      @for (item of longTailFilteredItems(); track item.id) {
+        <button type="button" class="treemap-long-tail-row" [pTooltip]="blockTooltip(item)" tooltipPosition="left">
+          <span class="treemap-long-tail-label">{{ item.label }}</span>
+          <span class="treemap-long-tail-amount">{{ formattedAmount(item.consolidadoTotal) }}</span>
+        </button>
+      } @empty {
+        <p class="treemap-empty">Sin coincidencias.</p>
+      }
+    </div>
+  }
+</p-dialog>

@@ -4,10 +4,36 @@
   @if (salesData.loading()) {
     <app-loading-skeleton height="480px" />
   } @else {
-    <app-sales-detail-tree-table
-      [facts]="scopedFacts()"
-      [selectedPeriodIds]="salesData.selectedPeriodIds()"
-      [periods]="salesData.periods"
-    />
+    <div class="detalle-ventas-view-toggle">
+      <p-selectButton
+        [options]="viewModeOptions"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="viewMode()"
+        (onChange)="onViewModeChange($event.value)"
+      />
+    </div>
+
+    @if (viewMode() === 'tabla') {
+      <app-sales-detail-tree-table
+        [tree]="detailTree()"
+        [selectedPeriodIds]="salesData.selectedPeriodIds()"
+        [periods]="salesData.periods"
+        [focusedFamiliaId]="focusedFamiliaId()"
+        [focusedSubfamiliaId]="focusedSubfamiliaId()"
+        (familiaFocused)="focusedFamiliaId.set($event)"
+        (subfamiliaFocused)="focusedSubfamiliaId.set($event)"
+      />
+    } @else {
+      <app-sales-detail-treemap
+        [tree]="detailTree()"
+        [periods]="salesData.periods"
+        [selectedPeriodIds]="salesData.selectedPeriodIds()"
+        [focusedFamiliaId]="focusedFamiliaId()"
+        [focusedSubfamiliaId]="focusedSubfamiliaId()"
+        (familiaFocused)="focusedFamiliaId.set($event)"
+        (subfamiliaFocused)="focusedSubfamiliaId.set($event)"
+      />
+    }
   }
 </main>

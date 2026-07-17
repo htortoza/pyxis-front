@@ -1,0 +1,9 @@
+:host {
+  display: inline-block;
+}
+
+.mini-sparkline {
+  display: block;
+  width: 52px;
+  height: 24px;
+}

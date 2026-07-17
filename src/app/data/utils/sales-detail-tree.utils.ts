@@ -72,10 +72,12 @@ function toNodeData(accum: LeafAccum, level: DetailTreeNodeData['level']): Detai
 }
 
 /**
- * Builds the Familia > Subfamilia > Articulo aggregation tree for the "Detalle de Ventas"
- * tree-table, plus a synthetic top-level zDescuentos row for negative-amount facts.
- * Pure and synchronous -- store/period scoping happens in the caller (same split as
- * sales-fact.utils.ts's filterFacts/computeKpis).
+ * Builds the Familia > Subfamilia > Articulo aggregation tree for "Detalle de Ventas", plus a
+ * synthetic top-level zDescuentos row for negative-amount facts. Every level is sorted
+ * alphabetically (never by amount) -- Vista Tabla's whole value is stable, ERP-comparable row
+ * positions. Vista Mapa re-sorts by amount from this same tree in its own utils, without
+ * touching this order. Pure and synchronous -- store/period scoping happens in the caller
+ * (same split as sales-fact.utils.ts's filterFacts/computeKpis).
  */
 export function buildDetailTree(
   facts: SalesFact[],
@@ -139,7 +141,10 @@ export function buildDetailTree(
       if (articuloNodes.length === 0) {
         continue; // drop an empty branch rather than leaving a dangling row
       }
-      articuloNodes.sort((a, b) => b.data.consolidadoTotal - a.data.consolidadoTotal);
+      // Alphabetical, always -- Detalle de Ventas' Vista Tabla exists so ERP reconciliation
+      // has stable, predictable row positions across months. Never reorder by amount here;
+      // Vista Mapa re-sorts by amount itself from this same tree, without touching this order.
+      articuloNodes.sort((a, b) => a.data.label.localeCompare(b.data.label, 'es'));
 
       subfamiliaNodes.push({
         key: `subfamilia-${categoryId}-${subcategoryId}`,
@@ -152,7 +157,7 @@ export function buildDetailTree(
     if (subfamiliaNodes.length === 0) {
       continue;
     }
-    subfamiliaNodes.sort((a, b) => b.data.consolidadoTotal - a.data.consolidadoTotal);
+    subfamiliaNodes.sort((a, b) => a.data.label.localeCompare(b.data.label, 'es'));
 
     familiaNodes.push({
       key: `familia-${categoryId}`,
@@ -162,7 +167,7 @@ export function buildDetailTree(
     });
   }
 
-  familiaNodes.sort((a, b) => b.data.consolidadoTotal - a.data.consolidadoTotal);
+  familiaNodes.sort((a, b) => a.data.label.localeCompare(b.data.label, 'es'));
 
   const result: DetailTreeNode[] = [...familiaNodes];
 

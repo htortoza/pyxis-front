@@ -1,3 +1,4 @@
+import type { Product } from '../models/product.model';
 import type { SalesFact } from '../models/sales-fact.model';
 import { CONTEXT_TREE } from './context-tree.mock';
 import { PERIODS } from './periods.mock';
@@ -15,15 +16,56 @@ function mulberry32(seed: number): () => number {
   };
 }
 
+/**
+ * Zipf-like weight per product (rank-based, exponent 0.8) so a handful of products dominate
+ * sales and most trail off into a long tail -- needed to exercise Detalle de Ventas' treemap
+ * long-tail grouping (items <1% of their level) and its table's progressive-loading threshold
+ * with real, non-zero rows rather than mostly-empty ones. Ranks are shuffled (not literal
+ * array position) so "who sells well" doesn't just track familia order in products.mock.ts.
+ */
+function buildProductWeights(products: Product[], rng: () => number): number[] {
+  const ranks = products.map((_, i) => i);
+  for (let i = ranks.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [ranks[i], ranks[j]] = [ranks[j], ranks[i]];
+  }
+  const weights = new Array<number>(products.length);
+  for (let i = 0; i < products.length; i++) {
+    weights[ranks[i]] = 1 / Math.pow(i + 1, 0.8);
+  }
+  const cumulative: number[] = [];
+  let sum = 0;
+  for (const w of weights) {
+    sum += w;
+    cumulative.push(sum);
+  }
+  return cumulative;
+}
+
+function pickWeightedProduct(products: Product[], cumulative: number[], rng: () => number) {
+  const target = rng() * cumulative[cumulative.length - 1];
+  let lo = 0;
+  let hi = cumulative.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi) >>> 1;
+    if (cumulative[mid] < target) lo = mid + 1;
+    else hi = mid;
+  }
+  return products[lo];
+}
+
 function generateSalesFacts(): SalesFact[] {
   const rng = mulberry32(20260714);
   const tiendaNodes = CONTEXT_TREE.filter((node) => node.type === 'TIENDA');
+  const productWeights = buildProductWeights(PRODUCTS, rng);
   const facts: SalesFact[] = [];
   let txCounter = 0;
 
   for (const period of PERIODS) {
     for (const tienda of tiendaNodes) {
-      const transactionCount = 38 + Math.floor(rng() * 5); // ~40 transactions per store/period
+      const transactionCount = 380 + Math.floor(rng() * 60); // dense enough that most of the
+      // ~500-product catalog gets real (non-zero) sales within any 3-period window, not just
+      // the top sellers -- see buildProductWeights' doc comment above.
       for (let t = 0; t < transactionCount; t++) {
         txCounter++;
         const transactionId = `tx-${txCounter}`;
@@ -32,7 +74,7 @@ function generateSalesFacts(): SalesFact[] {
         const lineItemCount = 1 + Math.floor(rng() * 3); // 1-3 line items
 
         for (let li = 0; li < lineItemCount; li++) {
-          const product = PRODUCTS[Math.floor(rng() * PRODUCTS.length)];
+          const product = pickWeightedProduct(PRODUCTS, productWeights, rng);
           const quantity = 1 + Math.floor(rng() * 3);
           const basePerUnit = 8000 + rng() * 8000; // 8000-16000 CLP per unit
           const multiplier = 0.8 + rng() * 0.6; // 0.8-1.4

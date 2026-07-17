@@ -1,0 +1,162 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.treemap-band {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+/* Same label recipe as ranking-panel's .ranking-title / kpi-card's .kpi-label, for visual
+   consistency across every card family in this app. */
+.treemap-band-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--p-text-muted-color);
+}
+
+.treemap-band-context {
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 500;
+  color: var(--p-text-color);
+}
+
+/* Real 2D canvas for squarify's percentage-based rects (sales-detail-treemap.ts) -- a fixed
+ * pixel height so blocks actually fill the available area in both dimensions, instead of the
+ * old single flex-wrap row that only varied width and left the rest of the screen's height
+ * empty. */
+.treemap-canvas {
+  position: relative;
+  height: 13rem;
+}
+
+.treemap-block {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.125rem;
+  padding: 0.3125rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: var(--p-border-radius-md, 6px);
+  overflow: hidden;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition: border-color 0.15s ease, transform 0.1s ease-out;
+}
+
+.treemap-block:hover {
+  border-color: var(--p-primary-color);
+}
+
+.treemap-block:active {
+  transform: scale(0.98);
+}
+
+.treemap-block.is-focused {
+  border-color: var(--p-primary-color);
+  box-shadow: inset 0 0 0 1px var(--p-primary-color);
+}
+
+.treemap-block.is-long-tail {
+  border-style: dashed;
+  border-color: var(--p-content-border-color);
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.treemap-block-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+  font-size: 0.6875rem;
+  color: var(--p-text-color);
+}
+
+.treemap-block-amount {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--p-text-color);
+}
+
+/* Mini 3-point trend: one tiny bar per selected period, height ∝ that period's amount --
+   plain CSS, no per-block chart instance. */
+.treemap-block-dots {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.1875rem;
+  height: 0.625rem;
+}
+
+.treemap-block-dot {
+  width: 0.25rem;
+  min-height: 2px;
+  border-radius: 1px;
+  background: currentColor;
+  opacity: 0.55;
+}
+
+.treemap-empty {
+  margin: 0;
+  padding: 0.75rem;
+  color: var(--p-text-muted-color);
+  font-size: 0.8125rem;
+}
+
+.treemap-long-tail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  max-height: 20rem;
+  overflow-y: auto;
+  margin-top: 0.75rem;
+}
+
+.treemap-long-tail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: var(--p-border-radius-md, 6px);
+  background: var(--p-surface-100);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition: border-color 0.15s ease;
+}
+
+.treemap-long-tail-row:hover {
+  border-color: var(--p-primary-color);
+}
+
+.treemap-long-tail-label {
+  color: var(--p-text-color);
+  font-weight: 500;
+  font-size: 0.8125rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.treemap-long-tail-amount {
+  color: var(--p-text-color);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
