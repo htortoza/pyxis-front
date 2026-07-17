@@ -1,5 +1,9 @@
 :host {
   display: block;
+  /* Overrides PrimeNG's own row-density tokens (default "0.75rem 1rem" each) to shrink row
+   * height a bit -- scoped to this table only, via the same --p-* token PrimeNG itself reads. */
+  --p-treetable-body-cell-padding: 0.5rem 0.75rem;
+  --p-treetable-header-cell-padding: 0.625rem 0.75rem;
 }
 
 .detail-tree-toolbar {
@@ -22,6 +26,7 @@
 
 .detail-tree-table {
   display: block;
+  font-size: 0.875rem;
 }
 
 /* Overlays the scrollable body at a fixed screen position (measured off PrimeNG's own sticky
@@ -54,17 +59,17 @@
  * at the source, not just for this column.
  */
 .detail-tree-label-col {
-  width: 16rem;
+  width: 14rem;
   text-align: left;
 }
 
 .detail-tree-trend-col {
-  width: 5.5rem;
+  width: 5rem;
   text-align: center;
 }
 
 .detail-tree-amount-col {
-  width: 7rem;
+  width: 6rem;
   text-align: right;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;

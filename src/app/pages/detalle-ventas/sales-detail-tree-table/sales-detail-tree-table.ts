@@ -115,27 +115,6 @@ function filterAndExpand(nodes: DetailTreeNode[], query: string): DetailTreeNode
   return nodes.map(walk).filter((node): node is DetailTreeNode => node !== null);
 }
 
-/** Force-expands whichever Familia/Subfamilia the shared focus (set by Vista Mapa's own
- * drill-down, or by this same table) points at -- without touching any other branch's own
- * expand state, per "no perder el punto" when switching views. */
-function forceExpandFocused(
-  nodes: DetailTreeNode[],
-  familiaId: string | null,
-  subfamiliaId: string | null,
-): DetailTreeNode[] {
-  if (!familiaId) return nodes;
-  return nodes.map((node) => {
-    if (node.key !== familiaId) return node;
-    if (!subfamiliaId || !node.children) {
-      return { ...node, expanded: true };
-    }
-    const children = node.children.map((child) =>
-      child.key === subfamiliaId ? { ...child, expanded: true } : child,
-    );
-    return { ...node, expanded: true, children };
-  });
-}
-
 /**
  * Caps every branch's rendered children to its own visibleCount (default
  * INITIAL_VISIBLE_CHILDREN), appending a synthetic "Cargar más" row when more exist. Runs over
@@ -266,8 +245,7 @@ export class SalesDetailTreeTableComponent {
     const query = this.searchDebounced().trim();
     const base = this.tree();
     const filtered = query.length > 0 ? filterAndExpand(base, query) : base;
-    const focused = forceExpandFocused(filtered, this.focusedFamiliaId(), this.focusedSubfamiliaId());
-    return applyProgressiveLoading(focused, this.visibleCounts(), this.expandedKeys());
+    return applyProgressiveLoading(filtered, this.visibleCounts(), this.expandedKeys());
   });
 
   protected readonly columns = computed<DetailColumn[]>(() => {
@@ -326,12 +304,24 @@ export class SalesDetailTreeTableComponent {
       this.stickyLabel.set('');
     });
 
-    // Scrolls to whichever branch the shared focus points at (set by Vista Mapa, or by this
-    // same table) -- deferred a tick so it runs after forceExpandFocused's row has actually
-    // rendered into the DOM.
+    // Opens (once, via expandedKeys) and scrolls to whichever branch the shared focus points at
+    // (set by Vista Mapa, or by this same table). Adding to expandedKeys here -- rather than
+    // force-setting node.expanded on every displayTree recompute, like this used to -- means an
+    // explicit collapse afterward actually sticks: this effect only re-runs when the focus
+    // itself changes, not on every unrelated recompute.
     effect(() => {
-      const targetKey = this.focusedSubfamiliaId() ?? this.focusedFamiliaId();
-      if (!targetKey) return;
+      const familiaId = this.focusedFamiliaId();
+      const subfamiliaId = this.focusedSubfamiliaId();
+      if (!familiaId) return;
+
+      this.expandedKeys.update((current) => {
+        const next = new Set(current);
+        next.add(familiaId);
+        if (subfamiliaId) next.add(subfamiliaId);
+        return next;
+      });
+
+      const targetKey = subfamiliaId ?? familiaId;
       setTimeout(() => this.scrollRowIntoView(targetKey));
     });
   }
