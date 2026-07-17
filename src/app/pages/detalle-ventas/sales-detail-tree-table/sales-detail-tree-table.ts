@@ -18,6 +18,7 @@ import { PrimeTemplate } from 'primeng/api';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
 import { InputText } from 'primeng/inputtext';
+import { SelectButton } from 'primeng/selectbutton';
 import { TreeTableModule } from 'primeng/treetable';
 
 import { MiniSparklineComponent, type SparklinePoint } from '../../../components/shared/mini-sparkline/mini-sparkline';
@@ -40,6 +41,18 @@ interface DetailColumn {
   /** null for the consolidado pair -- there's no single period to key off. */
   periodId: string | null;
 }
+
+type Metric = 'total' | 'cantidad';
+
+interface MetricOption {
+  label: string;
+  value: Metric;
+}
+
+const METRIC_OPTIONS: MetricOption[] = [
+  { label: 'Total', value: 'total' },
+  { label: 'Cantidad', value: 'cantidad' },
+];
 
 interface LoadMoreRowData {
   isLoadMore: true;
@@ -189,6 +202,7 @@ function paginateNode(
     IconField,
     InputIcon,
     InputText,
+    SelectButton,
     TreeTableModule,
     SignedAmountPipe,
     MiniSparklineComponent,
@@ -223,6 +237,9 @@ export class SalesDetailTreeTableComponent {
     { initialValue: '' },
   );
 
+  protected readonly metric = signal<Metric>('total');
+  protected readonly metricOptions = METRIC_OPTIONS;
+
   private readonly visibleCounts = signal<ReadonlyMap<string, number>>(new Map());
 
   /** This component's own record of manually-toggled-open rows -- see applyProgressiveLoading's
@@ -248,12 +265,14 @@ export class SalesDetailTreeTableComponent {
   protected readonly columns = computed<DetailColumn[]>(() => {
     const selected = new Set(this.selectedPeriodIds());
     const orderedPeriods = this.periods().filter((period) => selected.has(period.id));
+    const metric = this.metric();
 
-    const cols: DetailColumn[] = [];
-    for (const period of orderedPeriods) {
-      cols.push({ field: `total_${period.id}`, header: `${period.label} Total`, kind: 'total', periodId: period.id });
-      cols.push({ field: `cantidad_${period.id}`, header: `${period.label} Cantidad`, kind: 'cantidad', periodId: period.id });
-    }
+    const cols: DetailColumn[] = orderedPeriods.map((period) => ({
+      field: `${metric}_${period.id}`,
+      header: period.label,
+      kind: metric,
+      periodId: period.id,
+    }));
     cols.push({ field: 'consolidadoTotal', header: 'Consolidado Total', kind: 'total', periodId: null });
     cols.push({ field: 'consolidadoCantidad', header: 'Consolidado Cantidad', kind: 'cantidad', periodId: null });
     return cols;

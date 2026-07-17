@@ -2,10 +2,18 @@
   display: block;
 }
 
+.detail-tree-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
 .detail-tree-search {
   display: block;
   max-width: 22rem;
-  margin-bottom: 1rem;
+  flex: 1;
 }
 
 .detail-tree-table-wrapper {
@@ -56,7 +64,7 @@
 }
 
 .detail-tree-amount-col {
-  width: 9rem;
+  width: 7rem;
   text-align: right;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
