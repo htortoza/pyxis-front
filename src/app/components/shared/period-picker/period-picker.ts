@@ -11,7 +11,7 @@ import { groupPeriodsByYear, PERIOD_PRESETS, type PeriodPreset } from '../../../
 import { SalesDataService } from '../../../services/sales-data.service';
 
 /** Stands in for the real current date -- this is a mock-data app with no live clock dependency. */
-const TODAY = { year: 2026, month: 7 };
+const TODAY = { year: 2026, month: 7, day: 20 };
 
 @Component({
   selector: 'app-period-picker',
