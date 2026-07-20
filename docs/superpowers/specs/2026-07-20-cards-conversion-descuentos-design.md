@@ -12,8 +12,8 @@ Sub-proyecto 2 de la iniciativa "Mockup Retail: Filtros, Comparaciones y Nuevas 
 ## Fuera de alcance
 
 - Semáforo graduado de 3+ colores (item 7) — sigue el semáforo simple (good/medium/bad) que ya existe.
-- Todo lo demás del sub-proyecto 1 (Motor de Período y Comparación) — sigue pausado.
-- UI de Meta para estas 2 cards nuevas — se agregan valores de meta mock solo para que el código ya pausado de `computeKpisAgainstMeta` siga compilando, no se construye ninguna pantalla nueva de Meta acá.
+- Todo lo demás del sub-proyecto 1 (Motor de Período y Comparación) — sigue pausado. Nota de corrección: al momento de escribir este spec se asumió que `computeKpisAgainstMeta`/`comparison.model.ts` ya existían (Task 6, pausada) — verificado antes de planificar que en realidad Tasks 5 y 6 del sub-proyecto 1 NO se habían empezado todavía, así que no existe ningún código de Meta que actualizar en esta fase. Cuando el sub-proyecto 1 retome la Tarea 6 (Meta), esa tarea deberá incorporar los 2 campos nuevos de `KpiSet` (`descuentos`/`tasaConversion`) a `computeKpisAgainstMeta` en ese momento.
+- UI de Meta para estas 2 cards nuevas — no aplica todavía (ver nota arriba).
 
 ## Decisiones de diseño
 
@@ -48,8 +48,6 @@ export const TASA_CONVERSION_TREND = [21.2, 22.0, 22.7, 23.9, 24.5];
 - `pickDescuentoPct(facts): number` — el cálculo de arriba, reutilizando `sumAmount`.
 - `mockTasaConversionKpiValue(): KpiValue` — construye un `KpiValue` fijo a partir de las constantes de `conversion.mock.ts` (mismo `deltaPct` y fórmula que `computeKpiValue`, pero sobre los dos números fijos en vez de facts).
 - `computeKpis(...)` agrega `descuentos: build(pickDescuentoPct)` y `tasaConversion: mockTasaConversionKpiValue()` a su objeto de retorno.
-
-`computeKpisAgainstMeta` (código ya existente, pausado, del sub-proyecto 1) también necesita los 2 campos nuevos para seguir compilando — se agregan `descuentos`/`tasaConversion` a `KpiMetaMensual` (`comparison.model.ts`) y a `KPI_METAS_MENSUALES` (`kpi-metas.mock.ts`), y una línea más en `computeKpisAgainstMeta`'s objeto de retorno. Ningún componente nuevo de Meta se construye para estas 2 cards en esta fase.
 
 ## UI
 
