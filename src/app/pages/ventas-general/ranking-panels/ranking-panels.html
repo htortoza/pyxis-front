@@ -10,21 +10,21 @@
 } @else {
   <div class="rankings-grid">
     <app-ranking-panel
-      title="Sectores"
+      [title]="vocab.labelFor('sector')"
       [items]="salesData.rankings().sectores"
       dimension="sector"
       [activeId]="activeIdFor('sector')"
       (itemSelected)="onSelect('sector', $event)"
     />
     <app-ranking-panel
-      title="Marcas"
+      [title]="vocab.labelFor('marca')"
       [items]="salesData.rankings().marcas"
       dimension="marca"
       [activeId]="activeIdFor('marca')"
       (itemSelected)="onSelect('marca', $event)"
     />
     <app-ranking-panel
-      title="Tiendas"
+      [title]="vocab.labelFor('tienda')"
       [items]="salesData.rankings().tiendas"
       dimension="tienda"
       [activeId]="activeIdFor('tienda')"

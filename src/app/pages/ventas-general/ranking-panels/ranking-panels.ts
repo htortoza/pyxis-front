@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 
 import { SalesDataService } from '../../../services/sales-data.service';
+import { TenantVocabularyService } from '../../../services/tenant-vocabulary.service';
 import { LoadingSkeletonComponent } from '../../../components/shared/loading-skeleton/loading-skeleton';
 import type { RankingDimension, RankingItem } from '../../../data/models/ranking.model';
 import { RankingPanelComponent, type RankingSortOption } from './ranking-panel/ranking-panel';
@@ -22,6 +23,7 @@ const PRODUCT_SORT_OPTIONS: RankingSortOption[] = [
 })
 export class RankingPanelsComponent {
   protected readonly salesData = inject(SalesDataService);
+  protected readonly vocab = inject(TenantVocabularyService);
 
   protected readonly productSortOptions = PRODUCT_SORT_OPTIONS;
   protected readonly productSortMode = signal<ProductSortMode>('amount');
