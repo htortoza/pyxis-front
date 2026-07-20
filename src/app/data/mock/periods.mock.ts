@@ -58,7 +58,7 @@ function buildWeeklyPeriods(): Period[] {
   const periods: Period[] = [];
   let cursor = START_DATE;
   let order = 1;
-  while (cursor <= END_DATE) {
+  while (addDaysIso(cursor, 6) <= END_DATE) {
     const weekEnd = addDaysIso(cursor, 6);
     const { year, month } = isoParts(cursor);
     periods.push({

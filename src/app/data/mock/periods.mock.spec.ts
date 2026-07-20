@@ -26,4 +26,9 @@ describe('periods.mock', () => {
     expect(PERIODS_SEMANA[1].startDate).toBe('2024-01-08');
     expect(PERIODS_SEMANA[1].endDate).toBe('2024-01-14');
   });
+
+  it('PERIODS_SEMANA never extends past the declared END_DATE', () => {
+    expect(PERIODS_SEMANA.at(-1)!.endDate <= '2026-12-31').toBe(true);
+    expect(PERIODS_SEMANA.length).toBe(156);
+  });
 });
