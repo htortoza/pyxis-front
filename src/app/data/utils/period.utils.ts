@@ -1,4 +1,4 @@
-import type { Period } from '../models/period.model';
+import type { Period, PeriodGranularity } from '../models/period.model';
 
 export function groupPeriodsByYear(periods: Period[]): Map<number, Period[]> {
   const map = new Map<number, Period[]>();
@@ -13,18 +13,29 @@ export function groupPeriodsByYear(periods: Period[]): Map<number, Period[]> {
 export interface PeriodPreset {
   key: string;
   label: string;
-  /** Given the full period list and "today" (year+month, injected -- never Date.now() in this pure file), returns the matching period ids. */
-  resolve: (periods: Period[], today: { year: number; month: number }) => string[];
+  granularity: PeriodGranularity;
+  /** Given the full period list (of this preset's own granularity) and "today", returns matching period ids. */
+  resolve: (periods: Period[], today: { year: number; month: number; day: number }) => string[];
 }
 
 function toOrder(today: { year: number; month: number }): number {
   return today.year * 12 + today.month;
 }
 
+function toIso(today: { year: number; month: number; day: number }): string {
+  return `${today.year}-${String(today.month).padStart(2, '0')}-${String(today.day).padStart(2, '0')}`;
+}
+
+function currentWeek(periods: Period[], today: { year: number; month: number; day: number }): Period | undefined {
+  const todayIso = toIso(today);
+  return periods.find((p) => p.startDate <= todayIso && todayIso <= p.endDate);
+}
+
 export const PERIOD_PRESETS: PeriodPreset[] = [
   {
     key: 'mes-actual',
     label: 'Mes Actual',
+    granularity: 'mes',
     resolve: (periods, today) => {
       const todayOrder = toOrder(today);
       return periods.filter((p) => p.order === todayOrder).map((p) => p.id);
@@ -33,6 +44,7 @@ export const PERIOD_PRESETS: PeriodPreset[] = [
   {
     key: 'ultimo-trimestre',
     label: 'Último Trimestre',
+    granularity: 'mes',
     resolve: (periods, today) => {
       const todayOrder = toOrder(today);
       return periods.filter((p) => p.order > todayOrder - 3 && p.order <= todayOrder).map((p) => p.id);
@@ -41,6 +53,7 @@ export const PERIOD_PRESETS: PeriodPreset[] = [
   {
     key: 'ultimos-6-meses',
     label: 'Últimos 6 Meses',
+    granularity: 'mes',
     resolve: (periods, today) => {
       const todayOrder = toOrder(today);
       return periods.filter((p) => p.order > todayOrder - 6 && p.order <= todayOrder).map((p) => p.id);
@@ -49,18 +62,41 @@ export const PERIOD_PRESETS: PeriodPreset[] = [
   {
     key: 'ano-actual',
     label: 'Año en Curso',
+    granularity: 'mes',
     resolve: (periods, today) =>
       periods.filter((p) => p.year === today.year && p.month <= today.month).map((p) => p.id),
   },
   {
     key: 'ano-anterior',
     label: 'Año Anterior',
+    granularity: 'mes',
     resolve: (periods, today) => periods.filter((p) => p.year === today.year - 1).map((p) => p.id),
   },
   {
     key: 'ultimos-3-anos',
     label: 'Últimos 3 Años',
+    granularity: 'mes',
     resolve: (periods, today) =>
       periods.filter((p) => p.year >= today.year - 2 && p.year <= today.year).map((p) => p.id),
+  },
+  {
+    key: 'ultimas-3-semanas',
+    label: 'Últimas 3 Semanas',
+    granularity: 'semana',
+    resolve: (periods, today) => {
+      const week = currentWeek(periods, today);
+      if (!week) return [];
+      return periods.filter((p) => p.order > week.order - 3 && p.order <= week.order).map((p) => p.id);
+    },
+  },
+  {
+    key: 'ultimas-12-semanas',
+    label: 'Últimas 12 Semanas',
+    granularity: 'semana',
+    resolve: (periods, today) => {
+      const week = currentWeek(periods, today);
+      if (!week) return [];
+      return periods.filter((p) => p.order > week.order - 12 && p.order <= week.order).map((p) => p.id);
+    },
   },
 ];
