@@ -2,6 +2,7 @@ import type { Period } from '../models/period.model';
 import type { SalesFact } from '../models/sales-fact.model';
 import { TASA_CONVERSION_ACTUAL, TASA_CONVERSION_ANTERIOR, TASA_CONVERSION_TREND } from '../mock/conversion.mock';
 import {
+  buildDailySeries,
   buildHeatmapMatrix,
   buildKpiTrendPoints,
   filterFacts,
@@ -149,5 +150,23 @@ describe('mockTasaConversionKpiValue', () => {
       5,
     );
     expect(kpi.trend.map((p) => p.value)).toEqual(TASA_CONVERSION_TREND);
+  });
+});
+
+describe('buildDailySeries', () => {
+  it('sums amounts per calendar date and sorts chronologically', () => {
+    const facts = [
+      fact({ date: '2026-07-02', amount: 500 }),
+      fact({ date: '2026-07-01', amount: 1000 }),
+      fact({ date: '2026-07-01', amount: 200 }),
+    ];
+    expect(buildDailySeries(facts)).toEqual([
+      { date: '2026-07-01', amount: 1200 },
+      { date: '2026-07-02', amount: 500 },
+    ]);
+  });
+
+  it('returns an empty array when there are no facts', () => {
+    expect(buildDailySeries([])).toEqual([]);
   });
 });

@@ -25,10 +25,12 @@ import {
 import { previousPeriodWindow } from '../data/utils/period.utils';
 import {
   aggregateRanking,
+  buildDailySeries,
   buildHeatmapMatrix,
   buildHourlySeries,
   computeKpis,
   filterFacts,
+  type DailyPoint,
 } from '../data/utils/sales-fact.utils';
 
 interface CrossFilter {
@@ -39,6 +41,7 @@ interface CrossFilter {
 interface DashboardData {
   kpis: KpiSet;
   hourlySeries: Record<string, number[]>;
+  dailySeries: DailyPoint[];
   heatmap: number[][];
   rankings: RankingSet;
 }
@@ -136,6 +139,7 @@ export class SalesDataService {
 
   readonly kpis = computed(() => this.dashboardData().kpis);
   readonly hourlySeriesByPeriod = computed(() => this.dashboardData().hourlySeries);
+  readonly dailySeries = computed(() => this.dashboardData().dailySeries);
   readonly heatmapMatrix = computed(() => this.dashboardData().heatmap);
   readonly rankings = computed(() => this.dashboardData().rankings);
 
@@ -274,8 +278,10 @@ export class SalesDataService {
       hourlySeries[period.id] = buildHourlySeries(periodFacts);
     }
 
-    // Step 7: combined heatmap across all selected periods.
+    // Step 7: combined heatmap across all selected periods, plus a per-calendar-day series
+    // for the "Por Día" chart view (same currentFacts scope as everything else above).
     const heatmap = buildHeatmapMatrix(currentFacts);
+    const dailySeries = buildDailySeries(currentFacts);
 
     // Step 8: rankings. Sector/marca/tienda rankings use the store+period scope only (not
     // narrowed by a 'producto' cross-filter) so drilling into a product never empties them.
@@ -303,6 +309,6 @@ export class SalesDataService {
       ),
     };
 
-    return { kpis, hourlySeries, heatmap, rankings };
+    return { kpis, hourlySeries, dailySeries, heatmap, rankings };
   }
 }

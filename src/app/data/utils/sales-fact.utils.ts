@@ -196,6 +196,22 @@ export function buildHeatmapMatrix(facts: SalesFact[]): number[][] {
   return matrix;
 }
 
+export interface DailyPoint {
+  date: string;
+  amount: number;
+}
+
+/** Agrega ventas por fecha calendario real -- una barra por día en la vista "Por Día" del gráfico de distribución. */
+export function buildDailySeries(facts: SalesFact[]): DailyPoint[] {
+  const totals = new Map<string, number>();
+  for (const fact of facts) {
+    totals.set(fact.date, (totals.get(fact.date) ?? 0) + fact.amount);
+  }
+  return Array.from(totals.entries())
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+    .map(([date, amount]) => ({ date, amount }));
+}
+
 export function aggregateRanking(
   facts: SalesFact[],
   keyOf: (fact: SalesFact) => string,

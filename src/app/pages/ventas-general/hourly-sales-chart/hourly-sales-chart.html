@@ -6,10 +6,16 @@
     </div>
     <div class="view-toggle">
       <p-button
-        label="Gráfico de Barras"
+        label="Por Hora"
         size="small"
         [outlined]="viewMode() !== 'bars'"
         (onClick)="setViewMode('bars')"
+      />
+      <p-button
+        label="Por Día"
+        size="small"
+        [outlined]="viewMode() !== 'daily'"
+        (onClick)="setViewMode('daily')"
       />
       <p-button
         label="Gráfico de Calor"
@@ -30,6 +36,9 @@
           [periods]="salesData.periods()"
           [selectedPeriodIds]="salesData.selectedPeriodIds()"
         />
+      }
+      @case ('daily') {
+        <app-daily-bar-chart [series]="salesData.dailySeries()" />
       }
       @case ('heatmap') {
         <app-sales-heatmap [matrix]="salesData.heatmapMatrix()" />
