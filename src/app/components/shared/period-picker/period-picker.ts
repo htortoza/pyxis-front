@@ -5,8 +5,8 @@ import { Checkbox } from 'primeng/checkbox';
 import { Popover } from 'primeng/popover';
 import { ToggleSwitch } from 'primeng/toggleswitch';
 
-import type { Period } from '../../../data/models/period.model';
-import { PERIODS } from '../../../data/mock/periods.mock';
+import type { Period, PeriodGranularity } from '../../../data/models/period.model';
+import { PERIODS_BY_GRANULARITY } from '../../../data/mock/periods.mock';
 import { groupPeriodsByYear, PERIOD_PRESETS, type PeriodPreset } from '../../../data/utils/period.utils';
 import { SalesDataService } from '../../../services/sales-data.service';
 
@@ -23,29 +23,35 @@ const TODAY = { year: 2026, month: 7, day: 20 };
 })
 export class PeriodPickerComponent {
   protected readonly salesData = inject(SalesDataService);
-  protected readonly presets = PERIOD_PRESETS;
 
-  private readonly periodsByYear = groupPeriodsByYear(PERIODS);
-  private readonly minYear = Math.min(...PERIODS.map((period) => period.year));
-  private readonly maxYear = Math.max(...PERIODS.map((period) => period.year));
-
-  /** Persists across popover open/close -- only the draft selection resets on (onShow). */
-  protected readonly viewedYear = signal<number>(this.maxYear);
-
+  protected readonly draftGranularity = signal<PeriodGranularity>('mes');
   protected readonly draftPeriodIds = signal<Set<string>>(new Set());
   protected readonly draftCompare = signal<boolean>(true);
 
-  protected readonly viewedYearPeriods = computed<Period[]>(
-    () => this.periodsByYear.get(this.viewedYear()) ?? [],
+  protected readonly presets = computed<PeriodPreset[]>(() =>
+    PERIOD_PRESETS.filter((preset) => preset.granularity === this.draftGranularity()),
   );
 
-  protected readonly canGoPrevYear = computed(() => this.viewedYear() > this.minYear);
-  protected readonly canGoNextYear = computed(() => this.viewedYear() < this.maxYear);
+  private readonly activePeriods = computed<Period[]>(() => PERIODS_BY_GRANULARITY[this.draftGranularity()]);
+  private readonly periodsByYear = computed(() => groupPeriodsByYear(this.activePeriods()));
+  private readonly minYear = computed(() => Math.min(...this.activePeriods().map((period) => period.year)));
+  private readonly maxYear = computed(() => Math.max(...this.activePeriods().map((period) => period.year)));
+
+  /** Persists across popover open/close -- only the draft selection resets on (onShow). */
+  protected readonly viewedYear = signal<number>(2026);
+
+  protected readonly viewedYearPeriods = computed<Period[]>(() =>
+    (this.periodsByYear().get(this.viewedYear()) ?? []).slice().sort((a, b) => a.order - b.order),
+  );
+
+  protected readonly canGoPrevYear = computed(() => this.viewedYear() > this.minYear());
+  protected readonly canGoNextYear = computed(() => this.viewedYear() < this.maxYear());
 
   /** Live summary of the applied (not draft) selection shown on the trigger button. */
   protected readonly summaryLabel = computed(() => {
+    const granularity = this.salesData.selectedPeriodGranularity();
     const selectedIds = new Set(this.salesData.selectedPeriodIds());
-    const selected = PERIODS.filter((period) => selectedIds.has(period.id));
+    const selected = PERIODS_BY_GRANULARITY[granularity].filter((period) => selectedIds.has(period.id));
     if (selected.length === 0) return 'Seleccionar periodos';
 
     const years = selected.map((period) => period.year);
@@ -57,8 +63,17 @@ export class PeriodPickerComponent {
 
   /** Reseeds the draft from the last-applied state every time the popover opens. */
   onPopoverShow(): void {
+    this.draftGranularity.set(this.salesData.selectedPeriodGranularity());
     this.draftPeriodIds.set(new Set(this.salesData.selectedPeriodIds()));
     this.draftCompare.set(this.salesData.compareToPrevious());
+    this.viewedYear.set(2026);
+  }
+
+  /** Cambiar de granularidad resetea la selección -- un id de Día no tiene sentido en Semana. */
+  setGranularity(granularity: PeriodGranularity): void {
+    if (granularity === this.draftGranularity()) return;
+    this.draftGranularity.set(granularity);
+    this.draftPeriodIds.set(new Set());
   }
 
   isDraftSelected(periodId: string): boolean {
@@ -84,10 +99,11 @@ export class PeriodPickerComponent {
   }
 
   applyPreset(preset: PeriodPreset): void {
-    this.draftPeriodIds.set(new Set(preset.resolve(PERIODS, TODAY)));
+    this.draftPeriodIds.set(new Set(preset.resolve(this.activePeriods(), TODAY)));
   }
 
   apply(popover: Popover): void {
+    this.salesData.selectedPeriodGranularity.set(this.draftGranularity());
     this.salesData.selectedPeriodIds.set([...this.draftPeriodIds()]);
     this.salesData.compareToPrevious.set(this.draftCompare());
     popover.hide();
