@@ -17,4 +17,6 @@ export interface KpiSet {
   transacciones: KpiValue;
   unidadesPorTransaccion: KpiValue;
   ticketPromedio: KpiValue;
+  descuentos: KpiValue;
+  tasaConversion: KpiValue;
 }

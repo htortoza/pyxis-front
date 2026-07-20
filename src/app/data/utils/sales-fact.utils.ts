@@ -3,6 +3,7 @@ import type { SalesFact } from '../models/sales-fact.model';
 import type { KpiSet, KpiValue, TrendPoint } from '../models/kpi.model';
 import type { Period } from '../models/period.model';
 import type { RankingItem } from '../models/ranking.model';
+import { TASA_CONVERSION_ACTUAL, TASA_CONVERSION_ANTERIOR, TASA_CONVERSION_TREND } from '../mock/conversion.mock';
 
 export const OPERATIONAL_HOURS: number[] = [
   6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4, 5,
@@ -52,6 +53,24 @@ export function pickUnidadesPorTransaccion(facts: SalesFact[]): number {
 export function pickTicketPromedio(facts: SalesFact[]): number {
   const tx = countDistinctTransactions(facts);
   return tx === 0 ? 0 : sumAmount(facts) / tx;
+}
+
+export function pickDescuentoPct(facts: SalesFact[]): number {
+  const positive = sumAmount(facts.filter((f) => f.amount > 0));
+  const negative = Math.abs(sumAmount(facts.filter((f) => f.amount < 0)));
+  return positive === 0 ? 0 : (negative / positive) * 100;
+}
+
+/** No hay datos de visitantes/tráfico en este mock -- valor de prueba fijo, no derivado de facts. */
+export function mockTasaConversionKpiValue(): KpiValue {
+  const current = TASA_CONVERSION_ACTUAL;
+  const previous = TASA_CONVERSION_ANTERIOR;
+  return {
+    current,
+    previous,
+    deltaPct: ((current - previous) / Math.abs(previous)) * 100,
+    trend: TASA_CONVERSION_TREND.map((value, index) => ({ periodId: `mock-${index}`, value })),
+  };
 }
 
 /** Minimum candidate points for a sparkline to be considered representative of a real trend. */
@@ -139,6 +158,8 @@ export function computeKpis(
     transacciones: build(countDistinctTransactions),
     unidadesPorTransaccion: build(pickUnidadesPorTransaccion),
     ticketPromedio: build(pickTicketPromedio),
+    descuentos: build(pickDescuentoPct),
+    tasaConversion: mockTasaConversionKpiValue(),
   };
 }
 

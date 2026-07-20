@@ -1,6 +1,13 @@
 import type { Period } from '../models/period.model';
 import type { SalesFact } from '../models/sales-fact.model';
-import { buildHeatmapMatrix, buildKpiTrendPoints, filterFacts } from './sales-fact.utils';
+import { TASA_CONVERSION_ACTUAL, TASA_CONVERSION_ANTERIOR, TASA_CONVERSION_TREND } from '../mock/conversion.mock';
+import {
+  buildHeatmapMatrix,
+  buildKpiTrendPoints,
+  filterFacts,
+  mockTasaConversionKpiValue,
+  pickDescuentoPct,
+} from './sales-fact.utils';
 
 function fact(overrides: Partial<SalesFact>): SalesFact {
   return {
@@ -114,5 +121,33 @@ describe('buildKpiTrendPoints', () => {
       { periodId: 'p-1', value: 300 },
       { periodId: 'p-2', value: 50 },
     ]);
+  });
+});
+
+describe('pickDescuentoPct', () => {
+  it('returns 0 when there are no negative-amount facts', () => {
+    expect(pickDescuentoPct([fact({ amount: 1000 }), fact({ amount: 2000 })])).toBe(0);
+  });
+
+  it('returns the discount percentage relative to positive sales', () => {
+    const facts = [fact({ amount: 1000 }), fact({ amount: -200 })];
+    expect(pickDescuentoPct(facts)).toBeCloseTo(20, 5);
+  });
+
+  it('returns 0 when there are no positive-amount facts (avoids division by zero)', () => {
+    expect(pickDescuentoPct([fact({ amount: -200 })])).toBe(0);
+  });
+});
+
+describe('mockTasaConversionKpiValue', () => {
+  it('returns the fixed mock current/previous/trend values, not derived from any facts', () => {
+    const kpi = mockTasaConversionKpiValue();
+    expect(kpi.current).toBe(TASA_CONVERSION_ACTUAL);
+    expect(kpi.previous).toBe(TASA_CONVERSION_ANTERIOR);
+    expect(kpi.deltaPct).toBeCloseTo(
+      ((TASA_CONVERSION_ACTUAL - TASA_CONVERSION_ANTERIOR) / TASA_CONVERSION_ANTERIOR) * 100,
+      5,
+    );
+    expect(kpi.trend.map((p) => p.value)).toEqual(TASA_CONVERSION_TREND);
   });
 });
