@@ -1,7 +1,8 @@
 import type { Product } from '../models/product.model';
 import type { SalesFact } from '../models/sales-fact.model';
+import { addDaysIso } from '../utils/date.utils';
 import { CONTEXT_TREE } from './context-tree.mock';
-import { PERIODS } from './periods.mock';
+import { PERIODS_MES } from './periods.mock';
 import { PRODUCTS } from './products.mock';
 
 /** Deterministic 32-bit PRNG (mulberry32) so the mock dataset is stable across reloads. */
@@ -54,6 +55,10 @@ function pickWeightedProduct(products: Product[], cumulative: number[], rng: () 
   return products[lo];
 }
 
+function daysInPeriod(period: { startDate: string; endDate: string }): number {
+  return Number(period.endDate.slice(-2)) - Number(period.startDate.slice(-2)) + 1;
+}
+
 function generateSalesFacts(): SalesFact[] {
   const rng = mulberry32(20260714);
   const tiendaNodes = CONTEXT_TREE.filter((node) => node.type === 'TIENDA');
@@ -61,7 +66,8 @@ function generateSalesFacts(): SalesFact[] {
   const facts: SalesFact[] = [];
   let txCounter = 0;
 
-  for (const period of PERIODS) {
+  for (const period of PERIODS_MES) {
+    const totalDays = daysInPeriod(period);
     for (const tienda of tiendaNodes) {
       const transactionCount = 380 + Math.floor(rng() * 60); // dense enough that most of the
       // ~500-product catalog gets real (non-zero) sales within any 3-period window, not just
@@ -69,7 +75,7 @@ function generateSalesFacts(): SalesFact[] {
       for (let t = 0; t < transactionCount; t++) {
         txCounter++;
         const transactionId = `tx-${txCounter}`;
-        const dayOfWeek = Math.floor(rng() * 7);
+        const date = addDaysIso(period.startDate, Math.floor(rng() * totalDays));
         const hour = Math.floor(rng() * 24);
         const lineItemCount = 1 + Math.floor(rng() * 3); // 1-3 line items
 
@@ -82,10 +88,9 @@ function generateSalesFacts(): SalesFact[] {
 
           facts.push({
             transactionId,
-            periodId: period.id,
+            date,
             storeId: tienda.id,
             productId: product.id,
-            dayOfWeek,
             hour,
             amount,
             quantity,
@@ -100,30 +105,27 @@ function generateSalesFacts(): SalesFact[] {
   facts.push(
     {
       transactionId: 'tx-descuento-1',
-      periodId: '2026-06',
+      date: '2026-06-18',
       storeId: 'tienda-costanera-center',
       productId: 'prod-lomo-saltado',
-      dayOfWeek: 4,
       hour: 13,
       amount: -6500,
       quantity: -1,
     },
     {
       transactionId: 'tx-descuento-2',
-      periodId: '2026-07',
+      date: '2026-07-24',
       storeId: 'tienda-parque-arauco',
       productId: 'prod-coca-cola-z',
-      dayOfWeek: 5,
       hour: 20,
       amount: -3200,
       quantity: -1,
     },
     {
       transactionId: 'tx-descuento-3',
-      periodId: '2026-05',
+      date: '2026-05-04',
       storeId: 'tienda-vespucio-mall',
       productId: 'prod-filete-250',
-      dayOfWeek: 1,
       hour: 19,
       amount: -12000,
       quantity: -1,
