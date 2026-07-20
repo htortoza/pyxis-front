@@ -1,3 +1,4 @@
+import type { ComparisonAlignment } from '../models/comparison.model';
 import type { Period, PeriodGranularity } from '../models/period.model';
 
 export function groupPeriodsByYear(periods: Period[]): Map<number, Period[]> {
@@ -100,3 +101,26 @@ export const PERIOD_PRESETS: PeriodPreset[] = [
     },
   },
 ];
+
+/**
+ * Ventana de periodo anterior. Alineación calendario: mismo tamaño de ventana, inmediatamente
+ * antes, por `order` (funciona igual para las 3 granularidades porque `order` es monotónico
+ * dentro de cada una). Alineación día de semana: solo produce un resultado distinto a calendario
+ * cuando la granularidad es Día -- se desplaza en múltiplos de 7 para que cada día caiga en el
+ * mismo día de semana que su contraparte seleccionada (para Semana, una ventana de N semanas
+ * completas ya alinea día-a-día por sí sola, así que ambos criterios coinciden).
+ */
+export function previousPeriodWindow(
+  selectedPeriods: Period[],
+  alignment: ComparisonAlignment,
+  granularity: PeriodGranularity,
+  allPeriods: Period[],
+): Period[] {
+  if (selectedPeriods.length === 0) return [];
+  const shift =
+    alignment === 'dia_semana' && granularity === 'dia'
+      ? 7 * Math.ceil(selectedPeriods.length / 7)
+      : selectedPeriods.length;
+  const previousOrders = new Set(selectedPeriods.map((period) => period.order - shift));
+  return allPeriods.filter((period) => previousOrders.has(period.order));
+}

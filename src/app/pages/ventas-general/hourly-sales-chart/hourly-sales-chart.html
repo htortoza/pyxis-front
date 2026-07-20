@@ -27,7 +27,7 @@
       @case ('bars') {
         <app-hourly-bar-chart
           [seriesByPeriod]="salesData.hourlySeriesByPeriod()"
-          [periods]="salesData.periods"
+          [periods]="salesData.periods()"
           [selectedPeriodIds]="salesData.selectedPeriodIds()"
         />
       }

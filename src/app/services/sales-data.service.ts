@@ -2,13 +2,18 @@ import { Injectable, computed, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { delay, map, of, switchMap, tap } from 'rxjs';
 
+import type { ComparisonAlignment, ComparisonMode } from '../data/models/comparison.model';
 import type { ContextNode } from '../data/models/context-node.model';
 import type { KpiSet } from '../data/models/kpi.model';
-import type { Period } from '../data/models/period.model';
+import type { Period, PeriodGranularity } from '../data/models/period.model';
 import type { RankingDimension, RankingSet } from '../data/models/ranking.model';
 import type { SalesFact } from '../data/models/sales-fact.model';
 import { CONTEXT_TREE, MARCAS, SECTORES } from '../data/mock/context-tree.mock';
-import { DEFAULT_SELECTED_PERIOD_IDS, PERIODS } from '../data/mock/periods.mock';
+import {
+  DEFAULT_SELECTED_GRANULARITY,
+  DEFAULT_SELECTED_PERIOD_IDS,
+  PERIODS_BY_GRANULARITY,
+} from '../data/mock/periods.mock';
 import { PRODUCTS } from '../data/mock/products.mock';
 import { SALES_FACTS } from '../data/mock/sales-facts.mock';
 import {
@@ -17,6 +22,7 @@ import {
   getDescendantLeafIds,
   toPrimeNgTreeNodes,
 } from '../data/utils/context-tree.utils';
+import { previousPeriodWindow } from '../data/utils/period.utils';
 import {
   aggregateRanking,
   buildHeatmapMatrix,
@@ -61,14 +67,25 @@ export class SalesDataService {
   /** Whether KPI/comparison UI should show the vs-previous-period delta. Defaults to on (matches current always-on behavior). */
   readonly compareToPrevious = signal<boolean>(true);
 
+  /** Granularidad activa (Día/Semana/Mes) -- determina qué familia de PERIODS se usa. */
+  readonly selectedPeriodGranularity = signal<PeriodGranularity>(DEFAULT_SELECTED_GRANULARITY);
+
+  /** Modo de comparación activo: uno a la vez. */
+  readonly comparisonMode = signal<ComparisonMode>('periodo_anterior');
+  /** Solo relevante en modo periodo_anterior + granularidad Día/Semana. */
+  readonly comparisonAlignment = signal<ComparisonAlignment>('calendario');
+  /** Periodos elegidos a mano en modo periodo_especifico; null si no se ha elegido ninguno. */
+  readonly explicitComparisonPeriodIds = signal<string[] | null>(null);
+
   /** Static reference data for the header / context-selector component. */
   readonly contextTree: ContextNode[] = CONTEXT_TREE;
-  readonly periods: Period[] = PERIODS;
+  readonly periods = computed<Period[]>(() => PERIODS_BY_GRANULARITY[this.selectedPeriodGranularity()]);
   readonly treeNodes = computed(() => toPrimeNgTreeNodes(CONTEXT_TREE));
 
   /** True when any filter differs from its default (holding / default periods / no cross-filter). */
   readonly hasActiveFilter = computed(() => {
     const contextChanged = this.selectedContextId() !== 'holding';
+    const granularityChanged = this.selectedPeriodGranularity() !== DEFAULT_SELECTED_GRANULARITY;
 
     const currentPeriods = new Set(this.selectedPeriodIds());
     const defaultPeriods = new Set(DEFAULT_SELECTED_PERIOD_IDS);
@@ -78,6 +95,7 @@ export class SalesDataService {
 
     return (
       contextChanged ||
+      granularityChanged ||
       periodsChanged ||
       this.crossFilter() !== null ||
       this.sectorMarcaTiendaFilter() !== null
@@ -88,9 +106,13 @@ export class SalesDataService {
   private readonly filterKey = computed(() =>
     JSON.stringify({
       ctx: this.selectedContextId(),
+      granularity: this.selectedPeriodGranularity(),
       periods: [...this.selectedPeriodIds()].sort(),
       xf: this.crossFilter(),
       smt: this.sectorMarcaTiendaFilter(),
+      cmpMode: this.comparisonMode(),
+      cmpAlign: this.comparisonAlignment(),
+      cmpExplicit: this.explicitComparisonPeriodIds(),
     }),
   );
 
@@ -123,12 +145,14 @@ export class SalesDataService {
    * fact list Detalle de Ventas' tree-table needs; Ventas General instead reads the aggregated
    * kpis/rankings/etc. above, which apply this same scoping internally (see computeDashboardData).
    */
-  readonly scopedFacts = computed(() =>
-    filterFacts(SALES_FACTS, {
+  readonly scopedFacts = computed(() => {
+    const periodIds = this.selectedPeriodIds();
+    const selectedPeriods = this.periods().filter((period) => periodIds.includes(period.id));
+    return filterFacts(SALES_FACTS, {
       storeIds: this.scopedStoreIdsForContext(),
-      periodIds: this.selectedPeriodIds(),
-    }),
-  );
+      periods: selectedPeriods,
+    });
+  });
 
   /** Toggles a ranking-row cross-filter: clicking the active row again clears it. */
   setCrossFilter(dimension: RankingDimension, id: string): void {
@@ -164,7 +188,10 @@ export class SalesDataService {
   }
 
   private computeDashboardData(): DashboardData {
+    const granularity = this.selectedPeriodGranularity();
+    const allPeriods = PERIODS_BY_GRANULARITY[granularity];
     const periodIds = this.selectedPeriodIds();
+    const selectedPeriods = allPeriods.filter((period) => periodIds.includes(period.id));
     const crossFilter = this.crossFilter();
 
     const ancestryMap = buildStoreAncestryMap(CONTEXT_TREE);
@@ -192,7 +219,7 @@ export class SalesDataService {
     }
 
     // Step 3: store+period scoped facts (before any 'producto' fact-level narrowing).
-    const scopedFacts = filterFacts(SALES_FACTS, { storeIds: scopedStoreIds, periodIds });
+    const scopedFacts = filterFacts(SALES_FACTS, { storeIds: scopedStoreIds, periods: selectedPeriods });
     const currentFacts =
       crossFilter?.dimension === 'producto'
         ? scopedFacts.filter((fact) => fact.productId === crossFilter.id)
@@ -207,30 +234,43 @@ export class SalesDataService {
         ? storeScopedAllPeriodFacts.filter((fact) => fact.productId === crossFilter.id)
         : storeScopedAllPeriodFacts;
 
-    // Step 4: previous-period window — same-length window shifted back by the number of
-    // selected periods, using Period.order; periods below the available range are skipped.
-    const selectedPeriods = PERIODS.filter((period) => periodIds.includes(period.id));
-    const shift = selectedPeriods.length;
-    const previousOrders = new Set(selectedPeriods.map((period) => period.order - shift));
-    const previousPeriodIds = PERIODS.filter((period) => previousOrders.has(period.order)).map(
-      (period) => period.id,
-    );
-    const scopedPreviousFacts = filterFacts(SALES_FACTS, {
-      storeIds: scopedStoreIds,
-      periodIds: previousPeriodIds,
-    });
-    const previousFacts =
-      crossFilter?.dimension === 'producto'
-        ? scopedPreviousFacts.filter((fact) => fact.productId === crossFilter.id)
-        : scopedPreviousFacts;
+    // Step 4: comparison baseline for the CHART and TABLE (and for KPI cards, unless mode is
+    // 'meta' -- Task 6 overrides the KPI baseline in that case). 'meta' has no chart/table
+    // concept of its own, so it falls back to the periodo_anterior window, same as if the user
+    // hadn't picked an explicit comparison period.
+    const mode = this.comparisonMode();
+    let previousFacts: SalesFact[];
+    if (mode === 'periodo_especifico') {
+      const explicitIds = this.explicitComparisonPeriodIds() ?? [];
+      const explicitPeriods = allPeriods.filter((period) => explicitIds.includes(period.id));
+      const explicitFacts = filterFacts(SALES_FACTS, { storeIds: scopedStoreIds, periods: explicitPeriods });
+      previousFacts =
+        crossFilter?.dimension === 'producto'
+          ? explicitFacts.filter((fact) => fact.productId === crossFilter.id)
+          : explicitFacts;
+    } else {
+      const previousPeriods = previousPeriodWindow(
+        selectedPeriods,
+        this.comparisonAlignment(),
+        granularity,
+        allPeriods,
+      );
+      const previousWindowFacts = filterFacts(SALES_FACTS, { storeIds: scopedStoreIds, periods: previousPeriods });
+      previousFacts =
+        crossFilter?.dimension === 'producto'
+          ? previousWindowFacts.filter((fact) => fact.productId === crossFilter.id)
+          : previousWindowFacts;
+    }
 
     // Step 5: KPIs (current vs previous) + each metric's sparkline trend points.
-    const kpis = computeKpis(currentFacts, previousFacts, trendSourceFacts, PERIODS, periodIds);
+    const kpis = computeKpis(currentFacts, previousFacts, trendSourceFacts, allPeriods, periodIds);
 
-    // Step 6: hourly series per selected period, ordered as PERIODS defines them.
+    // Step 6: hourly series per selected period (date-range membership, not periodId string match).
     const hourlySeries: Record<string, number[]> = {};
     for (const period of selectedPeriods) {
-      const periodFacts = currentFacts.filter((fact: SalesFact) => fact.periodId === period.id);
+      const periodFacts = currentFacts.filter(
+        (fact) => fact.date >= period.startDate && fact.date <= period.endDate,
+      );
       hourlySeries[period.id] = buildHourlySeries(periodFacts);
     }
 

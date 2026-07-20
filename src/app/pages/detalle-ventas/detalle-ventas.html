@@ -18,7 +18,7 @@
       <app-sales-detail-tree-table
         [tree]="detailTree()"
         [selectedPeriodIds]="salesData.selectedPeriodIds()"
-        [periods]="salesData.periods"
+        [periods]="salesData.periods()"
         [focusedFamiliaId]="focusedFamiliaId()"
         [focusedSubfamiliaId]="focusedSubfamiliaId()"
         (familiaFocused)="focusedFamiliaId.set($event)"
@@ -27,7 +27,7 @@
     } @else {
       <app-sales-detail-treemap
         [tree]="detailTree()"
-        [periods]="salesData.periods"
+        [periods]="salesData.periods()"
         [selectedPeriodIds]="salesData.selectedPeriodIds()"
         [focusedFamiliaId]="focusedFamiliaId()"
         [focusedSubfamiliaId]="focusedSubfamiliaId()"
