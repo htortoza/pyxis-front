@@ -1,3 +1,4 @@
+import type { Period } from '../models/period.model';
 import type { Product } from '../models/product.model';
 import type { SalesFact } from '../models/sales-fact.model';
 
@@ -39,16 +40,20 @@ interface FamiliaAccum extends LeafAccum {
   subfamilias: Map<string, SubfamiliaAccum>;
 }
 
-function newLeafAccum(label: string, selectedPeriodIds: string[]): LeafAccum {
+function newLeafAccum(label: string, selectedPeriods: Period[]): LeafAccum {
   const periodTotals = new Map<string, PeriodColumnTotals>();
-  for (const periodId of selectedPeriodIds) {
-    periodTotals.set(periodId, { periodId, total: 0, cantidad: 0 });
+  for (const period of selectedPeriods) {
+    periodTotals.set(period.id, { periodId: period.id, total: 0, cantidad: 0 });
   }
   return { label, periodTotals, consolidadoTotal: 0, consolidadoCantidad: 0 };
 }
 
-function addFact(accum: LeafAccum, fact: SalesFact): void {
-  const bucket = accum.periodTotals.get(fact.periodId);
+function addFact(accum: LeafAccum, fact: SalesFact, selectedPeriods: Period[]): void {
+  // Periods don't overlap, so at most one selected period can contain fact.date.
+  const period = selectedPeriods.find(
+    (candidate) => fact.date >= candidate.startDate && fact.date <= candidate.endDate,
+  );
+  const bucket = period ? accum.periodTotals.get(period.id) : undefined;
   if (bucket) {
     bucket.total += fact.amount;
     bucket.cantidad += fact.quantity;
@@ -82,7 +87,7 @@ function toNodeData(accum: LeafAccum, level: DetailTreeNodeData['level']): Detai
 export function buildDetailTree(
   facts: SalesFact[],
   products: Product[],
-  selectedPeriodIds: string[],
+  selectedPeriods: Period[],
 ): DetailTreeNode[] {
   const productById = new Map(products.map((product) => [product.id, product]));
   const positiveFacts = facts.filter((fact) => fact.amount >= 0);
@@ -98,27 +103,27 @@ export function buildDetailTree(
 
     let familia = familias.get(product.categoryId);
     if (!familia) {
-      familia = { ...newLeafAccum(product.categoryName, selectedPeriodIds), subfamilias: new Map() };
+      familia = { ...newLeafAccum(product.categoryName, selectedPeriods), subfamilias: new Map() };
       familias.set(product.categoryId, familia);
     }
-    addFact(familia, fact);
+    addFact(familia, fact, selectedPeriods);
 
     let subfamilia = familia.subfamilias.get(product.subcategoryId);
     if (!subfamilia) {
       subfamilia = {
-        ...newLeafAccum(product.subcategoryName, selectedPeriodIds),
+        ...newLeafAccum(product.subcategoryName, selectedPeriods),
         articulos: new Map(),
       };
       familia.subfamilias.set(product.subcategoryId, subfamilia);
     }
-    addFact(subfamilia, fact);
+    addFact(subfamilia, fact, selectedPeriods);
 
     let articulo = subfamilia.articulos.get(product.id);
     if (!articulo) {
-      articulo = newLeafAccum(product.name, selectedPeriodIds);
+      articulo = newLeafAccum(product.name, selectedPeriods);
       subfamilia.articulos.set(product.id, articulo);
     }
-    addFact(articulo, fact);
+    addFact(articulo, fact, selectedPeriods);
   }
 
   const familiaNodes: DetailTreeNode[] = [];
@@ -172,9 +177,9 @@ export function buildDetailTree(
   const result: DetailTreeNode[] = [...familiaNodes];
 
   if (negativeFacts.length > 0) {
-    const descuentos = newLeafAccum('zDescuentos', selectedPeriodIds);
+    const descuentos = newLeafAccum('zDescuentos', selectedPeriods);
     for (const fact of negativeFacts) {
-      addFact(descuentos, fact);
+      addFact(descuentos, fact, selectedPeriods);
     }
     result.push({
       key: 'z-descuentos',

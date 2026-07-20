@@ -5,6 +5,7 @@ import { SelectButton } from 'primeng/selectbutton';
 
 import { GlobalHeaderComponent } from '../../components/shared/global-header/global-header';
 import { LoadingSkeletonComponent } from '../../components/shared/loading-skeleton/loading-skeleton';
+import { PERIODS } from '../../data/mock/periods.mock';
 import { PRODUCTS } from '../../data/mock/products.mock';
 import { buildDetailTree } from '../../data/utils/sales-detail-tree.utils';
 import { SalesDataService } from '../../services/sales-data.service';
@@ -58,9 +59,11 @@ export class DetalleVentasComponent {
   protected readonly focusedFamiliaId = signal<string | null>(null);
   protected readonly focusedSubfamiliaId = signal<string | null>(null);
 
-  protected readonly detailTree = computed(() =>
-    buildDetailTree(this.scopedFacts(), PRODUCTS, this.salesData.selectedPeriodIds()),
-  );
+  protected readonly detailTree = computed(() => {
+    const selectedIds = new Set(this.salesData.selectedPeriodIds());
+    const selectedPeriods = PERIODS.filter((period) => selectedIds.has(period.id));
+    return buildDetailTree(this.scopedFacts(), PRODUCTS, selectedPeriods);
+  });
 
   protected onViewModeChange(mode: ViewMode): void {
     this.viewMode.set(mode);
