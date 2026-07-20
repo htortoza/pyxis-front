@@ -45,4 +45,16 @@ export class KpiCardsGridComponent {
   );
   protected readonly ticketPromedioDelta = computed(() => this.salesData.kpis().ticketPromedio.deltaPct);
   protected readonly ticketPromedioTrend = computed(() => this.salesData.kpis().ticketPromedio.trend);
+
+  protected readonly tasaConversionValue = computed(
+    () => `${this.salesData.kpis().tasaConversion.current.toFixed(1)}%`,
+  );
+  protected readonly tasaConversionDelta = computed(() => this.salesData.kpis().tasaConversion.deltaPct);
+  protected readonly tasaConversionTrend = computed(() => this.salesData.kpis().tasaConversion.trend);
+
+  protected readonly descuentosValue = computed(
+    () => `${this.salesData.kpis().descuentos.current.toFixed(1)}%`,
+  );
+  protected readonly descuentosDelta = computed(() => this.salesData.kpis().descuentos.deltaPct);
+  protected readonly descuentosTrend = computed(() => this.salesData.kpis().descuentos.trend);
 }

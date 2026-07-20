@@ -6,14 +6,20 @@
    fit. minmax(0, ...) lets the track (and PrimeNG's Card inside it) actually shrink. */
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 1rem;
 }
 
 /* Queries the actual remaining width after the sidebar (container-type: inline-size is
-   set on .page-body, see ventas-general.css) instead of the raw viewport -- a plain
-   @media query here would only collapse to 2 columns once the whole *window* narrows
-   past 900px, never accounting for the ~264px the sidebar already reserves. */
+   set on .page-body, see ventas-general.css) instead of the raw viewport. Two intermediate
+   breakpoints now that there are 6 cards instead of 4: 3 columns (2 rows), then 2 columns
+   (3 rows), before finally reaching the narrowest layout. */
+@container (max-width: 1200px) {
+  .kpi-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 @container (max-width: 900px) {
   .kpi-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

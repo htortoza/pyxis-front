@@ -4,9 +4,17 @@
     <app-loading-skeleton height="90px" />
     <app-loading-skeleton height="90px" />
     <app-loading-skeleton height="90px" />
+    <app-loading-skeleton height="90px" />
+    <app-loading-skeleton height="90px" />
   </div>
 } @else {
   <div class="kpi-grid">
+    <app-kpi-card
+      label="Tasa de Conversión"
+      [value]="tasaConversionValue()"
+      [deltaPct]="salesData.compareToPrevious() ? tasaConversionDelta() : null"
+      [trendPoints]="salesData.compareToPrevious() ? tasaConversionTrend() : []"
+    />
     <app-kpi-card
       label="Ventas Totales"
       [value]="ventasTotalesValue()"
@@ -30,6 +38,12 @@
       [value]="ticketPromedioValue()"
       [deltaPct]="salesData.compareToPrevious() ? ticketPromedioDelta() : null"
       [trendPoints]="salesData.compareToPrevious() ? ticketPromedioTrend() : []"
+    />
+    <app-kpi-card
+      label="Descuentos"
+      [value]="descuentosValue()"
+      [deltaPct]="salesData.compareToPrevious() ? descuentosDelta() : null"
+      [trendPoints]="salesData.compareToPrevious() ? descuentosTrend() : []"
     />
   </div>
 }
