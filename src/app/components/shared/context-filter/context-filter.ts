@@ -29,6 +29,7 @@ import {
 } from '../../../data/utils/tristate.utils';
 import { SalesDataService } from '../../../services/sales-data.service';
 import { SavedViewsService } from '../../../services/saved-views.service';
+import { TenantVocabularyService } from '../../../services/tenant-vocabulary.service';
 
 interface DebouncedSearch {
   raw: WritableSignal<string>;
@@ -59,6 +60,7 @@ function createDebouncedSearch(): DebouncedSearch {
 export class ContextFilterComponent {
   protected readonly salesData = inject(SalesDataService);
   protected readonly savedViews = inject(SavedViewsService);
+  protected readonly vocab = inject(TenantVocabularyService);
 
   /** Static mock data -- built once, never recomputed reactively. */
   protected readonly filterTree: FilterTreeNode[] = buildSectorMarcaTiendaTree(
