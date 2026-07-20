@@ -11,6 +11,7 @@ export const CURRENT_USER: MockUser = {
   name: 'Usuario Demo',
   role: 'HOLDING_ADMIN',
   tenantId: 'tenant-demo',
+  rubro: 'retail',
 };
 
 export function canManageTeamViews(role: MockUser['role']): boolean {
