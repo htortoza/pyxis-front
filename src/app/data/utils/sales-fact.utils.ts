@@ -1,3 +1,4 @@
+import { getDayOfWeek } from './date.utils';
 import type { SalesFact } from '../models/sales-fact.model';
 import type { KpiSet, KpiValue, TrendPoint } from '../models/kpi.model';
 import type { Period } from '../models/period.model';
@@ -9,11 +10,15 @@ export const OPERATIONAL_HOURS: number[] = [
 
 export function filterFacts(
   facts: SalesFact[],
-  opts: { storeIds: string[]; periodIds: string[] },
+  opts: { storeIds: string[]; periods: Period[] },
 ): SalesFact[] {
   const storeIdSet = new Set(opts.storeIds);
-  const periodIdSet = new Set(opts.periodIds);
-  return facts.filter((f) => storeIdSet.has(f.storeId) && periodIdSet.has(f.periodId));
+  const ranges = opts.periods.map((period) => ({ start: period.startDate, end: period.endDate }));
+  return facts.filter(
+    (f) =>
+      storeIdSet.has(f.storeId) &&
+      ranges.some((range) => f.date >= range.start && f.date <= range.end),
+  );
 }
 
 export function computeKpiValue(
@@ -75,13 +80,18 @@ export function buildKpiTrendPoints(
   pick: (facts: SalesFact[]) => number,
 ): TrendPoint[] {
   const periodById = new Map(allPeriods.map((period) => [period.id, period]));
-  const factsByPeriod = new Map<string, SalesFact[]>();
-  for (const fact of trendSourceFacts) {
-    const list = factsByPeriod.get(fact.periodId) ?? [];
-    list.push(fact);
-    factsByPeriod.set(fact.periodId, list);
-  }
-  const hasData = (periodId: string) => (factsByPeriod.get(periodId)?.length ?? 0) > 0;
+  // Facts only carry a real date now (no periodId) -- bucket by date-range membership, cached
+  // per period id since the same period can be checked by both hasData() and the final pick().
+  const factsByPeriodId = new Map<string, SalesFact[]>();
+  const factsForPeriod = (period: Period): SalesFact[] => {
+    let cached = factsByPeriodId.get(period.id);
+    if (!cached) {
+      cached = trendSourceFacts.filter((f) => f.date >= period.startDate && f.date <= period.endDate);
+      factsByPeriodId.set(period.id, cached);
+    }
+    return cached;
+  };
+  const hasData = (period: Period) => factsForPeriod(period).length > 0;
 
   const selectedPeriods = selectedPeriodIds
     .map((id) => periodById.get(id))
@@ -96,19 +106,19 @@ export function buildKpiTrendPoints(
     const trailing: Period[] = [];
     for (let offset = 1; offset <= MAX_TRAILING_TREND_POINTS; offset++) {
       const candidate = orderToPeriod.get(targetOrder - offset);
-      if (!candidate || !hasData(candidate.id)) {
+      if (!candidate || !hasData(candidate)) {
         break;
       }
       trailing.push(candidate);
     }
     candidatePeriods = trailing.reverse();
   } else {
-    candidatePeriods = selectedPeriods.filter((period) => hasData(period.id));
+    candidatePeriods = selectedPeriods.filter((period) => hasData(period));
   }
 
   return candidatePeriods.map((period) => ({
     periodId: period.id,
-    value: pick(factsByPeriod.get(period.id) ?? []),
+    value: pick(factsForPeriod(period)),
   }));
 }
 
@@ -159,7 +169,7 @@ export function buildHeatmapMatrix(facts: SalesFact[]): number[][] {
     if (hourIndex === undefined) {
       continue;
     }
-    matrix[fact.dayOfWeek][hourIndex] += fact.amount;
+    matrix[getDayOfWeek(fact.date)][hourIndex] += fact.amount;
   }
 
   return matrix;
