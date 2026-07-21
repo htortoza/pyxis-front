@@ -4,7 +4,10 @@
  * per-tenant server-side persistence once one exists.
  */
 
+import type { ComparisonAlignment, ComparisonMode } from '../models/comparison.model';
+import type { IvaMode } from '../models/iva.model';
 import type { UserRole } from '../models/mock-user.model';
+import type { PeriodGranularity } from '../models/period.model';
 import type { ApplyViewResult, SavedView } from '../models/saved-view.model';
 import { canManageTeamViews as roleCanManageTeamViews } from '../mock/mock-user.mock';
 import { DEFAULT_SELECTED_PERIOD_IDS } from '../mock/periods.mock';
@@ -48,10 +51,33 @@ export function loadSavedViews(tenantId: string): SavedView[] {
     if (!Array.isArray(parsed)) {
       return [];
     }
-    return parsed.filter(isSavedView);
+    return parsed.filter(isSavedView).map(normalizeSavedView);
   } catch {
     return [];
   }
+}
+
+const DEFAULT_GRANULARITY: PeriodGranularity = 'mes';
+const DEFAULT_COMPARISON_MODE: ComparisonMode = 'periodo_anterior';
+const DEFAULT_COMPARISON_ALIGNMENT: ComparisonAlignment = 'calendario';
+const DEFAULT_IVA_MODE: IvaMode = 'con_iva';
+
+/**
+ * Vistas persistidas antes de que existieran granularidad/comparación/IVA no tienen estos 5
+ * campos en el JSON guardado -- se completan con los valores que esas vistas ya representaban
+ * implícitamente (única granularidad = Mes, único modo de comparación = Periodo Anterior,
+ * único criterio = calendario, sin IVA toggle = con IVA), en vez de descartar el registro
+ * entero por no calzar con el shape nuevo.
+ */
+export function normalizeSavedView(raw: SavedView): SavedView {
+  return {
+    ...raw,
+    granularity: raw.granularity ?? DEFAULT_GRANULARITY,
+    comparisonMode: raw.comparisonMode ?? DEFAULT_COMPARISON_MODE,
+    comparisonAlignment: raw.comparisonAlignment ?? DEFAULT_COMPARISON_ALIGNMENT,
+    explicitComparisonPeriodIds: raw.explicitComparisonPeriodIds ?? null,
+    ivaMode: raw.ivaMode ?? DEFAULT_IVA_MODE,
+  };
 }
 
 /** Persists the given views for a tenant. Swallows failures (e.g. quota exceeded) -- a persistence error must never crash the UI. */
@@ -84,6 +110,11 @@ export function seedDefaultViews(tenantId: string, ownerId: string, ownerName: s
       scope: 'personal',
       periodIds: [...DEFAULT_SELECTED_PERIOD_IDS],
       compareToPrevious: true,
+      granularity: 'mes',
+      comparisonMode: 'periodo_anterior',
+      comparisonAlignment: 'calendario',
+      explicitComparisonPeriodIds: null,
+      ivaMode: 'con_iva',
       checkedNodeIds: ['sector-costanera'],
       createdAt: SEED_TIMESTAMP,
       lastUsedAt: SEED_TIMESTAMP,
@@ -97,6 +128,11 @@ export function seedDefaultViews(tenantId: string, ownerId: string, ownerName: s
       scope: 'equipo',
       periodIds: [...DEFAULT_SELECTED_PERIOD_IDS],
       compareToPrevious: true,
+      granularity: 'mes',
+      comparisonMode: 'periodo_anterior',
+      comparisonAlignment: 'calendario',
+      explicitComparisonPeriodIds: null,
+      ivaMode: 'con_iva',
       checkedNodeIds: ['sector-costanera::marca-barra-chalaca'],
       createdAt: SEED_TIMESTAMP,
       lastUsedAt: SEED_TIMESTAMP,

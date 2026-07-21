@@ -1,3 +1,7 @@
+import type { ComparisonAlignment, ComparisonMode } from './comparison.model';
+import type { IvaMode } from './iva.model';
+import type { PeriodGranularity } from './period.model';
+
 export type SavedViewScope = 'personal' | 'equipo';
 
 export interface SavedView {
@@ -8,7 +12,12 @@ export interface SavedView {
   tenantId: string;
   scope: SavedViewScope;
   periodIds: string[];
+  granularity: PeriodGranularity;
   compareToPrevious: boolean;
+  comparisonMode: ComparisonMode;
+  comparisonAlignment: ComparisonAlignment;
+  explicitComparisonPeriodIds: string[] | null;
+  ivaMode: IvaMode;
   /** FilterTreeNode ids (Sector/Marca/Tienda filter tree, from sector-marca-tienda-tree.utils). */
   checkedNodeIds: string[];
   createdAt: string; // ISO timestamp
