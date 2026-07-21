@@ -34,10 +34,11 @@
   border-radius: var(--p-border-radius-sm);
 }
 
-.stat-accent[data-accent='good'] { background: var(--p-green-500); }
-.stat-accent[data-accent='bad'] { background: var(--p-red-400); }
-.stat-accent[data-accent='info'] { background: var(--p-blue-500); }
-.stat-accent[data-accent='neutral'] { background: var(--p-indigo-300); }
+/* Same 4-color accent set as the reference mockup (see --dash-* in styles.css). */
+.stat-accent[data-accent='good'] { background: var(--dash-green); }
+.stat-accent[data-accent='bad'] { background: var(--dash-coral); }
+.stat-accent[data-accent='info'] { background: var(--dash-blue); }
+.stat-accent[data-accent='neutral'] { background: var(--dash-indigo); }
 
 .stat-text {
   display: flex;

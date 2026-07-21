@@ -34,7 +34,9 @@ export class DailyBarChartComponent {
         {
           label: 'Ventas',
           data: points.map((point) => point.amount),
-          backgroundColor: '#182bcd',
+          // Same blue as the period palette (hourly-bar-chart.ts) -- Chart.js needs a literal
+          // hex, can't resolve --dash-blue from styles.css.
+          backgroundColor: '#3b80ea',
           borderRadius: 4,
         },
       ],

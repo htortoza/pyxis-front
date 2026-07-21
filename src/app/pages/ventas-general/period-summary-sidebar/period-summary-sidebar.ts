@@ -30,8 +30,9 @@ export class PeriodSummarySidebarComponent {
   protected readonly salesData = inject(SalesDataService);
 
   /** p-progressbar's `color` input sets the value bar's CSS `background` directly -- a
-   * gradient string works as-is, no PrimeNG internals override needed. */
-  protected readonly metaProgressColor = 'linear-gradient(90deg, var(--p-blue-500), var(--p-green-500))';
+   * gradient string works as-is, no PrimeNG internals override needed. Same blue -> green
+   * as the reference mockup's Meta Mensual bar (see --dash-blue/--dash-green in styles.css). */
+  protected readonly metaProgressColor = 'linear-gradient(90deg, var(--dash-blue), var(--dash-green))';
 
   protected readonly statRows = computed<StatRow[]>(() => {
     const summary = this.salesData.hourlySummary();

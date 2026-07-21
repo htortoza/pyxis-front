@@ -72,7 +72,7 @@ p-card:hover {
 
 .kpi-delta[data-band='good'] .kpi-delta-icon,
 .kpi-delta[data-band='good'] .kpi-delta-value {
-  color: var(--p-green-500);
+  color: var(--dash-green);
 }
 
 .kpi-delta[data-band='medium'] .kpi-delta-icon,
@@ -82,7 +82,7 @@ p-card:hover {
 
 .kpi-delta[data-band='bad'] .kpi-delta-icon,
 .kpi-delta[data-band='bad'] .kpi-delta-value {
-  color: var(--p-red-500);
+  color: var(--dash-coral);
 }
 
 .kpi-delta-icon {
@@ -110,15 +110,16 @@ p-card:hover {
   stroke: none;
 }
 
-/* Same band as the delta text: green = good, amber = medium/flat, red = bad. Low fill-opacity
-   on purpose -- the area should read as a subtle backdrop for the line, never compete with it
-   or read as a solid icon-like shape. */
+/* Same band as the delta text: green/coral sampled from the reference mockup (see
+   --dash-green/--dash-coral in styles.css), amber = medium/flat (no mockup reference for
+   this band, kept as PrimeNG's default). Low fill-opacity on purpose -- the area should read
+   as a subtle backdrop for the line, never compete with it or read as a solid icon-like shape. */
 .kpi-card-trend[data-band='good'] .kpi-sparkline-line {
-  stroke: var(--p-green-500);
+  stroke: var(--dash-green);
 }
 
 .kpi-card-trend[data-band='good'] .kpi-sparkline-area {
-  fill: var(--p-green-500);
+  fill: var(--dash-green);
   fill-opacity: 0.12;
 }
 
@@ -132,11 +133,11 @@ p-card:hover {
 }
 
 .kpi-card-trend[data-band='bad'] .kpi-sparkline-line {
-  stroke: var(--p-red-500);
+  stroke: var(--dash-coral);
 }
 
 .kpi-card-trend[data-band='bad'] .kpi-sparkline-area {
-  fill: var(--p-red-500);
+  fill: var(--dash-coral);
   fill-opacity: 0.12;
 }
 

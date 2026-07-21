@@ -37,6 +37,20 @@ body {
 }
 
 /*
+ * Sampled pixel-for-pixel from the reference redesign mockup (dashboard.png) -- not in
+ * PrimeNG's default palette, so they don't have a --p-* token. Used for the KPI card
+ * good/bad semaphore and the "Resumen del Período" sidebar accents (kpi-card.css,
+ * period-summary-sidebar.css) so both match the mockup's softer, less saturated palette
+ * instead of PrimeNG's default green-500/red-500.
+ */
+:root {
+  --dash-green: #64d6a4;
+  --dash-coral: #e87868;
+  --dash-blue: #3b80ea;
+  --dash-indigo: #8e9bc5;
+}
+
+/*
  * Single source of truth for the sidebar's width -- both the sidebar itself
  * (.app-sidebar.p-drawer below) and the main content area (app.css's
  * .app-content) read this same variable, so they can never drift out of sync:
