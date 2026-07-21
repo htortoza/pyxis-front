@@ -1,14 +1,20 @@
-import { PERIODS_SEMANA } from '../mock/periods.mock';
+import { PERIODS_DIA as PERIODS_DIA_PRESETS, PERIODS_SEMANA } from '../mock/periods.mock';
 import { PERIOD_PRESETS } from './period.utils';
 
 describe('PERIOD_PRESETS', () => {
   const TODAY = { year: 2026, month: 7, day: 20 };
 
-  it('has the 6 existing Mes presets plus 2 new Semana presets', () => {
+  it('has the 6 Mes presets, 2 Semana presets, and 4 Dia presets', () => {
     expect(PERIOD_PRESETS.filter((p) => p.granularity === 'mes').length).toBe(6);
     expect(PERIOD_PRESETS.filter((p) => p.granularity === 'semana').map((p) => p.key)).toEqual([
       'ultimas-3-semanas',
       'ultimas-12-semanas',
+    ]);
+    expect(PERIOD_PRESETS.filter((p) => p.granularity === 'dia').map((p) => p.key)).toEqual([
+      'hoy',
+      'ayer',
+      'ultimos-7-dias',
+      'ultimos-30-dias',
     ]);
   });
 
@@ -23,6 +29,28 @@ describe('PERIOD_PRESETS', () => {
   it('"ultimas-12-semanas" resolves to exactly 12 weeks', () => {
     const preset = PERIOD_PRESETS.find((p) => p.key === 'ultimas-12-semanas')!;
     expect(preset.resolve(PERIODS_SEMANA, TODAY).length).toBe(12);
+  });
+
+  it('"hoy" resolves to exactly today', () => {
+    const preset = PERIOD_PRESETS.find((p) => p.key === 'hoy')!;
+    expect(preset.resolve(PERIODS_DIA_PRESETS, TODAY)).toEqual(['2026-07-20']);
+  });
+
+  it('"ayer" resolves to exactly the day before today', () => {
+    const preset = PERIOD_PRESETS.find((p) => p.key === 'ayer')!;
+    expect(preset.resolve(PERIODS_DIA_PRESETS, TODAY)).toEqual(['2026-07-19']);
+  });
+
+  it('"ultimos-7-dias" resolves to exactly 7 days ending today', () => {
+    const preset = PERIOD_PRESETS.find((p) => p.key === 'ultimos-7-dias')!;
+    const ids = preset.resolve(PERIODS_DIA_PRESETS, TODAY);
+    expect(ids.length).toBe(7);
+    expect(ids).toContain('2026-07-20');
+  });
+
+  it('"ultimos-30-dias" resolves to exactly 30 days', () => {
+    const preset = PERIOD_PRESETS.find((p) => p.key === 'ultimos-30-dias')!;
+    expect(preset.resolve(PERIODS_DIA_PRESETS, TODAY).length).toBe(30);
   });
 });
 

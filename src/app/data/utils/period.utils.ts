@@ -27,7 +27,9 @@ function toIso(today: { year: number; month: number; day: number }): string {
   return `${today.year}-${String(today.month).padStart(2, '0')}-${String(today.day).padStart(2, '0')}`;
 }
 
-function currentWeek(periods: Period[], today: { year: number; month: number; day: number }): Period | undefined {
+/** The period (of whichever granularity `periods` holds) that contains "today" -- for Semana,
+ * whichever week's range spans it; for Día, that's just the period whose id is today's date. */
+function currentPeriod(periods: Period[], today: { year: number; month: number; day: number }): Period | undefined {
   const todayIso = toIso(today);
   return periods.find((p) => p.startDate <= todayIso && todayIso <= p.endDate);
 }
@@ -85,7 +87,7 @@ export const PERIOD_PRESETS: PeriodPreset[] = [
     label: 'Últimas 3 Semanas',
     granularity: 'semana',
     resolve: (periods, today) => {
-      const week = currentWeek(periods, today);
+      const week = currentPeriod(periods, today);
       if (!week) return [];
       return periods.filter((p) => p.order > week.order - 3 && p.order <= week.order).map((p) => p.id);
     },
@@ -95,9 +97,48 @@ export const PERIOD_PRESETS: PeriodPreset[] = [
     label: 'Últimas 12 Semanas',
     granularity: 'semana',
     resolve: (periods, today) => {
-      const week = currentWeek(periods, today);
+      const week = currentPeriod(periods, today);
       if (!week) return [];
       return periods.filter((p) => p.order > week.order - 12 && p.order <= week.order).map((p) => p.id);
+    },
+  },
+  {
+    key: 'hoy',
+    label: 'Hoy',
+    granularity: 'dia',
+    resolve: (periods, today) => {
+      const day = currentPeriod(periods, today);
+      return day ? [day.id] : [];
+    },
+  },
+  {
+    key: 'ayer',
+    label: 'Ayer',
+    granularity: 'dia',
+    resolve: (periods, today) => {
+      const day = currentPeriod(periods, today);
+      if (!day) return [];
+      return periods.filter((p) => p.order === day.order - 1).map((p) => p.id);
+    },
+  },
+  {
+    key: 'ultimos-7-dias',
+    label: 'Últimos 7 Días',
+    granularity: 'dia',
+    resolve: (periods, today) => {
+      const day = currentPeriod(periods, today);
+      if (!day) return [];
+      return periods.filter((p) => p.order > day.order - 7 && p.order <= day.order).map((p) => p.id);
+    },
+  },
+  {
+    key: 'ultimos-30-dias',
+    label: 'Últimos 30 Días',
+    granularity: 'dia',
+    resolve: (periods, today) => {
+      const day = currentPeriod(periods, today);
+      if (!day) return [];
+      return periods.filter((p) => p.order > day.order - 30 && p.order <= day.order).map((p) => p.id);
     },
   },
 ];

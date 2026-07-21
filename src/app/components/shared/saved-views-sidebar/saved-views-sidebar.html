@@ -108,20 +108,19 @@
     }
   </div>
 
-  @if (presets().length > 0) {
-    <div class="saved-views-sidebar-presets">
-      <span class="saved-views-sidebar-title">Accesos Rápidos</span>
-      <div class="saved-views-sidebar-preset-list">
-        @for (preset of presets(); track preset.key) {
-          <p-button
-            [label]="preset.label"
-            size="small"
-            severity="secondary"
-            [outlined]="true"
-            (onClick)="applyPreset(preset)"
-          />
-        }
+  <div class="saved-views-sidebar-presets">
+    <span class="saved-views-sidebar-title">Accesos Rápidos</span>
+    @for (group of presetGroups; track group.label) {
+      <div class="saved-views-sidebar-preset-group">
+        <span class="saved-views-sidebar-preset-group-label">{{ group.label }}</span>
+        <div class="saved-views-sidebar-preset-list">
+          @for (preset of group.presets; track preset.key) {
+            <button type="button" class="saved-views-sidebar-preset-chip" (click)="applyPreset(preset)">
+              {{ preset.label }}
+            </button>
+          }
+        </div>
       </div>
-    </div>
-  }
+    }
+  </div>
 </div>

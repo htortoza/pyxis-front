@@ -11,7 +11,7 @@ import { Message } from 'primeng/message';
 
 import type { ComparisonAlignment, ComparisonMode } from '../../../data/models/comparison.model';
 import type { IvaMode } from '../../../data/models/iva.model';
-import type { Period, PeriodGranularity } from '../../../data/models/period.model';
+import type { PeriodGranularity } from '../../../data/models/period.model';
 import { CONTEXT_TREE, MARCAS, SECTORES } from '../../../data/mock/context-tree.mock';
 import { PERIODS_BY_GRANULARITY } from '../../../data/mock/periods.mock';
 import type { SavedView, SavedViewScope } from '../../../data/models/saved-view.model';
@@ -67,15 +67,30 @@ export class SavedViewsSidebarComponent {
     return views.filter((view) => view.label.toLowerCase().includes(query));
   });
 
-  /** Accesos rápidos de período -- viven acá (no en PeriodPickerComponent) para ser 1-clic sin abrir el panel plegable de Período. */
-  protected readonly presets = computed<PeriodPreset[]>(() =>
-    PERIOD_PRESETS.filter((preset) => preset.granularity === this.draftGranularity()),
-  );
+  /**
+   * Accesos rápidos de período -- viven acá (no en PeriodPickerComponent) para ser 1-clic sin
+   * abrir el panel plegable de Período. Todos disponibles a la vez (no solo los de la
+   * granularidad actualmente elegida), agrupados por granularidad en el orden en que se
+   * seleccionan más seguido: Meses, luego Semanas, luego Días.
+   */
+  protected readonly presetGroups: { label: string; presets: PeriodPreset[] }[] = (
+    [
+      ['mes', 'Meses'],
+      ['semana', 'Semanas'],
+      ['dia', 'Días'],
+    ] as const
+  )
+    .map(([granularity, label]) => ({
+      label,
+      presets: PERIOD_PRESETS.filter((preset) => preset.granularity === granularity),
+    }))
+    .filter((group) => group.presets.length > 0);
 
-  private readonly activePeriods = computed<Period[]>(() => PERIODS_BY_GRANULARITY[this.draftGranularity()]);
-
+  /** Aplicar un preset también cambia la granularidad a la suya -- ya no está filtrada por la
+   * granularidad actual, así que un preset de Semana debe poder aplicarse estando en Mes. */
   applyPreset(preset: PeriodPreset): void {
-    this.draftPeriodIds.set(new Set(preset.resolve(this.activePeriods(), TODAY)));
+    this.draftGranularity.set(preset.granularity);
+    this.draftPeriodIds.set(new Set(preset.resolve(PERIODS_BY_GRANULARITY[preset.granularity], TODAY)));
   }
 
   protected readonly canSaveCurrent = computed(() => this.draftCheckedIds().size > 0);
