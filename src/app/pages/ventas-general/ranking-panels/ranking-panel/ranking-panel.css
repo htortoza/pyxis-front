@@ -124,3 +124,27 @@
   font-size: 0.875rem;
   text-align: center;
 }
+
+/* Same 900px breakpoint as global-header.css/sidebar.ts. Name and amount no longer compete
+   for the same row's width (which forced the name into an ellipsis on the narrower mobile
+   columns) -- flex-wrap + a full-width flex-basis on the amount pushes it onto its own line,
+   indented to sit under the name rather than under the rank number, so both show in full. */
+@media (max-width: 900px) {
+  .ranking-row {
+    flex-wrap: wrap;
+    row-gap: 0.125rem;
+  }
+
+  .ranking-label {
+    font-size: 0.75rem;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  .ranking-amount {
+    flex-basis: 100%;
+    padding-left: calc(1.25rem + 0.625rem);
+    font-size: 0.9375rem;
+  }
+}

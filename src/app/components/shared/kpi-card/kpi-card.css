@@ -36,6 +36,15 @@ p-card:hover {
   height: 2.75rem;
 }
 
+/* Same 900px breakpoint as global-header.css/sidebar.ts -- a shorter sparkline keeps the
+   card compact now that the KPI grid drops to 2 columns at this width (kpi-cards-grid.css). */
+@media (max-width: 900px) {
+  .kpi-card-trend {
+    width: 3.25rem;
+    height: 2rem;
+  }
+}
+
 /* Wraps across as many lines as it needs -- no line-clamp/ellipsis. Truncating a label or a
    peso amount is worse than a slightly taller card: the whole point of a KPI card is that the
    number/label are readable, so completeness wins over a fixed line count. The 4rem trend

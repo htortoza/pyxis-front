@@ -93,3 +93,27 @@
   font-size: 0.75rem;
   color: var(--p-text-muted-color);
 }
+
+/* Same 900px breakpoint as global-header.css/sidebar.ts. 2x2 grid instead of one stat per
+   row -- 4 stacked rows read as unnecessarily tall once this sidebar sits below the chart
+   (ventas-general.css stacks .hourly-row at this width) instead of beside it; smaller text
+   too, sized for a compact card instead of the wider desktop sidebar. */
+@media (max-width: 900px) {
+  .stat-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem 0.75rem;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+  }
+
+  .stat-value {
+    font-size: 1.0625rem;
+  }
+
+  .stat-caption {
+    font-size: 0.6875rem;
+  }
+}

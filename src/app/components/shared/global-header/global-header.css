@@ -121,4 +121,30 @@
   .global-header-burger {
     display: flex;
   }
+
+  /* Shorter toolbar -- the mobile logo/tabs/burger don't need the same breathing room the
+     desktop start-slot content (Filtros button + full toolbar) was sized for. position:
+     relative is what lets .global-header-tabs below center against this whole box (position:
+     absolute) instead of only within the end slot's own leftover flex space. */
+  .global-header-toolbar {
+    padding: 0.5rem 1rem;
+    position: relative;
+  }
+
+  .global-header-tabs {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    gap: 0;
+  }
+
+  .global-header-nav-link {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .global-header-chips-scroll {
+    padding: 0.25rem 1rem;
+  }
 }

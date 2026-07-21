@@ -113,3 +113,34 @@
   transform: none;
   outline: none;
 }
+
+/* Same 900px breakpoint as global-header.css/sidebar.ts -- smaller everything so the grid
+   reads as a compact heatmap instead of 24 oversized, cramped-together cells. */
+@media (max-width: 900px) {
+  .heatmap-row {
+    grid-template-columns: 1.75rem repeat(24, minmax(1.125rem, 1fr));
+    gap: 2px;
+  }
+
+  .heatmap-col-label {
+    font-size: 0.5rem;
+  }
+
+  .heatmap-day-label {
+    font-size: 0.625rem;
+  }
+
+  .heat-cell {
+    min-height: 1rem;
+    font-size: 0.4375rem;
+  }
+
+  .heatmap-legend-label {
+    font-size: 0.625rem;
+  }
+
+  .heatmap-legend-swatch {
+    width: 1rem;
+    height: 1rem;
+  }
+}
