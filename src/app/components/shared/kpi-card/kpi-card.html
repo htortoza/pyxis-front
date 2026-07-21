@@ -17,7 +17,7 @@
       }
     </div>
 
-    <span class="kpi-value">{{ value() }}</span>
+    <span class="kpi-value" [title]="value()">{{ value() }}</span>
 
     @if (trendState() === 'none') {
       <span class="kpi-no-history">Sin histórico previo</span>

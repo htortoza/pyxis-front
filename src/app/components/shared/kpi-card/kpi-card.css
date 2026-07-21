@@ -16,6 +16,7 @@ p-card:hover {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  min-width: 0;
 }
 
 .kpi-card-header {
@@ -26,13 +27,19 @@ p-card:hover {
 }
 
 /* Small chart confined to the header's top-right corner (not a full-width banner) --
-   fixed footprint so it reads as a compact sparkline, not a background element. */
+   narrower than the value's own font iteration (was 5.5rem) so the label column next to it
+   has enough room for "Unidades por Transacción" to wrap onto exactly 2 full lines instead
+   of 3 -- see .kpi-label below. */
 .kpi-card-trend {
   flex-shrink: 0;
-  width: 5.5rem;
+  width: 4rem;
   height: 2.75rem;
 }
 
+/* Wraps across as many lines as it needs -- no line-clamp/ellipsis. Truncating a label or a
+   peso amount is worse than a slightly taller card: the whole point of a KPI card is that the
+   number/label are readable, so completeness wins over a fixed line count. The 4rem trend
+   width above is what keeps every current label to a real 2 lines in practice. */
 .kpi-label {
   font-size: 0.6875rem;
   font-weight: 600;
@@ -42,8 +49,16 @@ p-card:hover {
   min-width: 0;
 }
 
+/* Smaller than before (was 1.625rem) so long peso amounts need less room to begin with, but
+   the actual overflow guarantee is overflow-wrap: break-word -- holding-level totals can run
+   past mil millones ($1.234.567.890.123), and unlike text-overflow: ellipsis this wraps to a
+   2nd line instead of cutting digits off. Full number always visible, never wider than the
+   card (see .kpi-grid > * / .kpi-card-content's min-width: 0, the other half of this fix). */
 .kpi-value {
-  font-size: 1.625rem;
+  display: block;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  font-size: 1.375rem;
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1.15;

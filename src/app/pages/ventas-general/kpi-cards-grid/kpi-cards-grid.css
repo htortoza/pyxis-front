@@ -10,6 +10,14 @@
   gap: 1rem;
 }
 
+/* Grid item's own min-width defaults to auto (its content's min-content size) regardless of
+   the track being minmax(0, ...) -- without this, a very large peso amount (holding-level
+   totals can run past mil millones) would push its card wider than the track instead of the
+   card's own text truncating (see .kpi-value's overflow handling in kpi-card.css). */
+.kpi-grid > * {
+  min-width: 0;
+}
+
 /* Queries the actual remaining width after the sidebar (container-type: inline-size is
    set on .page-body, see ventas-general.css) instead of the raw viewport. Two intermediate
    breakpoints now that there are 6 cards instead of 4: 3 columns (2 rows), then 2 columns
