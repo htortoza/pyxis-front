@@ -6,6 +6,22 @@
       <app-context-filter />
       <app-period-picker />
       <app-comparison-selector />
+      <div class="global-header-iva-toggle">
+        <p-button
+          label="Con IVA"
+          size="small"
+          severity="secondary"
+          [outlined]="salesData.ivaMode() !== 'con_iva'"
+          (onClick)="salesData.ivaMode.set('con_iva')"
+        />
+        <p-button
+          label="Sin IVA"
+          size="small"
+          severity="secondary"
+          [outlined]="salesData.ivaMode() !== 'sin_iva'"
+          (onClick)="salesData.ivaMode.set('sin_iva')"
+        />
+      </div>
     </div>
   </ng-template>
 

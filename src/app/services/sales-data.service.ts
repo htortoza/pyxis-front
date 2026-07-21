@@ -4,6 +4,7 @@ import { delay, map, of, switchMap, tap } from 'rxjs';
 
 import type { ComparisonAlignment, ComparisonMode } from '../data/models/comparison.model';
 import type { ContextNode } from '../data/models/context-node.model';
+import type { IvaMode } from '../data/models/iva.model';
 import type { KpiSet } from '../data/models/kpi.model';
 import type { Period, PeriodGranularity } from '../data/models/period.model';
 import type { RankingDimension, RankingSet } from '../data/models/ranking.model';
@@ -26,6 +27,7 @@ import {
 import { previousPeriodWindow } from '../data/utils/period.utils';
 import {
   aggregateRanking,
+  applyIvaMode,
   buildDailySeries,
   buildHeatmapMatrix,
   buildHourlySeries,
@@ -82,6 +84,19 @@ export class SalesDataService {
   /** Periodos elegidos a mano en modo periodo_especifico; null si no se ha elegido ninguno. */
   readonly explicitComparisonPeriodIds = signal<string[] | null>(null);
 
+  /** Con IVA es la base: los montos mock ya representan el precio final. Sin IVA divide por 1.19. */
+  readonly ivaMode = signal<IvaMode>('con_iva');
+
+  /**
+   * Todo el dataset con el toggle Con IVA/Sin IVA ya aplicado -- calculado una sola vez acá y
+   * reutilizado en vez de SALES_FACTS en cualquier otro lado, para que el toggle sea transversal
+   * (KPIs, gráficos, rankings, tabla de Detalle de Ventas) sin tocar cada agregación por separado.
+   * Declarado antes que `dashboardData` a propósito -- los campos de clase se inicializan en
+   * orden de declaración, y `dashboardData` llama a `computeDashboardData()` de forma síncrona
+   * para su `initialValue`, que a su vez lee este campo.
+   */
+  private readonly ivaAdjustedFacts = computed(() => applyIvaMode(SALES_FACTS, this.ivaMode()));
+
   /** Static reference data for the header / context-selector component. */
   readonly contextTree: ContextNode[] = CONTEXT_TREE;
   readonly periods = computed<Period[]>(() => PERIODS_BY_GRANULARITY[this.selectedPeriodGranularity()]);
@@ -118,6 +133,7 @@ export class SalesDataService {
       cmpMode: this.comparisonMode(),
       cmpAlign: this.comparisonAlignment(),
       cmpExplicit: this.explicitComparisonPeriodIds(),
+      iva: this.ivaMode(),
     }),
   );
 
@@ -154,7 +170,7 @@ export class SalesDataService {
   readonly scopedFacts = computed(() => {
     const periodIds = this.selectedPeriodIds();
     const selectedPeriods = this.periods().filter((period) => periodIds.includes(period.id));
-    return filterFacts(SALES_FACTS, {
+    return filterFacts(this.ivaAdjustedFacts(), {
       storeIds: this.scopedStoreIdsForContext(),
       periods: selectedPeriods,
     });
@@ -199,6 +215,7 @@ export class SalesDataService {
     const periodIds = this.selectedPeriodIds();
     const selectedPeriods = allPeriods.filter((period) => periodIds.includes(period.id));
     const crossFilter = this.crossFilter();
+    const facts = this.ivaAdjustedFacts();
 
     const ancestryMap = buildStoreAncestryMap(CONTEXT_TREE);
     const nodeMap = buildNodeMap(CONTEXT_TREE);
@@ -225,7 +242,7 @@ export class SalesDataService {
     }
 
     // Step 3: store+period scoped facts (before any 'producto' fact-level narrowing).
-    const scopedFacts = filterFacts(SALES_FACTS, { storeIds: scopedStoreIds, periods: selectedPeriods });
+    const scopedFacts = filterFacts(facts, { storeIds: scopedStoreIds, periods: selectedPeriods });
     const currentFacts =
       crossFilter?.dimension === 'producto'
         ? scopedFacts.filter((fact) => fact.productId === crossFilter.id)
@@ -234,7 +251,7 @@ export class SalesDataService {
     // Store-scoped facts across ALL periods (not just the selected ones) -- feeds the KPI
     // sparklines, which need to look at periods outside the current selection.
     const scopedStoreIdSet = new Set(scopedStoreIds);
-    const storeScopedAllPeriodFacts = SALES_FACTS.filter((fact) => scopedStoreIdSet.has(fact.storeId));
+    const storeScopedAllPeriodFacts = facts.filter((fact) => scopedStoreIdSet.has(fact.storeId));
     const trendSourceFacts =
       crossFilter?.dimension === 'producto'
         ? storeScopedAllPeriodFacts.filter((fact) => fact.productId === crossFilter.id)
@@ -249,7 +266,7 @@ export class SalesDataService {
     if (mode === 'periodo_especifico') {
       const explicitIds = this.explicitComparisonPeriodIds() ?? [];
       const explicitPeriods = allPeriods.filter((period) => explicitIds.includes(period.id));
-      const explicitFacts = filterFacts(SALES_FACTS, { storeIds: scopedStoreIds, periods: explicitPeriods });
+      const explicitFacts = filterFacts(facts, { storeIds: scopedStoreIds, periods: explicitPeriods });
       previousFacts =
         crossFilter?.dimension === 'producto'
           ? explicitFacts.filter((fact) => fact.productId === crossFilter.id)
@@ -261,7 +278,7 @@ export class SalesDataService {
         granularity,
         allPeriods,
       );
-      const previousWindowFacts = filterFacts(SALES_FACTS, { storeIds: scopedStoreIds, periods: previousPeriods });
+      const previousWindowFacts = filterFacts(facts, { storeIds: scopedStoreIds, periods: previousPeriods });
       previousFacts =
         crossFilter?.dimension === 'producto'
           ? previousWindowFacts.filter((fact) => fact.productId === crossFilter.id)

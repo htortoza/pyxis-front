@@ -1,6 +1,7 @@
 import { getDayOfWeek } from './date.utils';
 import type { SalesFact } from '../models/sales-fact.model';
 import type { KpiMetaMensual } from '../models/comparison.model';
+import type { IvaMode } from '../models/iva.model';
 import type { KpiSet, KpiValue, TrendPoint } from '../models/kpi.model';
 import type { Period, PeriodGranularity } from '../models/period.model';
 import type { RankingItem } from '../models/ranking.model';
@@ -284,4 +285,17 @@ export function computeKpisAgainstMeta(
     descuentos: fallback.descuentos,
     tasaConversion: fallback.tasaConversion,
   };
+}
+
+const IVA_FACTOR = 1.19;
+
+/**
+ * Los montos mock hoy representan el precio final (Con IVA). Sin IVA divide por 1.19; quantity
+ * no se toca -- el impuesto no aplica a unidades. Se aplica sobre los facts crudos, antes de
+ * cualquier agregación, para que KPIs, gráficos, rankings y la tabla de Detalle de Ventas
+ * reflejen el toggle de forma transversal sin tener que tocar cada función de agregación.
+ */
+export function applyIvaMode(facts: SalesFact[], mode: IvaMode): SalesFact[] {
+  if (mode === 'con_iva') return facts;
+  return facts.map((fact) => ({ ...fact, amount: fact.amount / IVA_FACTOR }));
 }

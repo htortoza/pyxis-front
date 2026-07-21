@@ -2,6 +2,7 @@ import type { Period } from '../models/period.model';
 import type { SalesFact } from '../models/sales-fact.model';
 import { TASA_CONVERSION_ACTUAL, TASA_CONVERSION_ANTERIOR, TASA_CONVERSION_TREND } from '../mock/conversion.mock';
 import {
+  applyIvaMode,
   buildDailySeries,
   buildHeatmapMatrix,
   buildKpiTrendPoints,
@@ -226,5 +227,19 @@ describe('computeKpisAgainstMeta', () => {
     );
     expect(kpis.descuentos).toBe(fallback.descuentos);
     expect(kpis.tasaConversion).toBe(fallback.tasaConversion);
+  });
+});
+
+describe('applyIvaMode', () => {
+  it('returns the facts unchanged for con_iva', () => {
+    const facts = [fact({ amount: 1190 })];
+    expect(applyIvaMode(facts, 'con_iva')).toBe(facts);
+  });
+
+  it('divides amount by 1.19 for sin_iva, leaving quantity untouched', () => {
+    const facts = [fact({ amount: 1190, quantity: 3 })];
+    const result = applyIvaMode(facts, 'sin_iva');
+    expect(result[0].amount).toBeCloseTo(1000, 5);
+    expect(result[0].quantity).toBe(3);
   });
 });
