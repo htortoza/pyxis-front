@@ -1,10 +1,31 @@
 :host { display: block; }
 
+.rankings-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.rankings-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
 .rankings-title {
   font-size: 1.125rem;
   font-weight: 700;
   color: var(--p-text-color);
-  margin: 0 0 1rem;
+  margin: 0;
+}
+
+.rankings-subtitle {
+  font-size: 0.8125rem;
+  color: var(--p-text-muted-color);
+  margin: 0;
 }
 
 /* minmax(0, 1fr), not a bare 1fr -- see kpi-cards-grid.css for the full reasoning: a bare
@@ -13,7 +34,14 @@
 .rankings-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1rem;
+  gap: 1.5rem;
+}
+
+/* Thin vertical divider between columns instead of 4 separate cards -- one unified card,
+   per the reference mockup. */
+.rankings-grid > *:not(:first-child) {
+  border-left: 1px solid var(--p-content-border-color);
+  padding-left: 1.5rem;
 }
 
 /* Container query (against .page-body's inline-size, see ventas-general.css), not a
@@ -22,5 +50,12 @@
 @container (max-width: 900px) {
   .rankings-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* Only the 2nd column of each row still has a left neighbor at this width -- the 3rd
+     column starts a new row, so its divider would sit against nothing above it. */
+  .rankings-grid > *:nth-child(3) {
+    border-left: none;
+    padding-left: 0;
   }
 }

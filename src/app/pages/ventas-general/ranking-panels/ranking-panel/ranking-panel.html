@@ -1,18 +1,5 @@
-<p-card>
-  <div class="ranking-header">
-    <h3 class="ranking-title">{{ title() }}</h3>
-
-    @if (sortOptions()) {
-      <p-select
-        class="ranking-sort-select"
-        [options]="sortOptions()"
-        optionLabel="label"
-        optionValue="value"
-        [ngModel]="sortValue()"
-        (onChange)="onSortChange($event.value)"
-      />
-    }
-  </div>
+<div class="ranking-column">
+  <h3 class="ranking-title">{{ title() }}</h3>
 
   <div class="ranking-list">
     @if (items().length === 0) {
@@ -21,7 +8,7 @@
         <p class="ranking-empty-text">Sin datos para el filtro actual.</p>
       </div>
     } @else {
-      @for (item of visibleItems(); track item.id) {
+      @for (item of visibleItems(); track item.id; let i = $index) {
         @let tooltip = comparisonTooltip(item);
         <button
           type="button"
@@ -32,6 +19,7 @@
           tooltipPosition="top"
           (click)="itemSelected.emit(item.id)"
         >
+          <span class="ranking-rank">{{ rank(i) }}</span>
           <span class="ranking-label">{{ item.label }}</span>
           <span class="ranking-amount">{{ formattedAmount(item) }}</span>
         </button>
@@ -42,4 +30,4 @@
   @if (hasMore()) {
     <button type="button" class="ranking-more" (click)="showMore()">Ver más...</button>
   }
-</p-card>
+</div>

@@ -1,44 +1,56 @@
-<h2 class="rankings-title">Ranking Comercial</h2>
+<p-card>
+  <div class="rankings-header">
+    <div class="rankings-heading">
+      <h2 class="rankings-title">Ranking Comercial</h2>
+      <p class="rankings-subtitle">{{ periodSubtitle() }}</p>
+    </div>
+    <p-select
+      class="ranking-sort-select"
+      [options]="sortOptions"
+      optionLabel="label"
+      optionValue="value"
+      [ngModel]="sortMode()"
+      (onChange)="onSortChange($event.value)"
+    />
+  </div>
 
-@if (salesData.loading()) {
-  <div class="rankings-grid">
-    <app-loading-skeleton height="260px" />
-    <app-loading-skeleton height="260px" />
-    <app-loading-skeleton height="260px" />
-    <app-loading-skeleton height="260px" />
-  </div>
-} @else {
-  <div class="rankings-grid">
-    <app-ranking-panel
-      [title]="vocab.labelFor('sector')"
-      [items]="salesData.rankings().sectores"
-      dimension="sector"
-      [activeId]="activeIdFor('sector')"
-      (itemSelected)="onSelect('sector', $event)"
-    />
-    <app-ranking-panel
-      [title]="vocab.labelFor('marca')"
-      [items]="salesData.rankings().marcas"
-      dimension="marca"
-      [activeId]="activeIdFor('marca')"
-      (itemSelected)="onSelect('marca', $event)"
-    />
-    <app-ranking-panel
-      [title]="vocab.labelFor('tienda')"
-      [items]="salesData.rankings().tiendas"
-      dimension="tienda"
-      [activeId]="activeIdFor('tienda')"
-      (itemSelected)="onSelect('tienda', $event)"
-    />
-    <app-ranking-panel
-      title="Productos"
-      [items]="sortedProductos()"
-      dimension="producto"
-      [activeId]="activeIdFor('producto')"
-      [sortOptions]="productSortOptions"
-      [sortValue]="productSortMode()"
-      (itemSelected)="onSelect('producto', $event)"
-      (sortChanged)="onProductSort($event)"
-    />
-  </div>
-}
+  @if (salesData.loading()) {
+    <div class="rankings-grid">
+      <app-loading-skeleton height="220px" />
+      <app-loading-skeleton height="220px" />
+      <app-loading-skeleton height="220px" />
+      <app-loading-skeleton height="220px" />
+    </div>
+  } @else {
+    <div class="rankings-grid">
+      <app-ranking-panel
+        [title]="vocab.labelFor('sector')"
+        [items]="sortedSectores()"
+        dimension="sector"
+        [activeId]="activeIdFor('sector')"
+        (itemSelected)="onSelect('sector', $event)"
+      />
+      <app-ranking-panel
+        [title]="vocab.labelFor('marca')"
+        [items]="sortedMarcas()"
+        dimension="marca"
+        [activeId]="activeIdFor('marca')"
+        (itemSelected)="onSelect('marca', $event)"
+      />
+      <app-ranking-panel
+        [title]="vocab.labelFor('tienda')"
+        [items]="sortedTiendas()"
+        dimension="tienda"
+        [activeId]="activeIdFor('tienda')"
+        (itemSelected)="onSelect('tienda', $event)"
+      />
+      <app-ranking-panel
+        title="Productos"
+        [items]="sortedProductos()"
+        dimension="producto"
+        [activeId]="activeIdFor('producto')"
+        (itemSelected)="onSelect('producto', $event)"
+      />
+    </div>
+  }
+</p-card>
