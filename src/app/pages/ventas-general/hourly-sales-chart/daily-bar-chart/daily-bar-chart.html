@@ -1,3 +1,16 @@
-<div class="chart-container">
-  <p-chart type="bar" [data]="chartData()" [options]="chartOptions()" />
-</div>
+@if (isMobileMode()) {
+  <div class="chart-scroll-shell">
+    <div class="chart-axis">
+      <p-chart type="bar" [data]="axisChartData()" [options]="mobileAxisChartOptions()" />
+    </div>
+    <div class="chart-scroll">
+      <div class="chart-plot" [style.min-width.px]="plotMinWidthPx()">
+        <p-chart type="bar" [data]="chartData()" [options]="mobilePlotChartOptions()" />
+      </div>
+    </div>
+  </div>
+} @else {
+  <div class="chart-container">
+    <p-chart type="bar" [data]="chartData()" [options]="chartOptions()" />
+  </div>
+}

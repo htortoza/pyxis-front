@@ -12,3 +12,63 @@
 .chart-container p-chart {
   height: 100%;
 }
+
+/* Plain HTML legend for mobile -- see hourly-bar-chart.ts for why Chart.js's own legend isn't
+   reused here (its wrap behavior differs too much between the narrow axis canvas and the wide
+   scrollable one). */
+.mobile-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.mobile-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.6875rem;
+  color: var(--p-text-muted-color);
+}
+
+.mobile-legend-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Frozen y-axis (left) + independently horizontally-scrollable bars (right) -- the two
+   <p-chart> canvases share an identical bottom/top chrome height (see mobileAxisChartOptions/
+   mobilePlotChartOptions) so their y=0 and y=max gridlines land on the same row; only the
+   left one's ticks are actually visible. */
+.chart-scroll-shell {
+  display: flex;
+  height: calc(100% - 1.5rem);
+  min-height: 260px;
+}
+
+.chart-axis {
+  flex-shrink: 0;
+  width: 3.25rem;
+  height: 100%;
+}
+
+.chart-axis p-chart {
+  height: 100%;
+}
+
+.chart-scroll {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  overflow-x: auto;
+}
+
+.chart-plot {
+  height: 100%;
+}
+
+.chart-plot p-chart {
+  height: 100%;
+}

@@ -43,6 +43,22 @@ p-card:hover {
     width: 3.25rem;
     height: 2rem;
   }
+
+  .kpi-label {
+    font-size: 0.5625rem;
+  }
+
+  /* Same "never truncate" rule as .kpi-label above -- wrap "vs. X" onto its own line instead
+     of shrinking past readable or clipping it off the card's edge. */
+  .kpi-delta {
+    flex-wrap: wrap;
+    white-space: normal;
+    font-size: 0.6875rem;
+  }
+
+  .kpi-delta-label {
+    flex-basis: 100%;
+  }
 }
 
 /* Wraps across as many lines as it needs -- no line-clamp/ellipsis. Truncating a label or a

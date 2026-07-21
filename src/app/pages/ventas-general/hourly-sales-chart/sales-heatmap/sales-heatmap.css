@@ -14,6 +14,18 @@
   align-items: center;
 }
 
+/* Sticky so the day column stays put while the 24 hour-cells scroll underneath it -- .heatmap
+   is the scrolling ancestor (overflow-x: auto), shared by every row, so left: 0 pins each of
+   these to the same spot regardless of which row they belong to. Opaque background is what
+   masks cells passing underneath instead of showing through. */
+.heatmap-corner,
+.heatmap-day-label {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--p-surface-0);
+}
+
 .heatmap-corner {
   height: 1.25rem;
 }

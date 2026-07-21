@@ -9,3 +9,36 @@
 .chart-container p-chart {
   height: 100%;
 }
+
+/* Frozen y-axis (left) + independently horizontally-scrollable bars (right) -- see
+   hourly-bar-chart.css for the full rationale (same pattern, same class names). */
+.chart-scroll-shell {
+  display: flex;
+  height: 100%;
+  min-height: 260px;
+}
+
+.chart-axis {
+  flex-shrink: 0;
+  width: 3.25rem;
+  height: 100%;
+}
+
+.chart-axis p-chart {
+  height: 100%;
+}
+
+.chart-scroll {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  overflow-x: auto;
+}
+
+.chart-plot {
+  height: 100%;
+}
+
+.chart-plot p-chart {
+  height: 100%;
+}

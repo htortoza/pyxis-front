@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
 import { UIChart } from 'primeng/chart';
 
+import { mobileMediaQueryList } from '../../../../data/utils/mobile-breakpoint.utils';
 import type { DailyPoint } from '../../../../data/utils/sales-fact.utils';
 import { formatSignedAmount } from '../../../../pipes/signed-amount';
 
@@ -26,6 +27,15 @@ function formatDayLabel(iso: string): string {
 export class DailyBarChartComponent {
   readonly series = input.required<DailyPoint[]>();
 
+  /** Dual-chart frozen-axis layout only kicks in below 900px -- see chart-scroll-shell in the
+   * template. Desktop keeps the single auto-fit chart untouched. */
+  private readonly isMobile = signal(mobileMediaQueryList()?.matches ?? false);
+  protected readonly isMobileMode = this.isMobile.asReadonly();
+
+  constructor() {
+    mobileMediaQueryList()?.addEventListener('change', (event) => this.isMobile.set(event.matches));
+  }
+
   protected readonly chartData = computed(() => {
     const points = this.series();
     return {
@@ -42,6 +52,19 @@ export class DailyBarChartComponent {
       ],
     };
   });
+
+  /** Same data as chartData (so both charts auto-scale to an identical y range) -- only the
+   * bars' own paint is turned invisible, since this canvas exists purely to carry a frozen
+   * copy of the y-axis ticks (see chart-axis in the template/css). */
+  protected readonly axisChartData = computed(() => {
+    const data = this.chartData();
+    return {
+      ...data,
+      datasets: data.datasets.map((dataset) => ({ ...dataset, backgroundColor: 'transparent', borderWidth: 0 })),
+    };
+  });
+
+  protected readonly plotMinWidthPx = computed(() => Math.max(600, this.series().length * 26));
 
   protected readonly chartOptions = computed(() => ({
     responsive: true,
@@ -65,6 +88,57 @@ export class DailyBarChartComponent {
           callback: (value: number | string) => COMPACT_FORMATTER.format(Number(value)),
         },
         grid: { color: 'rgba(0, 0, 0, 0.06)' },
+      },
+    },
+  }));
+
+  /** Same x-scale shape as mobileAxisChartOptions (transparent ticks instead of display:false)
+   * so both canvases reserve the exact same bottom chrome height -- only the y-axis actually
+   * paints here, everything else exists just to keep the two plot areas vertically aligned. */
+  protected readonly mobilePlotChartOptions = computed(() => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (context: { parsed: { y: number } }) => formatSignedAmount(context.parsed.y).text,
+        },
+      },
+    },
+    scales: {
+      x: {
+        title: { display: false },
+        ticks: { color: 'rgba(0, 0, 0, 0.6)' },
+        grid: { display: false },
+      },
+      y: {
+        title: { display: false },
+        ticks: { display: false },
+        grid: { color: 'rgba(0, 0, 0, 0.06)' },
+      },
+    },
+  }));
+
+  protected readonly mobileAxisChartOptions = computed(() => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+    scales: {
+      x: {
+        title: { display: false },
+        ticks: { color: 'transparent' },
+        grid: { display: false },
+      },
+      y: {
+        title: { display: false },
+        ticks: {
+          color: 'rgba(0, 0, 0, 0.6)',
+          font: { size: 9 },
+          padding: 2,
+          callback: (value: number | string) => COMPACT_FORMATTER.format(Number(value)),
+        },
+        grid: { display: false },
       },
     },
   }));

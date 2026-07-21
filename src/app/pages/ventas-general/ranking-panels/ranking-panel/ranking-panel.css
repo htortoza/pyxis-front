@@ -145,6 +145,6 @@
   .ranking-amount {
     flex-basis: 100%;
     padding-left: calc(1.25rem + 0.625rem);
-    font-size: 0.9375rem;
+    font-size: 0.75rem;
   }
 }
