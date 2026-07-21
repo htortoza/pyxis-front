@@ -1,0 +1,34 @@
+<div class="month-picker">
+  <div class="month-picker-year-nav">
+    <p-button severity="secondary" [text]="true" [rounded]="true" [disabled]="!canGoPrevYear()" (onClick)="goPrevYear()" ariaLabel="Año anterior">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </p-button>
+    <span class="month-picker-year-label">{{ viewedYear() }}</span>
+    <p-button severity="secondary" [text]="true" [rounded]="true" [disabled]="!canGoNextYear()" (onClick)="goNextYear()" ariaLabel="Año siguiente">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
+    </p-button>
+  </div>
+
+  <div class="month-picker-grid">
+    @for (period of viewedYearPeriods(); track period.id) {
+      <label class="month-chip" [class.is-active]="isSelected(period.id)">
+        <p-checkbox
+          class="month-chip-input"
+          [binary]="true"
+          [ngModel]="isSelected(period.id)"
+          (onChange)="toggle(period.id)"
+        />
+        @if (isSelected(period.id)) {
+          <svg class="month-chip-check" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        }
+        <span class="month-chip-label">{{ period.label }}</span>
+      </label>
+    }
+  </div>
+</div>
