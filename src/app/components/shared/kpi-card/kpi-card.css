@@ -10,49 +10,36 @@ p-card:hover {
   transform: translateY(-2px);
 }
 
-/* Chart sits as a full-width banner behind the top of the card (positioned, not in flow); text
-   sits in normal flow below/on top of it. min-height gives the chart real room to read as a
-   trend, taller than the old side-strip layout. */
+/* Label + sparkline share a header row; value and delta follow in normal flow below --
+   no more absolute/masked banner, so the card's height is just its content's height. */
 .kpi-card-content {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  min-height: 9rem;
-}
-
-.kpi-card-text {
-  position: relative;
-  z-index: 1;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  min-width: 0;
-  /* Clears the chart's own solid zone -- the label sits in the chart's fade-out band (see
-     mask-image below), never its full-opacity top, so it stays legible. */
-  padding-top: 2.25rem;
 }
 
-/* Full-width banner overlapping the top of the card, behind the label -- fades out top-to-bottom
-   via a mask so it never competes with the label/value text underneath it. */
+.kpi-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+/* Small chart confined to the header's top-right corner (not a full-width banner) --
+   fixed footprint so it reads as a compact sparkline, not a background element. */
 .kpi-card-trend {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4rem;
-  -webkit-mask-image: linear-gradient(to bottom, black 0%, black 25%, transparent 80%);
-  mask-image: linear-gradient(to bottom, black 0%, black 25%, transparent 80%);
+  flex-shrink: 0;
+  width: 5.5rem;
+  height: 2.75rem;
 }
 
-/* Tighter tracking than a generic label so long names (e.g. "Unidades por Transacción")
-   still fit on one line within the text column's narrower, trend-sharing width. */
 .kpi-label {
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--p-text-muted-color);
-  white-space: nowrap;
+  min-width: 0;
 }
 
 .kpi-value {
@@ -64,28 +51,46 @@ p-card:hover {
   color: var(--p-text-color);
 }
 
+/* Plain colored text, not a pill/badge -- arrow + bold % in the band's color, then a muted
+   "vs. X" in regular text, all inline like the reference design. */
 .kpi-delta {
-  align-self: flex-start;
-  margin-top: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
 }
 
-/* Element+class beats PrimeNG's own bare ".p-tag" rule regardless of stylesheet order.
-   Smaller than PrimeNG's tag default so "X% vs. periodo anterior" fits on one line. */
-p-tag.kpi-delta {
-  font-weight: 500;
-  font-size: 0.625rem;
-  white-space: nowrap;
+.kpi-delta-value {
+  font-weight: 700;
+}
+
+.kpi-delta-label {
+  font-weight: 400;
+  color: var(--p-text-muted-color);
+}
+
+.kpi-delta[data-band='good'] .kpi-delta-icon,
+.kpi-delta[data-band='good'] .kpi-delta-value {
+  color: var(--p-green-500);
+}
+
+.kpi-delta[data-band='medium'] .kpi-delta-icon,
+.kpi-delta[data-band='medium'] .kpi-delta-value {
+  color: var(--p-orange-500);
+}
+
+.kpi-delta[data-band='bad'] .kpi-delta-icon,
+.kpi-delta[data-band='bad'] .kpi-delta-value {
+  color: var(--p-red-500);
 }
 
 .kpi-delta-icon {
   display: inline-block;
-  vertical-align: middle;
-  margin-right: 0.25rem;
+  flex-shrink: 0;
 }
 
 .kpi-no-history {
-  align-self: flex-start;
-  margin-top: 0.25rem;
   font-size: 0.75rem;
   color: var(--p-text-muted-color);
 }
@@ -105,23 +110,32 @@ p-tag.kpi-delta {
   stroke: none;
 }
 
-/* Same sign convention as the delta badge: green = trending up, red = trending down. Low
-   fill-opacity on purpose -- the area should read as a subtle backdrop for the line, never
-   compete with it or read as a solid icon-like shape. */
-.kpi-sparkline[data-trend="up"] .kpi-sparkline-line {
+/* Same band as the delta text: green = good, amber = medium/flat, red = bad. Low fill-opacity
+   on purpose -- the area should read as a subtle backdrop for the line, never compete with it
+   or read as a solid icon-like shape. */
+.kpi-card-trend[data-band='good'] .kpi-sparkline-line {
   stroke: var(--p-green-500);
 }
 
-.kpi-sparkline[data-trend="up"] .kpi-sparkline-area {
+.kpi-card-trend[data-band='good'] .kpi-sparkline-area {
   fill: var(--p-green-500);
   fill-opacity: 0.12;
 }
 
-.kpi-sparkline[data-trend="down"] .kpi-sparkline-line {
+.kpi-card-trend[data-band='medium'] .kpi-sparkline-line {
+  stroke: var(--p-orange-500);
+}
+
+.kpi-card-trend[data-band='medium'] .kpi-sparkline-area {
+  fill: var(--p-orange-500);
+  fill-opacity: 0.12;
+}
+
+.kpi-card-trend[data-band='bad'] .kpi-sparkline-line {
   stroke: var(--p-red-500);
 }
 
-.kpi-sparkline[data-trend="down"] .kpi-sparkline-area {
+.kpi-card-trend[data-band='bad'] .kpi-sparkline-area {
   fill: var(--p-red-500);
   fill-opacity: 0.12;
 }
@@ -130,10 +144,12 @@ p-tag.kpi-delta {
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: var(--p-border-radius-md);
+  background: var(--p-surface-50);
 }
 
 .kpi-trend-empty-text {
-  font-size: 0.6875rem;
+  font-size: 0.625rem;
   color: var(--p-text-muted-color);
   text-align: center;
 }

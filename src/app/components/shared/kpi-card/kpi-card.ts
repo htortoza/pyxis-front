@@ -1,10 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { Card } from 'primeng/card';
-import { Tag } from 'primeng/tag';
 
 import type { TrendPoint } from '../../../data/models/kpi.model';
 import { MIN_TREND_POINTS } from '../../../data/utils/sales-fact.utils';
-import { bandSeverity, comparisonBand, cumplimientoBand } from '../../../pipes/signed-amount';
+import { comparisonBand, cumplimientoBand } from '../../../pipes/signed-amount';
 
 /** Fixed sparkline viewBox -- coordinates are computed as percentages of this, not real px. */
 const SPARKLINE_VIEWBOX_WIDTH = 100;
@@ -48,7 +47,7 @@ function smoothPath(points: Point[]): string {
 @Component({
   selector: 'app-kpi-card',
   standalone: true,
-  imports: [Card, Tag],
+  imports: [Card],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './kpi-card.html',
   styleUrl: './kpi-card.css',
@@ -64,11 +63,10 @@ export class KpiCardComponent {
   /** Candidate sparkline points from SalesDataService -- not yet threshold-checked (see trendState). */
   readonly trendPoints = input<TrendPoint[]>([]);
 
-  /** Semaphore band (good/medium/bad) -- single source of truth for both the tag and the bar. */
+  /** Semaphore band (good/medium/bad) -- single source of truth for the delta text and the sparkline color. */
   readonly band = computed(() =>
     this.isMetaMode() ? cumplimientoBand(this.deltaPct()) : comparisonBand(this.deltaPct()),
   );
-  readonly severity = computed(() => bandSeverity(this.band()));
   readonly isPositive = computed(() => (this.deltaPct() ?? 0) >= 0);
   readonly deltaText = computed(() => {
     const pct = this.deltaPct();

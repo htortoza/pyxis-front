@@ -1,45 +1,42 @@
 <p-card>
   <div class="kpi-card-content">
-    @if (trendState() === 'chart') {
-      <div class="kpi-card-trend">
-        <svg
-          class="kpi-sparkline"
-          [attr.viewBox]="sparklineViewBox"
-          preserveAspectRatio="none"
-          [attr.data-trend]="isPositive() ? 'up' : 'down'"
-        >
-          <path class="kpi-sparkline-area" [attr.d]="sparklineAreaPath()" />
-          <path class="kpi-sparkline-line" [attr.d]="sparklineLinePath()" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
-      </div>
-    } @else if (trendState() === 'insufficient') {
-      <div class="kpi-card-trend kpi-card-trend--empty">
-        <span class="kpi-trend-empty-text">Historial insuficiente</span>
-      </div>
-    }
-
-    <div class="kpi-card-text">
+    <div class="kpi-card-header">
       <span class="kpi-label">{{ label() }}</span>
-      <span class="kpi-value">{{ value() }}</span>
 
-      @if (trendState() === 'none') {
-        <span class="kpi-no-history">Sin histórico previo</span>
-      } @else if (deltaPct() !== null) {
-        <p-tag class="kpi-delta" [severity]="severity()" [rounded]="true">
-          @if (isPositive()) {
-            <svg class="kpi-delta-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="12" y1="19" x2="12" y2="5"></line>
-              <polyline points="5 12 12 5 19 12"></polyline>
-            </svg>
-          } @else {
-            <svg class="kpi-delta-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <polyline points="19 12 12 19 5 12"></polyline>
-            </svg>
-          }
-          <span>{{ deltaText() }} vs. {{ comparisonLabel() }}</span>
-        </p-tag>
+      @if (trendState() === 'chart') {
+        <div class="kpi-card-trend" [attr.data-band]="band()">
+          <svg class="kpi-sparkline" [attr.viewBox]="sparklineViewBox" preserveAspectRatio="none">
+            <path class="kpi-sparkline-area" [attr.d]="sparklineAreaPath()" />
+            <path class="kpi-sparkline-line" [attr.d]="sparklineLinePath()" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </div>
+      } @else if (trendState() === 'insufficient') {
+        <div class="kpi-card-trend kpi-card-trend--empty">
+          <span class="kpi-trend-empty-text">Sin datos</span>
+        </div>
       }
     </div>
+
+    <span class="kpi-value">{{ value() }}</span>
+
+    @if (trendState() === 'none') {
+      <span class="kpi-no-history">Sin histórico previo</span>
+    } @else if (deltaPct() !== null) {
+      <div class="kpi-delta" [attr.data-band]="band()">
+        @if (isPositive()) {
+          <svg class="kpi-delta-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="19" x2="12" y2="5"></line>
+            <polyline points="5 12 12 5 19 12"></polyline>
+          </svg>
+        } @else {
+          <svg class="kpi-delta-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <polyline points="19 12 12 19 5 12"></polyline>
+          </svg>
+        }
+        <span class="kpi-delta-value">{{ deltaText() }}</span>
+        <span class="kpi-delta-label">vs. {{ comparisonLabel() }}</span>
+      </div>
+    }
   </div>
 </p-card>
