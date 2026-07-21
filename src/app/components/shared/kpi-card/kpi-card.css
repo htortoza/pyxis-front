@@ -49,15 +49,14 @@ p-card:hover {
   min-width: 0;
 }
 
-/* Smaller than before (was 1.625rem) so long peso amounts need less room to begin with, but
-   the actual overflow guarantee is overflow-wrap: break-word -- holding-level totals can run
-   past mil millones ($1.234.567.890.123), and unlike text-overflow: ellipsis this wraps to a
-   2nd line instead of cutting digits off. Full number always visible, never wider than the
-   card (see .kpi-grid > * / .kpi-card-content's min-width: 0, the other half of this fix). */
+/* Stays on one line, always -- font-size is set imperatively per-instance by kpi-card.ts's
+   shrink-to-fit effect (starts at 22px, steps down until it stops overflowing), so a
+   holding-level total past mil millones shrinks instead of wrapping or truncating. The
+   font-size below is just the initial/base value the effect starts from before JS runs. */
 .kpi-value {
   display: block;
   max-width: 100%;
-  overflow-wrap: break-word;
+  white-space: nowrap;
   font-size: 1.375rem;
   font-weight: 800;
   letter-spacing: -0.02em;

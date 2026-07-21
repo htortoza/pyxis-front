@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, input, viewChild } from '@angular/core';
 import { Card } from 'primeng/card';
 
 import type { TrendPoint } from '../../../data/models/kpi.model';
@@ -10,6 +10,13 @@ const SPARKLINE_VIEWBOX_WIDTH = 100;
 const SPARKLINE_VIEWBOX_HEIGHT = 50;
 /** Vertical inset so peaks/valleys never touch the very top/bottom edge. */
 const SPARKLINE_Y_INSET = 6;
+
+/** .kpi-value's normal size (matches the old fixed 1.375rem) and the floor it will shrink to
+ * before giving up -- a holding-level peso total can run past mil millones, and the whole
+ * point of shrink-to-fit is that it stays on one line, fully readable, at whatever size that
+ * takes, rather than wrapping or truncating (see shrinkValueToFit below). */
+const VALUE_BASE_FONT_PX = 22;
+const VALUE_MIN_FONT_PX = 11;
 
 interface Point {
   x: number;
@@ -53,6 +60,8 @@ function smoothPath(points: Point[]): string {
   styleUrl: './kpi-card.css',
 })
 export class KpiCardComponent {
+  private readonly valueEl = viewChild<ElementRef<HTMLElement>>('valueEl');
+
   readonly label = input.required<string>();
   readonly value = input.required<string>();
   readonly deltaPct = input<number | null>(null);
@@ -122,4 +131,35 @@ export class KpiCardComponent {
   });
 
   readonly sparklineViewBox = `0 0 ${SPARKLINE_VIEWBOX_WIDTH} ${SPARKLINE_VIEWBOX_HEIGHT}`;
+
+  /**
+   * CSS alone can't make font-size react to content length (only to container size), and this
+   * value must stay on one line, fully visible, never wrapped or ellipsized -- so it's fit
+   * imperatively: start at the base size and step down until the (single-line, nowrap) text
+   * stops overflowing its own box. Re-runs whenever the formatted value changes, and whenever
+   * the card itself is resized (window resize, sidebar toggle, responsive column breakpoints).
+   */
+  constructor() {
+    effect((onCleanup) => {
+      const el = this.valueEl()?.nativeElement;
+      this.value();
+      if (!el) return;
+
+      const fit = () => {
+        let fontSize = VALUE_BASE_FONT_PX;
+        el.style.fontSize = `${fontSize}px`;
+        while (el.scrollWidth > el.clientWidth && fontSize > VALUE_MIN_FONT_PX) {
+          fontSize -= 1;
+          el.style.fontSize = `${fontSize}px`;
+        }
+      };
+
+      fit();
+      // Observes the parent (not el itself) so the fit's own font-size writes -- which change
+      // el's height via the font-size-relative line-height -- can't feed back into a resize loop.
+      const resizeObserver = new ResizeObserver(fit);
+      resizeObserver.observe(el.parentElement!);
+      onCleanup(() => resizeObserver.disconnect());
+    });
+  }
 }
