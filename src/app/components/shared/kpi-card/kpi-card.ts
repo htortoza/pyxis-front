@@ -4,7 +4,7 @@ import { Tag } from 'primeng/tag';
 
 import type { TrendPoint } from '../../../data/models/kpi.model';
 import { MIN_TREND_POINTS } from '../../../data/utils/sales-fact.utils';
-import { bandSeverity, comparisonBand } from '../../../pipes/signed-amount';
+import { bandSeverity, comparisonBand, cumplimientoBand } from '../../../pipes/signed-amount';
 
 /** Fixed sparkline viewBox -- coordinates are computed as percentages of this, not real px. */
 const SPARKLINE_VIEWBOX_WIDTH = 100;
@@ -26,11 +26,15 @@ export class KpiCardComponent {
   readonly deltaPct = input<number | null>(null);
   /** Contra qué se compara el delta (ej. "periodo anterior", "meta") -- las cards sin modo Meta propio siempre lo dejan en el default. */
   readonly comparisonLabel = input<string>('periodo anterior');
+  /** true solo en las cards con modo Meta propio cuando el modo activo es 'meta' -- cambia a un semáforo graduado por % de cumplimiento en vez del semáforo por delta vs. periodo anterior. */
+  readonly isMetaMode = input<boolean>(false);
   /** Candidate sparkline points from SalesDataService -- not yet threshold-checked (see trendState). */
   readonly trendPoints = input<TrendPoint[]>([]);
 
   /** Semaphore band (good/medium/bad) -- single source of truth for both the tag and the bar. */
-  readonly band = computed(() => comparisonBand(this.deltaPct()));
+  readonly band = computed(() =>
+    this.isMetaMode() ? cumplimientoBand(this.deltaPct()) : comparisonBand(this.deltaPct()),
+  );
   readonly severity = computed(() => bandSeverity(this.band()));
   readonly isPositive = computed(() => (this.deltaPct() ?? 0) >= 0);
   readonly deltaText = computed(() => {

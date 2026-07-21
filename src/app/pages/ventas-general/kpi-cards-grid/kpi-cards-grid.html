@@ -21,6 +21,7 @@
       [deltaPct]="salesData.compareToPrevious() ? ventasTotalesDelta() : null"
       [trendPoints]="salesData.compareToPrevious() ? ventasTotalesTrend() : []"
       [comparisonLabel]="comparisonLabel()"
+      [isMetaMode]="salesData.comparisonMode() === 'meta'"
     />
     <app-kpi-card
       label="Transacciones"
@@ -28,6 +29,7 @@
       [deltaPct]="salesData.compareToPrevious() ? transaccionesDelta() : null"
       [trendPoints]="salesData.compareToPrevious() ? transaccionesTrend() : []"
       [comparisonLabel]="comparisonLabel()"
+      [isMetaMode]="salesData.comparisonMode() === 'meta'"
     />
     <app-kpi-card
       label="Unidades por Transacción"
@@ -35,6 +37,7 @@
       [deltaPct]="salesData.compareToPrevious() ? unidadesPorTransaccionDelta() : null"
       [trendPoints]="salesData.compareToPrevious() ? unidadesPorTransaccionTrend() : []"
       [comparisonLabel]="comparisonLabel()"
+      [isMetaMode]="salesData.comparisonMode() === 'meta'"
     />
     <app-kpi-card
       label="Ticket Promedio"
@@ -42,6 +45,7 @@
       [deltaPct]="salesData.compareToPrevious() ? ticketPromedioDelta() : null"
       [trendPoints]="salesData.compareToPrevious() ? ticketPromedioTrend() : []"
       [comparisonLabel]="comparisonLabel()"
+      [isMetaMode]="salesData.comparisonMode() === 'meta'"
     />
     <app-kpi-card
       label="Descuentos"
