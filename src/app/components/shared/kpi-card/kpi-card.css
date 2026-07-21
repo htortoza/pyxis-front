@@ -10,33 +10,38 @@ p-card:hover {
   transform: translateY(-2px);
 }
 
-/* Two horizontal zones: text on the left (grows), trend graphic on the right (bounded width). */
+/* Chart sits as a full-width banner behind the top of the card (positioned, not in flow); text
+   sits in normal flow below/on top of it. min-height gives the chart real room to read as a
+   trend, taller than the old side-strip layout. */
 .kpi-card-content {
+  position: relative;
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  flex-direction: column;
+  min-height: 9rem;
 }
 
 .kpi-card-text {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   min-width: 0;
-  flex: 1 1 auto;
+  /* Clears the chart's own solid zone -- the label sits in the chart's fade-out band (see
+     mask-image below), never its full-opacity top, so it stays legible. */
+  padding-top: 2.25rem;
 }
 
-/* Stretches to the card's full height so it reads as a background watermark, not a small
-   discrete widget -- fades out toward the text via a mask instead of a hard column edge. */
+/* Full-width banner overlapping the top of the card, behind the label -- fades out top-to-bottom
+   via a mask so it never competes with the label/value text underneath it. */
 .kpi-card-trend {
-  flex: 0 0 auto;
-  align-self: stretch;
-  width: 30%;
-  min-width: 4rem;
-  max-width: 33%;
-  -webkit-mask-image: linear-gradient(to left, black 0%, black 55%, transparent 100%);
-  mask-image: linear-gradient(to left, black 0%, black 55%, transparent 100%);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4rem;
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, black 25%, transparent 80%);
+  mask-image: linear-gradient(to bottom, black 0%, black 25%, transparent 80%);
 }
 
 /* Tighter tracking than a generic label so long names (e.g. "Unidades por Transacción")
@@ -90,7 +95,6 @@ p-tag.kpi-delta {
   display: block;
   width: 100%;
   height: 100%;
-  opacity: 0.85;
 }
 
 .kpi-sparkline-line {
@@ -101,14 +105,16 @@ p-tag.kpi-delta {
   stroke: none;
 }
 
-/* Same sign convention as the delta badge: green = trending up, red = trending down. */
+/* Same sign convention as the delta badge: green = trending up, red = trending down. Low
+   fill-opacity on purpose -- the area should read as a subtle backdrop for the line, never
+   compete with it or read as a solid icon-like shape. */
 .kpi-sparkline[data-trend="up"] .kpi-sparkline-line {
   stroke: var(--p-green-500);
 }
 
 .kpi-sparkline[data-trend="up"] .kpi-sparkline-area {
   fill: var(--p-green-500);
-  fill-opacity: 0.16;
+  fill-opacity: 0.12;
 }
 
 .kpi-sparkline[data-trend="down"] .kpi-sparkline-line {
@@ -117,7 +123,7 @@ p-tag.kpi-delta {
 
 .kpi-sparkline[data-trend="down"] .kpi-sparkline-area {
   fill: var(--p-red-500);
-  fill-opacity: 0.16;
+  fill-opacity: 0.12;
 }
 
 .kpi-card-trend--empty {

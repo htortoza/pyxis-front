@@ -100,7 +100,27 @@ describe('buildKpiTrendPoints', () => {
     expect(result.map((r) => r.value)).toEqual([300, 400]);
   });
 
-  it('multiple selected periods: only the ones with real data are included, in chronological order', () => {
+  it('multiple selected periods: still walks backward from the LAST (most recent) one, not just the selected periods themselves', () => {
+    // Regression guard for the "sparkline shows only 2-3 points" bug: selecting p3+p4 must not
+    // limit the trend to those 2 periods -- it should walk back from p4 (the most recent
+    // selection) exactly like the single-period case does, surfacing p1/p2/p3 as real history.
+    const facts = [
+      fact({ date: '2026-01-10', amount: 100 }), // p1
+      fact({ date: '2026-02-10', amount: 150 }), // p2
+      fact({ date: '2026-03-10', amount: 200 }), // p3
+      fact({ date: '2026-04-10', amount: 999 }), // p4 -- the anchor itself, excluded from the result
+    ];
+
+    const result = buildKpiTrendPoints(facts, allPeriods, [p3.id, p4.id], sumPick);
+
+    expect(result).toEqual([
+      { periodId: 'p-1', value: 100 },
+      { periodId: 'p-2', value: 150 },
+      { periodId: 'p-3', value: 200 },
+    ]);
+  });
+
+  it('multiple selected periods: still stops at the first gap when walking backward from the last selection', () => {
     const facts = [
       // p2 deliberately has no facts.
       fact({ date: '2026-03-10', amount: 100 }), // p3
@@ -109,21 +129,43 @@ describe('buildKpiTrendPoints', () => {
 
     const result = buildKpiTrendPoints(facts, allPeriods, [p4.id, p2.id, p3.id], sumPick);
 
-    expect(result.map((r) => r.periodId)).toEqual(['p-3', 'p-4']);
+    expect(result.map((r) => r.periodId)).toEqual(['p-3']);
   });
 
   it("attributes each fact to the period whose date range contains it, not an adjacent selected period", () => {
     const facts = [
       fact({ date: '2026-01-05', amount: 100 }), // p1
       fact({ date: '2026-01-20', amount: 200 }), // p1
-      fact({ date: '2026-02-01', amount: 50 }), // p2
+      fact({ date: '2026-02-01', amount: 50 }), // p2 -- the anchor, excluded from the result
     ];
 
     const result = buildKpiTrendPoints(facts, allPeriods, [p1.id, p2.id], sumPick);
 
-    expect(result).toEqual([
-      { periodId: 'p-1', value: 300 },
-      { periodId: 'p-2', value: 50 },
+    expect(result).toEqual([{ periodId: 'p-1', value: 300 }]);
+  });
+
+  it('a short selection (e.g. 3 months) still surfaces up to MAX_TRAILING_TREND_POINTS of real history, not just the selected periods', () => {
+    const longHistory: Period[] = [];
+    for (let order = 1; order <= 15; order++) {
+      longHistory.push(
+        period({
+          id: `p-${order}`,
+          order,
+          startDate: `2026-01-${String(order).padStart(2, '0')}`,
+          endDate: `2026-01-${String(order).padStart(2, '0')}`,
+        }),
+      );
+    }
+    const facts = longHistory.map((p) => fact({ date: p.startDate, amount: p.order * 10 }));
+    // Select only the last 3 periods (order 13, 14, 15) -- mirrors a real "3 meses seleccionados" default.
+    const selectedIds = ['p-13', 'p-14', 'p-15'];
+
+    const result = buildKpiTrendPoints(facts, longHistory, selectedIds, sumPick);
+
+    expect(result.length).toBe(12); // capped at MAX_TRAILING_TREND_POINTS, not 3
+    // Anchor is p-15 (the most recent selection), excluded; walks back 12 slots to p-3.
+    expect(result.map((r) => r.periodId)).toEqual([
+      'p-3', 'p-4', 'p-5', 'p-6', 'p-7', 'p-8', 'p-9', 'p-10', 'p-11', 'p-12', 'p-13', 'p-14',
     ]);
   });
 });

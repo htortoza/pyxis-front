@@ -12,6 +12,39 @@ const SPARKLINE_VIEWBOX_HEIGHT = 50;
 /** Vertical inset so peaks/valleys never touch the very top/bottom edge. */
 const SPARKLINE_Y_INSET = 6;
 
+interface Point {
+  x: number;
+  y: number;
+}
+
+/**
+ * Catmull-Rom-to-cubic-Bezier smoothing -- turns straight polyline segments into a smooth curve
+ * so the eye reads gradual trend evolution instead of a sharp, checkmark-like angle (the actual
+ * bug this fixes: 2-3 raw points joined by straight lines render as a narrow "V" that looks like
+ * a status icon, not a trend). Standard 1/6-tangent conversion; each original point is preserved
+ * exactly, only the path between them is curved.
+ */
+function smoothPath(points: Point[]): string {
+  if (points.length === 0) return '';
+  if (points.length < 3) {
+    return points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' ');
+  }
+
+  let path = `M ${points[0].x.toFixed(2)},${points[0].y.toFixed(2)}`;
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[i - 1] ?? points[i];
+    const p1 = points[i];
+    const p2 = points[i + 1];
+    const p3 = points[i + 2] ?? p2;
+    const cp1x = p1.x + (p2.x - p0.x) / 6;
+    const cp1y = p1.y + (p2.y - p0.y) / 6;
+    const cp2x = p2.x - (p3.x - p1.x) / 6;
+    const cp2y = p2.y - (p3.y - p1.y) / 6;
+    path += ` C ${cp1x.toFixed(2)},${cp1y.toFixed(2)} ${cp2x.toFixed(2)},${cp2y.toFixed(2)} ${p2.x.toFixed(2)},${p2.y.toFixed(2)}`;
+  }
+  return path;
+}
+
 @Component({
   selector: 'app-kpi-card',
   standalone: true,
@@ -58,10 +91,10 @@ export class KpiCardComponent {
 
   private readonly sparklineValues = computed(() => this.trendPoints().map((point) => point.value));
 
-  /** SVG polyline "x,y x,y ..." string, scaled to the fixed viewBox with a flat line for constant data. */
-  readonly sparklinePoints = computed(() => {
+  /** Raw coordinates scaled to the fixed viewBox, flat mid-line for constant data. */
+  private readonly sparklineCoords = computed<Point[]>(() => {
     const values = this.sparklineValues();
-    if (values.length === 0) return '';
+    if (values.length === 0) return [];
 
     const min = Math.min(...values);
     const max = Math.max(...values);
@@ -69,21 +102,25 @@ export class KpiCardComponent {
     const plotHeight = SPARKLINE_VIEWBOX_HEIGHT - SPARKLINE_Y_INSET * 2;
     const lastIndex = Math.max(1, values.length - 1);
 
-    return values
-      .map((value, index) => {
-        const x = (index / lastIndex) * SPARKLINE_VIEWBOX_WIDTH;
-        const normalized = range === 0 ? 0.5 : (value - min) / range;
-        const y = SPARKLINE_Y_INSET + (1 - normalized) * plotHeight;
-        return `${x.toFixed(2)},${y.toFixed(2)}`;
-      })
-      .join(' ');
+    return values.map((value, index) => {
+      const x = (index / lastIndex) * SPARKLINE_VIEWBOX_WIDTH;
+      const normalized = range === 0 ? 0.5 : (value - min) / range;
+      const y = SPARKLINE_Y_INSET + (1 - normalized) * plotHeight;
+      return { x, y };
+    });
   });
 
-  /** Same points closed down to the baseline -- the translucent area fill under the line. */
-  readonly sparklineAreaPoints = computed(() => {
-    const line = this.sparklinePoints();
-    if (!line) return '';
-    return `0,${SPARKLINE_VIEWBOX_HEIGHT} ${line} ${SPARKLINE_VIEWBOX_WIDTH},${SPARKLINE_VIEWBOX_HEIGHT}`;
+  /** Smoothed SVG path ("M ... C ...") for the trend line. */
+  readonly sparklineLinePath = computed(() => smoothPath(this.sparklineCoords()));
+
+  /** Same smoothed curve closed down to the baseline -- the translucent area fill under the line. */
+  readonly sparklineAreaPath = computed(() => {
+    const coords = this.sparklineCoords();
+    if (coords.length === 0) return '';
+    const line = smoothPath(coords);
+    const firstX = coords[0].x.toFixed(2);
+    const lastX = coords[coords.length - 1].x.toFixed(2);
+    return `${line} L ${lastX},${SPARKLINE_VIEWBOX_HEIGHT} L ${firstX},${SPARKLINE_VIEWBOX_HEIGHT} Z`;
   });
 
   readonly sparklineViewBox = `0 0 ${SPARKLINE_VIEWBOX_WIDTH} ${SPARKLINE_VIEWBOX_HEIGHT}`;

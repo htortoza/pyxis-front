@@ -82,14 +82,17 @@ const MAX_TRAILING_TREND_POINTS = 12;
 
 /**
  * Candidate sparkline points for one KPI metric. Never fabricates a point for a period with no
- * real loaded facts (Read-Only principle -- no zero-fill, no repeat-current, no projection):
+ * real loaded facts (Read-Only principle -- no zero-fill, no repeat-current, no projection).
  *
- * - Exactly one period selected: walks backward from it by Period.order collecting periods that
- *   have at least one fact for this scope, stopping at the first gap (an entity's real history
- *   starts somewhere; a gap isn't skipped over), capped at MAX_TRAILING_TREND_POINTS.
- * - Multiple periods selected: the selected periods themselves, chronological order, filtered to
- *   only those that actually have fact data (so a wide range on a young entity doesn't render
- *   fabricated points for periods before it existed).
+ * Regardless of how many periods are selected, walks backward by Period.order from the most
+ * recently selected one, collecting periods that have at least one fact for this scope, stopping
+ * at the first gap (an entity's real history starts somewhere; a gap isn't skipped over), capped
+ * at MAX_TRAILING_TREND_POINTS. The anchor (most recent selected period) itself is excluded --
+ * its own value is already shown as the card's big number and delta badge, so the sparkline
+ * reads as "the path that led here." This is deliberately uniform across 1 vs. N selected
+ * periods: a 3-month selection must still surface up to MAX_TRAILING_TREND_POINTS of real
+ * history, not just the 2-3 selected months themselves (a sparkline with only 2-3 points reads
+ * as a sharp, meaningless "V" instead of an actual trend).
  *
  * `trendSourceFacts` must be scoped by store/context (and any producto cross-filter) but NOT by
  * period -- the whole point is looking at periods outside the currently selected range.
@@ -119,23 +122,19 @@ export function buildKpiTrendPoints(
     .filter((period): period is Period => !!period)
     .sort((a, b) => a.order - b.order);
 
-  let candidatePeriods: Period[];
+  if (selectedPeriods.length === 0) return [];
 
-  if (selectedPeriods.length === 1) {
-    const targetOrder = selectedPeriods[0].order;
-    const orderToPeriod = new Map(allPeriods.map((period) => [period.order, period]));
-    const trailing: Period[] = [];
-    for (let offset = 1; offset <= MAX_TRAILING_TREND_POINTS; offset++) {
-      const candidate = orderToPeriod.get(targetOrder - offset);
-      if (!candidate || !hasData(candidate)) {
-        break;
-      }
-      trailing.push(candidate);
+  const targetOrder = selectedPeriods[selectedPeriods.length - 1].order;
+  const orderToPeriod = new Map(allPeriods.map((period) => [period.order, period]));
+  const trailing: Period[] = [];
+  for (let offset = 1; offset <= MAX_TRAILING_TREND_POINTS; offset++) {
+    const candidate = orderToPeriod.get(targetOrder - offset);
+    if (!candidate || !hasData(candidate)) {
+      break;
     }
-    candidatePeriods = trailing.reverse();
-  } else {
-    candidatePeriods = selectedPeriods.filter((period) => hasData(period));
+    trailing.push(candidate);
   }
+  const candidatePeriods = trailing.reverse();
 
   return candidatePeriods.map((period) => ({
     periodId: period.id,
