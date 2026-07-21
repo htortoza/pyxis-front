@@ -1,0 +1,31 @@
+<div class="sidebar">
+  <p-card class="summary-card">
+    <span class="card-title">Resumen del Período</span>
+
+    <div class="stat-list">
+      @for (row of statRows(); track row.label) {
+        <div class="stat-row">
+          <span class="stat-accent" [attr.data-accent]="row.accent"></span>
+          <div class="stat-text">
+            <span class="stat-label">{{ row.label }}</span>
+            <span class="stat-value">{{ row.value }}</span>
+            <span class="stat-caption">{{ row.caption }}</span>
+          </div>
+        </div>
+      }
+    </div>
+  </p-card>
+
+  <p-card class="meta-card">
+    <span class="card-title">Meta Mensual</span>
+
+    <div class="meta-header">
+      <span class="meta-pct">{{ metaPctLabel() }}</span>
+      <span class="meta-amounts">{{ metaCurrentLabel() }} / {{ metaTargetLabel() }}</span>
+    </div>
+
+    <p-progressbar [value]="metaProgressValue()" [showValue]="false" [color]="metaProgressColor" />
+
+    <span class="meta-caption">{{ metaCaption() }}</span>
+  </p-card>
+</div>

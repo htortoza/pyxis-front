@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 
@@ -9,6 +9,18 @@ import { HourlyBarChartComponent } from './hourly-bar-chart/hourly-bar-chart';
 import { SalesHeatmapComponent } from './sales-heatmap/sales-heatmap';
 
 type ViewMode = 'bars' | 'daily' | 'heatmap';
+
+const TITLE_BY_VIEW_MODE: Record<ViewMode, string> = {
+  bars: 'Ventas por Hora',
+  daily: 'Ventas por Día',
+  heatmap: 'Mapa de Calor',
+};
+
+const SUBTITLE_BY_VIEW_MODE: Record<ViewMode, string> = {
+  bars: 'Distribución horaria de ventas (CLP)',
+  daily: 'Distribución diaria de ventas (CLP)',
+  heatmap: 'Patrón semanal de ventas por hora y día (CLP)',
+};
 
 @Component({
   selector: 'app-hourly-sales-chart',
@@ -29,6 +41,9 @@ export class HourlySalesChartComponent {
   protected readonly salesData = inject(SalesDataService);
 
   protected readonly viewMode = signal<ViewMode>('bars');
+
+  protected readonly chartTitle = computed(() => TITLE_BY_VIEW_MODE[this.viewMode()]);
+  protected readonly chartSubtitle = computed(() => SUBTITLE_BY_VIEW_MODE[this.viewMode()]);
 
   protected setViewMode(mode: ViewMode): void {
     this.viewMode.set(mode);

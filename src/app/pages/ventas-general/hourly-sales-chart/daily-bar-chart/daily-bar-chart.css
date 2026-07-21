@@ -1,5 +1,11 @@
-:host { display: block; }
+:host { display: block; height: 100%; }
 
+/* See hourly-bar-chart.css for the full rationale -- same fixed-height-to-fill fix. */
 .chart-container {
-  min-height: 320px;
+  height: 100%;
+  min-height: 280px;
+}
+
+.chart-container p-chart {
+  height: 100%;
 }

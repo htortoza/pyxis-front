@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
-import { OPERATIONAL_HOURS } from '../../../../data/utils/sales-fact.utils';
+import { OPERATIONAL_HOURS, formatHourLabel } from '../../../../data/utils/sales-fact.utils';
 import { formatSignedAmount } from '../../../../pipes/signed-amount';
 
 /** index 0 = Sunday, matching the standard `Date.getDay()` convention used by `SalesFact.dayOfWeek`. */
@@ -68,7 +68,7 @@ export class SalesHeatmapComponent {
   /** Fixed opacity steps for the legend swatch — mirrors the 0.12-1.0 range used per cell. */
   protected readonly legendSteps = [0.12, 0.32, 0.52, 0.72, 1];
 
-  private readonly hourLabels = OPERATIONAL_HOURS.map((hour) => `${hour.toString().padStart(2, '0')}:00`);
+  private readonly hourLabels = OPERATIONAL_HOURS.map(formatHourLabel);
 
   protected readonly columnHeaders = computed<HeatmapColumnHeader[]>(() =>
     OPERATIONAL_HOURS.map((_, hourIndex) => ({

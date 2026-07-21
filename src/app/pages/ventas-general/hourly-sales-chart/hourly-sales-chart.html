@@ -1,8 +1,8 @@
 <p-card>
   <div class="chart-header">
     <div class="chart-heading">
-      <h2 class="chart-title">Ventas por Hora</h2>
-      <p class="chart-subtitle">Distribución horaria de ventas (CLP)</p>
+      <h2 class="chart-title">{{ chartTitle() }}</h2>
+      <p class="chart-subtitle">{{ chartSubtitle() }}</p>
     </div>
     <div class="view-toggle">
       <p-button
@@ -26,23 +26,25 @@
     </div>
   </div>
 
-  @if (salesData.loading()) {
-    <app-loading-skeleton height="320px" />
-  } @else {
-    @switch (viewMode()) {
-      @case ('bars') {
-        <app-hourly-bar-chart
-          [seriesByPeriod]="salesData.hourlySeriesByPeriod()"
-          [periods]="salesData.periods()"
-          [selectedPeriodIds]="salesData.selectedPeriodIds()"
-        />
-      }
-      @case ('daily') {
-        <app-daily-bar-chart [series]="salesData.dailySeries()" />
-      }
-      @case ('heatmap') {
-        <app-sales-heatmap [matrix]="salesData.heatmapMatrix()" />
+  <div class="chart-body">
+    @if (salesData.loading()) {
+      <app-loading-skeleton height="100%" />
+    } @else {
+      @switch (viewMode()) {
+        @case ('bars') {
+          <app-hourly-bar-chart
+            [seriesByPeriod]="salesData.hourlySeriesByPeriod()"
+            [periods]="salesData.periods()"
+            [selectedPeriodIds]="salesData.selectedPeriodIds()"
+          />
+        }
+        @case ('daily') {
+          <app-daily-bar-chart [series]="salesData.dailySeries()" />
+        }
+        @case ('heatmap') {
+          <app-sales-heatmap [matrix]="salesData.heatmapMatrix()" />
+        }
       }
     }
-  }
+  </div>
 </p-card>

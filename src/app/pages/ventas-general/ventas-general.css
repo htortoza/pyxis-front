@@ -30,3 +30,22 @@
 .page-body > * {
   min-width: 0;
 }
+
+/* Chart + sidebar row -- sidebar's natural content height (stats + Meta Mensual) drives the
+   row height, and the chart card stretches (grid's default align-items: stretch) to match it,
+   filling that height instead of sitting at its own fixed size (see hourly-sales-chart.css). */
+.hourly-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 20rem;
+  gap: 1.5rem;
+}
+
+.hourly-row > * {
+  min-width: 0;
+}
+
+@container (max-width: 900px) {
+  .hourly-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

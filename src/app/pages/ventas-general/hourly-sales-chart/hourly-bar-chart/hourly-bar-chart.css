@@ -1,5 +1,14 @@
-:host { display: block; }
+:host { display: block; height: 100%; }
 
+/* No fixed px height -- fills whatever height the parent flex chain gives it (see
+   hourly-sales-chart.css's .chart-body), so the card never leaves blank space below the chart.
+   Chart.js (responsive + maintainAspectRatio: false) resizes the canvas to match p-chart's own
+   box, which p-chart's own host binding leaves free to size from CSS when no [height] input is passed. */
 .chart-container {
-  min-height: 320px;
+  height: 100%;
+  min-height: 280px;
+}
+
+.chart-container p-chart {
+  height: 100%;
 }

@@ -31,10 +31,14 @@ import {
   buildDailySeries,
   buildHeatmapMatrix,
   buildHourlySeries,
+  computeHourlySummary,
   computeKpis,
   computeKpisAgainstMeta,
+  computeMetaMensualProgress,
   filterFacts,
   type DailyPoint,
+  type HourlySummary,
+  type MetaMensualProgress,
 } from '../data/utils/sales-fact.utils';
 
 interface CrossFilter {
@@ -48,6 +52,8 @@ interface DashboardData {
   dailySeries: DailyPoint[];
   heatmap: number[][];
   rankings: RankingSet;
+  hourlySummary: HourlySummary;
+  metaMensualProgress: MetaMensualProgress;
 }
 
 /**
@@ -160,6 +166,8 @@ export class SalesDataService {
   readonly dailySeries = computed(() => this.dashboardData().dailySeries);
   readonly heatmapMatrix = computed(() => this.dashboardData().heatmap);
   readonly rankings = computed(() => this.dashboardData().rankings);
+  readonly hourlySummary = computed(() => this.dashboardData().hourlySummary);
+  readonly metaMensualProgress = computed(() => this.dashboardData().metaMensualProgress);
 
   /**
    * Store+period scoped facts (header context + the Sector/Marca/Tienda filter, but NOT the
@@ -333,6 +341,13 @@ export class SalesDataService {
     // for the "Por Día" chart view (same currentFacts scope as everything else above).
     const heatmap = buildHeatmapMatrix(currentFacts);
     const dailySeries = buildDailySeries(currentFacts);
+    const hourlySummary = computeHourlySummary(currentFacts, previousFacts);
+    const metaMensualProgress = computeMetaMensualProgress(
+      currentFacts,
+      selectedPeriods,
+      KPI_METAS_MENSUALES.ventasTotales,
+      granularity,
+    );
 
     // Step 8: rankings. Sector/marca/tienda rankings use the store+period scope only (not
     // narrowed by a 'producto' cross-filter) so drilling into a product never empties them.
@@ -360,6 +375,6 @@ export class SalesDataService {
       ),
     };
 
-    return { kpis, hourlySeries, dailySeries, heatmap, rankings };
+    return { kpis, hourlySeries, dailySeries, heatmap, rankings, hourlySummary, metaMensualProgress };
   }
 }

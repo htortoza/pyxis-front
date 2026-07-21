@@ -1,4 +1,4 @@
-import { getDayOfWeek } from './date.utils';
+import { daysBetweenIso, getDayOfWeek } from './date.utils';
 import type { SalesFact } from '../models/sales-fact.model';
 import type { KpiMetaMensual } from '../models/comparison.model';
 import type { IvaMode } from '../models/iva.model';
@@ -10,6 +10,10 @@ import { CONVERSION_BASE_BY_STORE } from '../mock/conversion.mock';
 export const OPERATIONAL_HOURS: number[] = [
   6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4, 5,
 ];
+
+export function formatHourLabel(hour: number): string {
+  return `${hour.toString().padStart(2, '0')}:00`;
+}
 
 export function filterFacts(
   facts: SalesFact[],
@@ -246,6 +250,55 @@ export function buildHourlySeries(facts: SalesFact[]): number[] {
   return series;
 }
 
+export interface HourlySummary {
+  bestHour: number;
+  bestHourAvg: number;
+  worstHour: number;
+  worstHourAvg: number;
+  /** % vs. la misma hora punta en el periodo de comparación -- null si esa hora no vendió nada. */
+  peakVariationPct: number | null;
+  activeHoursCount: number;
+}
+
+/** Una hora cuenta como "activa" si promedia al menos este % de la hora punta -- separa el
+ * horario fuerte del de cola larga sin necesitar un umbral absoluto en pesos. */
+const ACTIVE_HOUR_RATIO = 0.4;
+
+function countDistinctDays(facts: SalesFact[]): number {
+  return new Set(facts.map((fact) => fact.date)).size;
+}
+
+/** Resumen operativo de "Ventas por Hora" -- promedios diarios por hora (no sumas crudas), para
+ * la card "Resumen del Período". `previousFacts` es el mismo baseline de comparación que ya usan
+ * los KPIs (ver computeDashboardData), reutilizado acá solo para la variación de la hora punta. */
+export function computeHourlySummary(currentFacts: SalesFact[], previousFacts: SalesFact[]): HourlySummary {
+  const days = Math.max(1, countDistinctDays(currentFacts));
+  const averages = buildHourlySeries(currentFacts).map((total) => total / days);
+
+  let bestIdx = 0;
+  let worstIdx = 0;
+  averages.forEach((avg, idx) => {
+    if (avg > averages[bestIdx]) bestIdx = idx;
+    if (avg < averages[worstIdx]) worstIdx = idx;
+  });
+
+  const activeHoursCount = averages.filter((avg) => avg >= averages[bestIdx] * ACTIVE_HOUR_RATIO).length;
+
+  const previousDays = Math.max(1, countDistinctDays(previousFacts));
+  const previousBestHourAvg = (buildHourlySeries(previousFacts)[bestIdx] ?? 0) / previousDays;
+  const peakVariationPct =
+    previousBestHourAvg === 0 ? null : ((averages[bestIdx] - previousBestHourAvg) / previousBestHourAvg) * 100;
+
+  return {
+    bestHour: OPERATIONAL_HOURS[bestIdx],
+    bestHourAvg: averages[bestIdx],
+    worstHour: OPERATIONAL_HOURS[worstIdx],
+    worstHourAvg: averages[worstIdx],
+    peakVariationPct,
+    activeHoursCount,
+  };
+}
+
 export function buildHeatmapMatrix(facts: SalesFact[]): number[][] {
   const matrix: number[][] = Array.from({ length: 7 }, () =>
     new Array<number>(OPERATIONAL_HOURS.length).fill(0),
@@ -351,6 +404,66 @@ export function computeKpisAgainstMeta(
     descuentos: fallback.descuentos,
     tasaConversion: fallback.tasaConversion,
   };
+}
+
+export interface MetaMensualProgress {
+  current: number;
+  target: number;
+  /** current/target*100, sin tope -- puede superar 100. */
+  pct: number;
+  /** Días que quedan hasta el fin del periodo seleccionado más reciente -- null si ese periodo
+   * ya cerró o todavía no empieza (no hay "ritmo" que evaluar fuera de un periodo en curso). */
+  daysRemaining: number | null;
+  /** null si daysRemaining es null; si no, si el ritmo diario actual alcanza para llegar a la meta. */
+  paceSufficient: boolean | null;
+}
+
+/** Mismo mock-date que usa SavedViewsSidebarComponent para resolver presets de periodo --
+ * ambos representan el mismo "hoy" ficticio del dataset, así que se mantienen en sync a mano. */
+const TODAY_ISO = '2026-07-20';
+
+/**
+ * Progreso de Ventas Totales contra su meta mensual (KPI_METAS_MENSUALES), escalada al número de
+ * periodos seleccionados vía scaleMeta -- independiente del modo de comparación activo (a
+ * diferencia de computeKpisAgainstMeta, que solo aplica cuando el usuario elige el modo Meta).
+ * Alimenta la card "Meta Mensual" del sidebar de Ventas por Hora.
+ */
+export function computeMetaMensualProgress(
+  currentFacts: SalesFact[],
+  selectedPeriods: Period[],
+  monthlyTarget: number,
+  granularity: PeriodGranularity,
+): MetaMensualProgress {
+  const current = sumAmount(currentFacts);
+  const target = scaleMeta(monthlyTarget, granularity, selectedPeriods.length);
+  const pct = target === 0 ? 0 : (current / target) * 100;
+
+  const latestPeriod = selectedPeriods.reduce<Period | null>(
+    (latest, period) => (!latest || period.endDate > latest.endDate ? period : latest),
+    null,
+  );
+  const earliestPeriod = selectedPeriods.reduce<Period | null>(
+    (earliest, period) => (!earliest || period.startDate < earliest.startDate ? period : earliest),
+    null,
+  );
+
+  let daysRemaining: number | null = null;
+  let paceSufficient: boolean | null = null;
+  if (latestPeriod && earliestPeriod && TODAY_ISO >= latestPeriod.startDate && TODAY_ISO <= latestPeriod.endDate) {
+    daysRemaining = daysBetweenIso(TODAY_ISO, latestPeriod.endDate);
+    if (pct >= 100) {
+      paceSufficient = true;
+    } else if (daysRemaining <= 0) {
+      paceSufficient = false;
+    } else {
+      const daysElapsed = Math.max(1, daysBetweenIso(earliestPeriod.startDate, TODAY_ISO) + 1);
+      const actualDailyRate = current / daysElapsed;
+      const requiredDailyRate = (target - current) / daysRemaining;
+      paceSufficient = actualDailyRate >= requiredDailyRate;
+    }
+  }
+
+  return { current, target, pct, daysRemaining, paceSufficient };
 }
 
 const IVA_FACTOR = 1.19;

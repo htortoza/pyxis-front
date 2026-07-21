@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 import { UIChart } from 'primeng/chart';
 
 import type { Period } from '../../../../data/models/period.model';
-import { OPERATIONAL_HOURS } from '../../../../data/utils/sales-fact.utils';
+import { OPERATIONAL_HOURS, formatHourLabel } from '../../../../data/utils/sales-fact.utils';
 import { formatSignedAmount } from '../../../../pipes/signed-amount';
 
 /**
@@ -62,7 +62,7 @@ export class HourlyBarChartComponent {
   readonly periods = input.required<Period[]>();
   readonly selectedPeriodIds = input.required<string[]>();
 
-  private readonly hourLabels = OPERATIONAL_HOURS.map((hour) => `${hour.toString().padStart(2, '0')}:00`);
+  private readonly hourLabels = OPERATIONAL_HOURS.map(formatHourLabel);
 
   protected readonly chartPlugins = [LEGEND_MARGIN_PLUGIN];
 
