@@ -1,11 +1,52 @@
 :host { display: block; }
 
+/* Mobile: "Filtros" stops being an inline toolbar trigger and becomes a floating action
+   button pinned to the bottom-right of the viewport (position: fixed on :host, since the
+   trigger button is this component's only non-portaled content -- the dialog/popovers
+   below all render via [appendTo]="'body'"). Same 900px breakpoint as global-header.css/
+   sidebar.ts/app.css. p-button's own host element is `display: inline` by default, which
+   ignores width/height entirely -- inline-flex here is what makes this wrapper (and the
+   real native <button> painted inside it, sized to match in styles.css) an actual 56x56 box
+   instead of shrinking to its inline content. The button's own circular/padding/shadow
+   styling lives in styles.css: its real classes (.p-button etc.) are on PrimeNG's own
+   internal <button>, unreachable from this scoped stylesheet. */
+@media (max-width: 900px) {
+  :host {
+    position: fixed;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    z-index: 40;
+  }
+
+  .filters-modal-trigger {
+    display: inline-flex;
+  }
+}
+
 .filters-modal-body {
   display: grid;
   grid-template-columns: 1fr 16rem;
   gap: 1.5rem;
   height: 100%;
   min-height: 0;
+}
+
+@media (max-width: 900px) {
+  .filters-modal-body {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+
+  .filters-modal-top-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .filters-modal-sidebar {
+    border-left: none;
+    padding-left: 0;
+    border-top: 1px solid var(--p-content-border-color);
+    padding-top: 1.25rem;
+  }
 }
 
 .filters-modal-main {

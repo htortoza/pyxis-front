@@ -156,3 +156,24 @@ body {
   width: 26rem;
   max-width: 90vw;
 }
+
+/*
+ * "Filtros" trigger (filters-modal.html) becomes a floating action button on mobile (see
+ * filters-modal.css's own @media rule, which makes the p-button host an inline-flex box so
+ * this real sizing takes effect). The classes actually painted -- .p-button, .p-button-label
+ * -- belong to PrimeNG's own internal <button>/<span>, unreachable from that component's own
+ * scoped CSS per the same encapsulation rule as every other override in this file.
+ */
+@media (max-width: 900px) {
+  .filters-modal-trigger .p-button {
+    width: 3.5rem;
+    height: 3.5rem;
+    padding: 0;
+    border-radius: 50%;
+    box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.25);
+  }
+
+  .filters-modal-trigger .p-button-label {
+    display: none;
+  }
+}

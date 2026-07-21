@@ -1,10 +1,11 @@
 <p-drawer
-  [visible]="true"
-  [modal]="false"
-  [dismissible]="false"
-  [closeOnEscape]="false"
-  [closable]="false"
-  [showCloseIcon]="false"
+  [visible]="isOpen()"
+  (visibleChange)="onVisibleChange($event)"
+  [modal]="isMobileMode()"
+  [dismissible]="isMobileMode()"
+  [closeOnEscape]="isMobileMode()"
+  [closable]="isMobileMode()"
+  [showCloseIcon]="isMobileMode()"
   position="left"
   styleClass="app-sidebar"
 >
@@ -12,7 +13,7 @@
     <img class="sidebar-logo" src="logo.svg" alt="Pyxis" />
   </ng-template>
 
-  <p-menu [model]="menuModel" [popup]="false" styleClass="sidebar-menu" />
+  <p-menu [model]="menuModel" [popup]="false" styleClass="sidebar-menu" (click)="onMenuClick()" />
 
   <ng-template pTemplate="footer">
     <div class="sidebar-user">

@@ -1,10 +1,22 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { PrimeTemplate, type MenuItem } from 'primeng/api';
 import { Drawer } from 'primeng/drawer';
 import { Menu } from 'primeng/menu';
 
 import { CURRENT_USER } from '../../../data/mock/mock-user.mock';
 import type { UserRole } from '../../../data/models/mock-user.model';
+import { MobileNavService } from '../../../services/mobile-nav.service';
+
+/** Same 900px breakpoint global-header.css/sidebar.css use for the mobile layout switch. */
+const MOBILE_MEDIA_QUERY = '(max-width: 900px)';
+
+/** jsdom (the test environment) has no matchMedia implementation -- guards every call site,
+ * not just `typeof window`, which alone isn't enough (window exists in jsdom, matchMedia doesn't). */
+function mobileMediaQueryList(): MediaQueryList | null {
+  return typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+    ? window.matchMedia(MOBILE_MEDIA_QUERY)
+    : null;
+}
 
 const SOON_BADGE = { badge: 'Pronto', badgeStyleClass: 'sidebar-badge-soon' };
 
@@ -56,8 +68,31 @@ const ROLE_LABELS: Record<UserRole, string> = {
   styleUrl: './sidebar.css',
 })
 export class SidebarComponent {
+  private readonly mobileNav = inject(MobileNavService);
+
   protected readonly menuModel = MENU_MODEL;
   protected readonly currentUser = CURRENT_USER;
   protected readonly roleLabel = ROLE_LABELS[CURRENT_USER.role];
   protected readonly userInitial = CURRENT_USER.name.charAt(0).toUpperCase();
+
+  /** Desktop: always visible, persistent, non-dismissible (unchanged from before this was
+   * responsive). Mobile: a real dismissible overlay drawer, closed by default, opened by the
+   * header's hamburger button via MobileNavService. */
+  private readonly isMobile = signal(mobileMediaQueryList()?.matches ?? false);
+
+  protected readonly isOpen = computed(() => (this.isMobile() ? this.mobileNav.isOpen() : true));
+  protected readonly isMobileMode = this.isMobile.asReadonly();
+
+  constructor() {
+    mobileMediaQueryList()?.addEventListener('change', (event) => this.isMobile.set(event.matches));
+  }
+
+  onVisibleChange(visible: boolean): void {
+    if (!visible) this.mobileNav.close();
+  }
+
+  /** Selecting a nav item on mobile should close the drawer, same as tapping the backdrop. */
+  onMenuClick(): void {
+    if (this.isMobile()) this.mobileNav.close();
+  }
 }

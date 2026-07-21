@@ -77,3 +77,48 @@
   padding-left: 0.75rem;
   background: var(--p-surface-0);
 }
+
+/* Only the sidebar shows the full logo (icon + wordmark) on desktop -- this compact isotype
+   fills that gap in the header once the sidebar becomes a hidden-by-default mobile drawer
+   (see sidebar.ts). Hidden above the breakpoint since the sidebar is visible there instead. */
+.global-header-mobile-logo {
+  display: none;
+  height: 24px;
+  width: auto;
+}
+
+/* Hamburger trigger for the mobile nav drawer (see MobileNavService/SidebarComponent) --
+   pinned to the toolbar's end slot's own far right (p-toolbar's "end" region is already a
+   flex row, same one .global-header-tabs sits in), hidden on desktop where the sidebar is
+   always visible and there's nothing to toggle. */
+.global-header-burger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin-left: 0.5rem;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--p-border-radius-md);
+  background: var(--p-surface-0);
+  color: var(--p-text-color);
+  cursor: pointer;
+}
+
+.global-header-burger:hover {
+  background: var(--p-surface-100);
+}
+
+/* Mobile layout switch -- same 900px breakpoint as sidebar.ts's MOBILE_MEDIA_QUERY and
+   app.css's .app-content override. Filtros becomes a floating action button instead of an
+   inline toolbar trigger (see filters-modal.css), so it's hidden from its normal flow spot
+   here; the isotype logo and hamburger take over the header's start/end slots instead. */
+@media (max-width: 900px) {
+  .global-header-mobile-logo {
+    display: block;
+  }
+
+  .global-header-burger {
+    display: flex;
+  }
+}
