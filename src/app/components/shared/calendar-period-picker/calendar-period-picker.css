@@ -1,0 +1,208 @@
+:host { display: block; }
+
+.calendar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.calendar-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--p-text-muted-color);
+  cursor: pointer;
+}
+
+.calendar-nav-btn:hover:not(:disabled) {
+  background: var(--p-surface-100);
+  color: var(--p-text-color);
+}
+
+.calendar-nav-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.calendar-month-label {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  padding: 0.375rem 0.5rem;
+  border-radius: var(--p-border-radius-md);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--p-text-color);
+  text-align: center;
+  cursor: pointer;
+}
+
+.calendar-month-label:hover {
+  background: var(--p-surface-100);
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.calendar-weekday {
+  text-align: center;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--p-text-muted-color);
+}
+
+.calendar-weeks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.calendar-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.25rem;
+}
+
+/* Semana: la fila entera es un único <button> -- clic en cualquier día selecciona toda la semana. */
+.calendar-row--week {
+  border: 1px solid transparent;
+  border-radius: var(--p-border-radius-md);
+  background: transparent;
+  padding: 0.125rem 0;
+  cursor: pointer;
+}
+
+.calendar-row--week:hover {
+  background: var(--p-surface-100);
+}
+
+.calendar-row--week.is-selected {
+  background: var(--p-primary-color);
+}
+
+.calendar-row--week.is-selected:hover {
+  background: var(--p-primary-hover-color);
+}
+
+.calendar-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  font-size: 0.8125rem;
+  color: var(--p-text-color);
+  cursor: pointer;
+}
+
+button.calendar-cell:hover {
+  background: var(--p-surface-100);
+}
+
+.calendar-cell.is-outside {
+  color: var(--p-text-muted-color);
+  opacity: 0.5;
+  cursor: default;
+}
+
+.calendar-cell.is-selected {
+  background: var(--p-primary-color);
+  color: var(--p-primary-contrast-color);
+}
+
+/* Semana: las celdas son <span> dentro del <button> de la fila -- sin fondo/radio propio, el
+   highlight lo aporta la fila completa (.calendar-row--week.is-selected). */
+.calendar-cell--week {
+  border-radius: 0;
+  color: inherit;
+}
+
+.calendar-row--week.is-selected .calendar-cell--week {
+  color: var(--p-primary-contrast-color);
+}
+
+.calendar-month-jump {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.calendar-month-jump-year-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.calendar-year-label {
+  min-width: 3.5rem;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--p-text-color);
+}
+
+.calendar-month-jump-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.calendar-month-jump-item {
+  padding: 0.5rem;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--p-border-radius-md);
+  background: var(--p-surface-0);
+  font-size: 0.8125rem;
+  color: var(--p-text-color);
+  cursor: pointer;
+}
+
+.calendar-month-jump-item:hover:not(:disabled) {
+  background: var(--p-surface-100);
+  border-color: var(--p-primary-color);
+}
+
+.calendar-month-jump-item.is-active {
+  background: var(--p-primary-color);
+  border-color: var(--p-primary-color);
+  color: var(--p-primary-contrast-color);
+}
+
+.calendar-month-jump-item:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Los diálogos pequeños ya limitan a 92vw, pero en pantallas muy angostas encoge un poco más
+   las celdas para que 7 columnas no se sientan apretadas. */
+@media (max-width: 380px) {
+  .calendar-cell {
+    font-size: 0.75rem;
+  }
+
+  .calendar-weekday {
+    font-size: 0.625rem;
+  }
+}

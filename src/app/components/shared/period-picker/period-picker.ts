@@ -7,16 +7,19 @@ import { ToggleSwitch } from 'primeng/toggleswitch';
 import type { Period, PeriodGranularity } from '../../../data/models/period.model';
 import { PERIODS_BY_GRANULARITY } from '../../../data/mock/periods.mock';
 import { groupPeriodsByYear } from '../../../data/utils/period.utils';
+import { CalendarPeriodPickerComponent } from '../calendar-period-picker/calendar-period-picker';
 
 /**
- * Panel presentacional -- sin trigger ni popover propios, embebido en FiltersModalComponent.
- * Los "Accesos Rápidos" (presets) NO viven acá -- están en SavedViewsSidebarComponent, para
- * ser 1-clic sin necesidad de abrir este panel (que ahora es plegable dentro del modal).
+ * Panel presentacional -- sin trigger ni popover propios, embebido en el mini-modal "Período"
+ * de FiltersModalComponent. Los "Accesos Rápidos" (presets) NO viven acá -- están en
+ * SavedViewsSidebarComponent, para ser 1-clic sin necesidad de abrir este modal. Para Mes usa
+ * su propio grid de chips (año + 12 meses); para Día/Semana delega en
+ * CalendarPeriodPickerComponent, un calendario real de mes con navegación de mes/año.
  */
 @Component({
   selector: 'app-period-picker',
   standalone: true,
-  imports: [Button, Checkbox, FormsModule, ToggleSwitch],
+  imports: [Button, CalendarPeriodPickerComponent, Checkbox, FormsModule, ToggleSwitch],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './period-picker.html',
   styleUrl: './period-picker.css',

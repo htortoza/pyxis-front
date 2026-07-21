@@ -20,33 +20,37 @@
 
   @if (showExplicitPicker()) {
     <div class="comparison-selector-section">
-      <div class="comparison-selector-year-nav">
-        <p-button severity="secondary" [text]="true" [rounded]="true" [disabled]="!canGoPrevYear()" (onClick)="goPrevYear()" ariaLabel="Año anterior">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="15 18 9 12 15 6"></polyline>
-          </svg>
-        </p-button>
-        <span class="comparison-selector-year-label">{{ viewedYear() }}</span>
-        <p-button severity="secondary" [text]="true" [rounded]="true" [disabled]="!canGoNextYear()" (onClick)="goNextYear()" ariaLabel="Año siguiente">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
-        </p-button>
-      </div>
-      <div class="comparison-selector-period-list">
-        @for (period of viewedYearPeriods(); track period.id) {
-          <label class="comparison-selector-list-row" [class.is-active]="isExplicitSelected(period.id)">
-            <p-checkbox
-              [binary]="true"
-              [ngModel]="isExplicitSelected(period.id)"
-              (onChange)="toggleExplicitPeriod(period.id)"
-            />
-            <span>{{ period.label }}</span>
-          </label>
-        } @empty {
-          <p class="comparison-selector-empty">Sin periodos</p>
-        }
-      </div>
+      @if (granularity() === 'mes') {
+        <div class="comparison-selector-year-nav">
+          <p-button severity="secondary" [text]="true" [rounded]="true" [disabled]="!canGoPrevYear()" (onClick)="goPrevYear()" ariaLabel="Año anterior">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </p-button>
+          <span class="comparison-selector-year-label">{{ viewedYear() }}</span>
+          <p-button severity="secondary" [text]="true" [rounded]="true" [disabled]="!canGoNextYear()" (onClick)="goNextYear()" ariaLabel="Año siguiente">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </p-button>
+        </div>
+        <div class="comparison-selector-period-list">
+          @for (period of viewedYearPeriods(); track period.id) {
+            <label class="comparison-selector-list-row" [class.is-active]="isExplicitSelected(period.id)">
+              <p-checkbox
+                [binary]="true"
+                [ngModel]="isExplicitSelected(period.id)"
+                (onChange)="toggleExplicitPeriod(period.id)"
+              />
+              <span>{{ period.label }}</span>
+            </label>
+          } @empty {
+            <p class="comparison-selector-empty">Sin periodos</p>
+          }
+        </div>
+      } @else {
+        <app-calendar-period-picker [granularity]="granularity()" [(selectedIds)]="explicitPeriodIds" />
+      }
     </div>
   }
 </div>

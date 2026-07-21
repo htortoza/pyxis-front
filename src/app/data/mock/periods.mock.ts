@@ -1,5 +1,5 @@
 import type { Period, PeriodGranularity } from '../models/period.model';
-import { addDaysIso } from '../utils/date.utils';
+import { addDaysIso, daysInMonth } from '../utils/date.utils';
 
 /** Fully static/deterministic -- no Date.now()/new Date() here, hardcode the loop bounds. */
 const START_DATE = '2024-01-01';
@@ -7,7 +7,7 @@ const END_DATE = '2026-12-31';
 const START_YEAR = 2024;
 const END_YEAR = 2026;
 
-const MONTH_LABELS_ES = [
+export const MONTH_LABELS_ES = [
   'Enero',
   'Febrero',
   'Marzo',
@@ -77,10 +77,6 @@ function buildWeeklyPeriods(): Period[] {
   return periods;
 }
 
-function daysInMonth(year: number, month: number): number {
-  return new Date(Date.UTC(year, month, 0)).getUTCDate();
-}
-
 function buildMonthlyPeriods(): Period[] {
   const periods: Period[] = [];
   for (let year = START_YEAR; year <= END_YEAR; year++) {
@@ -117,3 +113,19 @@ export const PERIODS: Period[] = PERIODS_MES;
 
 export const DEFAULT_SELECTED_PERIOD_IDS = ['2026-05', '2026-06', '2026-07'];
 export const DEFAULT_SELECTED_GRANULARITY: PeriodGranularity = 'mes';
+
+/** Cada fecha ISO del rango -> id de la Semana (Period) a la que pertenece. Usado por
+ * CalendarPeriodPickerComponent para resolver en qué semana cae un día del calendario --
+ * construido una sola vez a partir de PERIODS_SEMANA, nunca reinventando la aritmética de
+ * semanas por otro lado. */
+export const WEEK_ID_BY_DATE: Map<string, string> = (() => {
+  const map = new Map<string, string>();
+  for (const period of PERIODS_SEMANA) {
+    let cursor = period.startDate;
+    while (cursor <= period.endDate) {
+      map.set(cursor, period.id);
+      cursor = addDaysIso(cursor, 1);
+    }
+  }
+  return map;
+})();

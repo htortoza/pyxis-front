@@ -7,12 +7,18 @@ import type { ComparisonAlignment, ComparisonMode } from '../../../data/models/c
 import type { Period, PeriodGranularity } from '../../../data/models/period.model';
 import { PERIODS_BY_GRANULARITY } from '../../../data/mock/periods.mock';
 import { groupPeriodsByYear } from '../../../data/utils/period.utils';
+import { CalendarPeriodPickerComponent } from '../calendar-period-picker/calendar-period-picker';
 
-/** Panel presentacional -- sin trigger ni popover propios, embebido en FiltersModalComponent. */
+/**
+ * Panel presentacional -- sin trigger ni popover propios, embebido en el mini-modal
+ * "Comparación" de FiltersModalComponent. El picker explícito de Periodo Específico usa su
+ * propio grid de chips año+mes para 'mes'; para Día/Semana delega en
+ * CalendarPeriodPickerComponent (mismo componente que usa PeriodPickerComponent).
+ */
 @Component({
   selector: 'app-comparison-selector',
   standalone: true,
-  imports: [Button, Checkbox, FormsModule],
+  imports: [Button, CalendarPeriodPickerComponent, Checkbox, FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './comparison-selector.html',
   styleUrl: './comparison-selector.css',

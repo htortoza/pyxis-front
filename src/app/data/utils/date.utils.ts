@@ -25,3 +25,39 @@ export function getDayOfWeek(iso: string): number {
 export function daysBetweenIso(fromIso: string, toIso: string): number {
   return Math.round((parseIsoDate(toIso).getTime() - parseIsoDate(fromIso).getTime()) / MS_PER_DAY);
 }
+
+export function daysInMonth(year: number, month: number): number {
+  return new Date(Date.UTC(year, month, 0)).getUTCDate();
+}
+
+export interface CalendarDay {
+  iso: string;
+  /** false para los días de desborde de los meses vecinos que completan la primera/última semana. */
+  inMonth: boolean;
+}
+
+/**
+ * Semanas completas (lunes a domingo) que cubren el mes dado, agregando días de desborde de
+ * los meses vecinos para completar la primera y última fila -- igual que cualquier calendario.
+ * Usado por CalendarPeriodPickerComponent para las vistas de Día y Semana.
+ */
+export function buildCalendarGrid(year: number, month: number): CalendarDay[][] {
+  const firstOfMonth = `${year}-${String(month).padStart(2, '0')}-01`;
+  const leadingDays = (getDayOfWeek(firstOfMonth) + 6) % 7; // getDayOfWeek: 0=domingo -- reindexa a 0=lunes
+  const totalDaysInMonth = daysInMonth(year, month);
+  const trailingDays = (7 - ((leadingDays + totalDaysInMonth) % 7)) % 7;
+  const totalCells = leadingDays + totalDaysInMonth + trailingDays;
+
+  const days: CalendarDay[] = [];
+  let cursor = addDaysIso(firstOfMonth, -leadingDays);
+  for (let i = 0; i < totalCells; i++) {
+    days.push({ iso: cursor, inMonth: Number(cursor.slice(5, 7)) === month });
+    cursor = addDaysIso(cursor, 1);
+  }
+
+  const weeks: CalendarDay[][] = [];
+  for (let i = 0; i < days.length; i += 7) {
+    weeks.push(days.slice(i, i + 7));
+  }
+  return weeks;
+}

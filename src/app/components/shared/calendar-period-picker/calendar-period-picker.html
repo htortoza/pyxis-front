@@ -1,0 +1,85 @@
+<div class="calendar">
+  <div class="calendar-header">
+    <button type="button" class="calendar-nav-btn" [disabled]="!canPrevMonth()" (click)="prevMonth()" aria-label="Mes anterior">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
+    <button type="button" class="calendar-month-label" (click)="toggleMonthJump()">{{ monthLabel() }}</button>
+    <button type="button" class="calendar-nav-btn" [disabled]="!canNextMonth()" (click)="nextMonth()" aria-label="Mes siguiente">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
+    </button>
+  </div>
+
+  @if (showMonthJump()) {
+    <div class="calendar-month-jump">
+      <div class="calendar-month-jump-year-nav">
+        <button type="button" class="calendar-nav-btn" [disabled]="!canJumpPrevYear()" (click)="jumpPrevYear()" aria-label="Año anterior">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+        <span class="calendar-year-label">{{ viewedYear() }}</span>
+        <button type="button" class="calendar-nav-btn" [disabled]="!canJumpNextYear()" (click)="jumpNextYear()" aria-label="Año siguiente">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
+      <div class="calendar-month-jump-grid">
+        @for (month of monthNumbers; track month) {
+          <button
+            type="button"
+            class="calendar-month-jump-item"
+            [class.is-active]="month === viewedMonth()"
+            [disabled]="isMonthDisabled(month)"
+            (click)="jumpToMonth(month)"
+          >
+            {{ monthLabels[month - 1].slice(0, 3) }}
+          </button>
+        }
+      </div>
+    </div>
+  } @else {
+    <div class="calendar-weekdays">
+      @for (label of weekdayLabels; track label) {
+        <span class="calendar-weekday">{{ label }}</span>
+      }
+    </div>
+
+    <div class="calendar-weeks">
+      @for (week of weeks(); track week[0].iso) {
+        @if (granularity() === 'dia') {
+          <div class="calendar-row">
+            @for (day of week; track day.iso) {
+              <button
+                type="button"
+                class="calendar-cell"
+                [class.is-outside]="!day.inMonth"
+                [class.is-selected]="isSelected(day)"
+                (click)="toggle(day)"
+              >
+                {{ dayNumber(day) }}
+              </button>
+            }
+          </div>
+        } @else {
+          <button
+            type="button"
+            class="calendar-row calendar-row--week"
+            [class.is-selected]="isSelected(week[0])"
+            (click)="toggle(week[0])"
+          >
+            @for (day of week; track day.iso) {
+              <span class="calendar-cell calendar-cell--week" [class.is-outside]="!day.inMonth">
+                {{ dayNumber(day) }}
+              </span>
+            }
+          </button>
+        }
+      }
+    </div>
+  }
+</div>
