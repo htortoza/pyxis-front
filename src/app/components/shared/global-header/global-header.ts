@@ -34,14 +34,14 @@ export class GlobalHeaderComponent {
 
   /** SalesDataService.saveAsDefault() stays UI-agnostic (it's also reachable from anywhere
    * else that ends up calling it later) -- the toast is this component's own concern, fired
-   * right after the save actually happens. */
+   * right after the save actually happens. No `life` here -- the app-wide <p-toast [life]>
+   * in app.html (4000ms) is the single source of truth for every toast's auto-dismiss time. */
   onSaveAsDefault(): void {
     this.salesData.saveAsDefault();
     this.messageService.add({
       severity: 'success',
       summary: 'Filtros guardados',
       detail: 'Esta será la vista que se cargue siempre que abras la página.',
-      life: 4000,
     });
   }
 }
