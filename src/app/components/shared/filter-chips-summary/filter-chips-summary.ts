@@ -76,6 +76,17 @@ export class FilterChipsSummaryComponent {
     this.salesData.selectedPeriodIds.set([...defaultView.periodIds]);
   }
 
+  resetComparison(): void {
+    const defaultView = this.salesData.defaultView();
+    this.salesData.comparisonMode.set(defaultView.comparisonMode);
+    this.salesData.comparisonAlignment.set(defaultView.comparisonAlignment);
+    this.salesData.explicitComparisonPeriodIds.set(defaultView.explicitComparisonPeriodIds);
+  }
+
+  resetIva(): void {
+    this.salesData.ivaMode.set(this.salesData.defaultView().ivaMode);
+  }
+
   removeTienda(tiendaId: string): void {
     const current = this.salesData.sectorMarcaTiendaFilter() ?? [];
     const next = current.filter((id) => id !== tiendaId);

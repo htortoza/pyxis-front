@@ -4,11 +4,11 @@
   <p-chip [label]="periodsChipLabel()" [removable]="true" (onRemove)="resetPeriods()" />
 
   @if (comparisonChipLabel(); as label) {
-    <p-chip [label]="label" />
+    <p-chip [label]="label" [removable]="true" (onRemove)="resetComparison()" />
   }
 
   @if (ivaChipLabel(); as label) {
-    <p-chip [label]="label" />
+    <p-chip [label]="label" [removable]="true" (onRemove)="resetIva()" />
   }
 
   @for (chip of tiendaChips(); track chip.id) {

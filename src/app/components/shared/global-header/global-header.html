@@ -22,15 +22,13 @@
 <div class="global-header-chips-scroll">
   <app-filter-chips-summary />
   <div class="global-header-actions-sticky">
-    @if (salesData.hasActiveFilter()) {
-      <p-button
-        label="Limpiar filtros"
-        severity="secondary"
-        [text]="true"
-        size="small"
-        (onClick)="salesData.clearFilters()"
-      />
-    }
+    <p-button
+      label="Limpiar filtros"
+      severity="secondary"
+      [text]="true"
+      size="small"
+      (onClick)="salesData.clearFilters()"
+    />
     <p-button
       severity="secondary"
       [text]="true"
