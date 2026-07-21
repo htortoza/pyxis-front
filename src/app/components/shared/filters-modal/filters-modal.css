@@ -36,17 +36,6 @@
     grid-template-columns: 1fr;
     overflow-y: auto;
   }
-
-  .filters-modal-top-row {
-    grid-template-columns: 1fr !important;
-  }
-
-  .filters-modal-sidebar {
-    border-left: none;
-    padding-left: 0;
-    border-top: 1px solid var(--p-content-border-color);
-    padding-top: 1.25rem;
-  }
 }
 
 .filters-modal-main {
@@ -138,4 +127,41 @@ button.filters-modal-top-trigger:hover {
   margin-top: 0.875rem;
   padding-top: 0.875rem;
   border-top: 1px solid var(--p-content-border-color);
+}
+
+/* Placed after every base rule above on purpose -- a mobile override declared *before* the
+   base rule it overrides loses the cascade (same specificity, base rule wins by coming later
+   in source order), regardless of the media query's condition being true. That bug is what
+   silently dropped the .filters-modal-sidebar border swap below until now. */
+@media (max-width: 900px) {
+  /* Stays a single row of 3 (Período/Comparación/IVA) instead of stacking -- just narrower
+     and smaller, see the title/summary overrides below for the matching text sizes. */
+  .filters-modal-top-row {
+    gap: 0.5rem;
+  }
+
+  .filters-modal-top-trigger {
+    padding: 0.5rem 0.625rem;
+    gap: 0.25rem;
+  }
+
+  .filters-modal-config-title {
+    font-size: 0.625rem;
+  }
+
+  /* No truncation here either -- wraps instead of clipping "Mes · 3 períodos" mid-word now
+     that each of the 3 columns is roughly a third of the screen width. */
+  .filters-modal-config-summary {
+    font-size: 0.6875rem;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  .filters-modal-sidebar {
+    border-left: none;
+    padding-left: 0;
+    border-top: 1px solid var(--p-content-border-color);
+    padding-top: 1.25rem;
+  }
 }
