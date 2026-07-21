@@ -54,12 +54,13 @@
   color: var(--p-primary-contrast-color);
 }
 
-/* Chips row -- only rendered while a filter is active (see global-header.html). A single
-   horizontally-scrollable strip: the chips (via app-filter-chips-summary) plus the "Limpiar
-   filtros" button as its last child. The button is sticky to the scroll container's own
-   right edge (not a fixed/absolute hack) so with few chips it just sits at the end, and once
-   there are enough chips to overflow, it stays pinned while chips scroll past underneath it
-   -- its own opaque background is what makes them read as "going behind" it. */
+/* Chips row -- always visible (see global-header.html) so the applied period is never
+   ambiguous, even at the default. A single horizontally-scrollable strip: the chips (via
+   app-filter-chips-summary) plus the "Limpiar filtros"/"Guardar" buttons as its last child.
+   That action group is sticky to the scroll container's own right edge (not a fixed/absolute
+   hack) so with few chips it just sits at the end, and once there are enough chips to
+   overflow, it stays pinned while chips scroll past underneath it -- its own opaque
+   background is what makes them read as "going behind" it. */
 .global-header-chips-scroll {
   display: flex;
   align-items: center;
@@ -70,17 +71,14 @@
   overflow-x: auto;
 }
 
-.global-header-clear-sticky {
+.global-header-actions-sticky {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
   position: sticky;
   right: 0;
   flex-shrink: 0;
   margin-left: auto;
   padding-left: 0.75rem;
-}
-
-/* p-button's [text]="true" variant is deliberately transparent -- overridden here because
-   this button specifically needs an opaque background to visually mask chips scrolling
-   underneath it while it stays pinned to the right edge. */
-.global-header-clear-sticky.p-button {
   background: var(--p-surface-0);
 }

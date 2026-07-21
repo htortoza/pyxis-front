@@ -1,9 +1,7 @@
 <div class="filter-chips-summary-row">
   <span class="filter-chips-summary-legend">Filtros aplicados</span>
 
-  @if (periodsChipLabel(); as label) {
-    <p-chip [label]="label" [removable]="true" (onRemove)="resetPeriods()" />
-  }
+  <p-chip [label]="periodsChipLabel()" [removable]="true" (onRemove)="resetPeriods()" />
 
   @if (comparisonChipLabel(); as label) {
     <p-chip [label]="label" />

@@ -19,16 +19,26 @@
   </ng-template>
 </p-toolbar>
 
-@if (salesData.hasActiveFilter()) {
-  <div class="global-header-chips-scroll">
-    <app-filter-chips-summary />
+<div class="global-header-chips-scroll">
+  <app-filter-chips-summary />
+  <div class="global-header-actions-sticky">
+    @if (salesData.hasActiveFilter()) {
+      <p-button
+        label="Limpiar filtros"
+        severity="secondary"
+        [text]="true"
+        size="small"
+        (onClick)="salesData.clearFilters()"
+      />
+    }
     <p-button
-      label="Limpiar filtros"
+      label="Guardar"
       severity="secondary"
       [text]="true"
       size="small"
-      class="global-header-clear-sticky"
-      (onClick)="salesData.clearFilters()"
+      [pTooltip]="'Guarda el filtro actual como la vista que se carga siempre'"
+      tooltipPosition="bottom"
+      (onClick)="salesData.saveAsDefault()"
     />
   </div>
-}
+</div>

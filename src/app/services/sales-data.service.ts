@@ -11,6 +11,7 @@ import type { RankingDimension, RankingSet } from '../data/models/ranking.model'
 import type { SalesFact } from '../data/models/sales-fact.model';
 import { CONTEXT_TREE, MARCAS, SECTORES } from '../data/mock/context-tree.mock';
 import { KPI_METAS_MENSUALES } from '../data/mock/kpi-metas.mock';
+import { CURRENT_USER } from '../data/mock/mock-user.mock';
 import {
   DEFAULT_SELECTED_GRANULARITY,
   DEFAULT_SELECTED_PERIOD_IDS,
@@ -24,6 +25,12 @@ import {
   getDescendantLeafIds,
   toPrimeNgTreeNodes,
 } from '../data/utils/context-tree.utils';
+import {
+  loadDefaultView,
+  persistDefaultView,
+  sameStringArrayOrNull,
+  type DefaultFilterView,
+} from '../data/utils/default-view.utils';
 import { previousPeriodWindow } from '../data/utils/period.utils';
 import {
   aggregateRanking,
@@ -46,6 +53,20 @@ interface CrossFilter {
   id: string;
 }
 
+function buildHardcodedDefaultView(): DefaultFilterView {
+  return {
+    contextId: 'holding',
+    periodIds: [...DEFAULT_SELECTED_PERIOD_IDS],
+    granularity: DEFAULT_SELECTED_GRANULARITY,
+    sectorMarcaTiendaFilter: null,
+    compareToPrevious: true,
+    comparisonMode: 'periodo_anterior',
+    comparisonAlignment: 'calendario',
+    explicitComparisonPeriodIds: null,
+    ivaMode: 'con_iva',
+  };
+}
+
 interface DashboardData {
   kpis: KpiSet;
   hourlySeries: Record<string, number[]>;
@@ -65,33 +86,44 @@ interface DashboardData {
  */
 @Injectable({ providedIn: 'root' })
 export class SalesDataService {
+  /**
+   * The view that loads on a fresh page load and that "Limpiar filtros" resets back to. Starts
+   * as the hardcoded product default; once the user presses "Guardar" (saveAsDefault below) it
+   * becomes whatever they saved, persisted per-tenant so it survives a reload. Declared first on
+   * purpose -- class fields initialize in declaration order, and every signal below reads its
+   * initial value from this one.
+   */
+  private readonly activeDefaultView = signal<DefaultFilterView>(
+    loadDefaultView(CURRENT_USER.tenantId) ?? buildHardcodedDefaultView(),
+  );
+
   /** Currently selected node in the context tree (holding/empresa/tienda). */
-  readonly selectedContextId = signal<string>('holding');
+  readonly selectedContextId = signal<string>(this.activeDefaultView().contextId);
 
   /** Currently selected period ids (checkbox multi-select over PERIODS). */
-  readonly selectedPeriodIds = signal<string[]>([...DEFAULT_SELECTED_PERIOD_IDS]);
+  readonly selectedPeriodIds = signal<string[]>([...this.activeDefaultView().periodIds]);
 
   /** Active drill-down cross-filter coming from a ranking row click, if any (Ventas General only). */
   readonly crossFilter = signal<CrossFilter | null>(null);
 
   /** The header's Sector/Marca/Tienda filter -- null means unfiltered. Applies to both screens. */
-  readonly sectorMarcaTiendaFilter = signal<string[] | null>(null);
+  readonly sectorMarcaTiendaFilter = signal<string[] | null>(this.activeDefaultView().sectorMarcaTiendaFilter);
 
   /** Whether KPI/comparison UI should show the vs-previous-period delta. Defaults to on (matches current always-on behavior). */
-  readonly compareToPrevious = signal<boolean>(true);
+  readonly compareToPrevious = signal<boolean>(this.activeDefaultView().compareToPrevious);
 
   /** Granularidad activa (Día/Semana/Mes) -- determina qué familia de PERIODS se usa. */
-  readonly selectedPeriodGranularity = signal<PeriodGranularity>(DEFAULT_SELECTED_GRANULARITY);
+  readonly selectedPeriodGranularity = signal<PeriodGranularity>(this.activeDefaultView().granularity);
 
   /** Modo de comparación activo: uno a la vez. */
-  readonly comparisonMode = signal<ComparisonMode>('periodo_anterior');
+  readonly comparisonMode = signal<ComparisonMode>(this.activeDefaultView().comparisonMode);
   /** Solo relevante en modo periodo_anterior + granularidad Día/Semana. */
-  readonly comparisonAlignment = signal<ComparisonAlignment>('calendario');
+  readonly comparisonAlignment = signal<ComparisonAlignment>(this.activeDefaultView().comparisonAlignment);
   /** Periodos elegidos a mano en modo periodo_especifico; null si no se ha elegido ninguno. */
-  readonly explicitComparisonPeriodIds = signal<string[] | null>(null);
+  readonly explicitComparisonPeriodIds = signal<string[] | null>(this.activeDefaultView().explicitComparisonPeriodIds);
 
   /** Con IVA es la base: los montos mock ya representan el precio final. Sin IVA divide por 1.19. */
-  readonly ivaMode = signal<IvaMode>('con_iva');
+  readonly ivaMode = signal<IvaMode>(this.activeDefaultView().ivaMode);
 
   /**
    * Todo el dataset con el toggle Con IVA/Sin IVA ya aplicado -- calculado una sola vez acá y
@@ -108,24 +140,29 @@ export class SalesDataService {
   readonly periods = computed<Period[]>(() => PERIODS_BY_GRANULARITY[this.selectedPeriodGranularity()]);
   readonly treeNodes = computed(() => toPrimeNgTreeNodes(CONTEXT_TREE));
 
-  /** True when any filter differs from its default (holding / default periods / no cross-filter). */
+  /** Read-only view of the active default -- FilterChipsSummaryComponent diffs against this
+   * instead of the hardcoded constants, so a saved default's own comparison/IVA/period choices
+   * don't show up as "changed" chips forever. */
+  readonly defaultView = this.activeDefaultView.asReadonly();
+
+  /** True when any filter differs from the active default (see activeDefaultView above). */
   readonly hasActiveFilter = computed(() => {
-    const contextChanged = this.selectedContextId() !== 'holding';
-    const granularityChanged = this.selectedPeriodGranularity() !== DEFAULT_SELECTED_GRANULARITY;
+    const defaultView = this.activeDefaultView();
+    const contextChanged = this.selectedContextId() !== defaultView.contextId;
+    const granularityChanged = this.selectedPeriodGranularity() !== defaultView.granularity;
 
     const currentPeriods = new Set(this.selectedPeriodIds());
-    const defaultPeriods = new Set(DEFAULT_SELECTED_PERIOD_IDS);
+    const defaultPeriods = new Set(defaultView.periodIds);
     const periodsChanged =
       currentPeriods.size !== defaultPeriods.size ||
       [...currentPeriods].some((id) => !defaultPeriods.has(id));
 
-    return (
-      contextChanged ||
-      granularityChanged ||
-      periodsChanged ||
-      this.crossFilter() !== null ||
-      this.sectorMarcaTiendaFilter() !== null
+    const tiendaFilterChanged = !sameStringArrayOrNull(
+      this.sectorMarcaTiendaFilter(),
+      defaultView.sectorMarcaTiendaFilter,
     );
+
+    return contextChanged || granularityChanged || periodsChanged || this.crossFilter() !== null || tiendaFilterChanged;
   });
 
   /** Serialized snapshot of the filter state — recomputing this triggers the loading pipeline. */
@@ -194,18 +231,41 @@ export class SalesDataService {
     this.crossFilter.set({ dimension, id });
   }
 
-  /** Resets context, periods, cross-filter and the Sector/Marca/Tienda filter to their defaults. */
+  /** Resets every filter to the active default (see activeDefaultView) -- the hardcoded product
+   * default until the user saves a different one, from then on always that saved default. */
   clearFilters(): void {
-    this.selectedContextId.set('holding');
-    this.selectedPeriodIds.set([...DEFAULT_SELECTED_PERIOD_IDS]);
-    this.selectedPeriodGranularity.set(DEFAULT_SELECTED_GRANULARITY);
+    const defaultView = this.activeDefaultView();
+    this.selectedContextId.set(defaultView.contextId);
+    this.selectedPeriodIds.set([...defaultView.periodIds]);
+    this.selectedPeriodGranularity.set(defaultView.granularity);
     this.crossFilter.set(null);
-    this.sectorMarcaTiendaFilter.set(null);
-    this.compareToPrevious.set(true);
-    this.comparisonMode.set('periodo_anterior');
-    this.comparisonAlignment.set('calendario');
-    this.explicitComparisonPeriodIds.set(null);
-    this.ivaMode.set('con_iva');
+    this.sectorMarcaTiendaFilter.set(defaultView.sectorMarcaTiendaFilter);
+    this.compareToPrevious.set(defaultView.compareToPrevious);
+    this.comparisonMode.set(defaultView.comparisonMode);
+    this.comparisonAlignment.set(defaultView.comparisonAlignment);
+    this.explicitComparisonPeriodIds.set(defaultView.explicitComparisonPeriodIds);
+    this.ivaMode.set(defaultView.ivaMode);
+  }
+
+  /** Captures the CURRENT filter state as the new default: persisted so it survives a reload,
+   * and applied immediately (hasActiveFilter recomputes to false, "Limpiar filtros" now resets
+   * here) until this is called again with a different state. */
+  saveAsDefault(): void {
+    const view: DefaultFilterView = {
+      contextId: this.selectedContextId(),
+      periodIds: [...this.selectedPeriodIds()],
+      granularity: this.selectedPeriodGranularity(),
+      sectorMarcaTiendaFilter: this.sectorMarcaTiendaFilter() ? [...this.sectorMarcaTiendaFilter()!] : null,
+      compareToPrevious: this.compareToPrevious(),
+      comparisonMode: this.comparisonMode(),
+      comparisonAlignment: this.comparisonAlignment(),
+      explicitComparisonPeriodIds: this.explicitComparisonPeriodIds()
+        ? [...this.explicitComparisonPeriodIds()!]
+        : null,
+      ivaMode: this.ivaMode(),
+    };
+    persistDefaultView(CURRENT_USER.tenantId, view);
+    this.activeDefaultView.set(view);
   }
 
   setSectorMarcaTiendaFilter(tiendaIds: string[] | null): void {
