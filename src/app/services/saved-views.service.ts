@@ -1,5 +1,8 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 
+import type { ComparisonAlignment, ComparisonMode } from '../data/models/comparison.model';
+import type { IvaMode } from '../data/models/iva.model';
+import type { PeriodGranularity } from '../data/models/period.model';
 import { CURRENT_USER, canManageTeamViews as roleCanManageTeamViews } from '../data/mock/mock-user.mock';
 import type { SavedView, SavedViewScope, ApplyViewResult } from '../data/models/saved-view.model';
 import { logAudit } from '../data/utils/audit-log.utils';
@@ -48,8 +51,19 @@ export class SavedViewsService {
     return seeded;
   }
 
-  /** Saves the current period selection, compare-to-previous flag, and given checked node ids as a new view. */
-  saveCurrentSelection(input: { label: string; scope: SavedViewScope; checkedNodeIds: string[] }): void {
+  /** Guarda el DRAFT que el usuario está configurando en el modal (aplicado o no) como una vista nueva. */
+  saveCurrentSelection(input: {
+    label: string;
+    scope: SavedViewScope;
+    checkedNodeIds: string[];
+    periodIds: string[];
+    granularity: PeriodGranularity;
+    compareToPrevious: boolean;
+    comparisonMode: ComparisonMode;
+    comparisonAlignment: ComparisonAlignment;
+    explicitComparisonPeriodIds: string[] | null;
+    ivaMode: IvaMode;
+  }): void {
     const now = new Date().toISOString();
     const view: SavedView = {
       id: crypto.randomUUID(),
@@ -58,8 +72,15 @@ export class SavedViewsService {
       ownerName: this.currentUser.name,
       tenantId: this.currentUser.tenantId,
       scope: input.scope,
-      periodIds: [...this.salesData.selectedPeriodIds()],
-      compareToPrevious: this.salesData.compareToPrevious(),
+      periodIds: [...input.periodIds],
+      granularity: input.granularity,
+      compareToPrevious: input.compareToPrevious,
+      comparisonMode: input.comparisonMode,
+      comparisonAlignment: input.comparisonAlignment,
+      explicitComparisonPeriodIds: input.explicitComparisonPeriodIds
+        ? [...input.explicitComparisonPeriodIds]
+        : null,
+      ivaMode: input.ivaMode,
       checkedNodeIds: [...input.checkedNodeIds],
       createdAt: now,
       lastUsedAt: now,
@@ -146,7 +167,14 @@ export class SavedViewsService {
     const result = reconcileViewToScope(view, allowedTiendaContextIds, filterTree);
 
     this.salesData.selectedPeriodIds.set([...result.view.periodIds]);
+    this.salesData.selectedPeriodGranularity.set(result.view.granularity);
     this.salesData.compareToPrevious.set(result.view.compareToPrevious);
+    this.salesData.comparisonMode.set(result.view.comparisonMode);
+    this.salesData.comparisonAlignment.set(result.view.comparisonAlignment);
+    this.salesData.explicitComparisonPeriodIds.set(
+      result.view.explicitComparisonPeriodIds ? [...result.view.explicitComparisonPeriodIds] : null,
+    );
+    this.salesData.ivaMode.set(result.view.ivaMode);
 
     const effectiveLeafIds = getEffectiveLeafIds(filterTree, new Set(result.view.checkedNodeIds));
     const nodeById = new Map(filterTree.map((node) => [node.id, node]));
