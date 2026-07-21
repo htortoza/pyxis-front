@@ -1,6 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { PrimeTemplate } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
+import { Panel } from 'primeng/panel';
 
 import type { ComparisonAlignment, ComparisonMode } from '../../../data/models/comparison.model';
 import type { IvaMode } from '../../../data/models/iva.model';
@@ -13,6 +15,13 @@ import { ComparisonSelectorComponent } from '../comparison-selector/comparison-s
 import { ContextFilterComponent } from '../context-filter/context-filter';
 import { PeriodPickerComponent } from '../period-picker/period-picker';
 import { SavedViewsSidebarComponent } from '../saved-views-sidebar/saved-views-sidebar';
+
+const GRANULARITY_LABEL: Record<PeriodGranularity, string> = { dia: 'Día', semana: 'Semana', mes: 'Mes' };
+const COMPARISON_MODE_LABEL: Record<ComparisonMode, string> = {
+  periodo_anterior: 'Periodo Anterior',
+  periodo_especifico: 'Periodo Específico',
+  meta: 'Meta',
+};
 
 /**
  * Modal único de filtros -- reemplaza los 3 popovers + los botones sueltos de IVA que existían
@@ -30,7 +39,16 @@ import { SavedViewsSidebarComponent } from '../saved-views-sidebar/saved-views-s
 @Component({
   selector: 'app-filters-modal',
   standalone: true,
-  imports: [Button, Dialog, ComparisonSelectorComponent, ContextFilterComponent, PeriodPickerComponent, SavedViewsSidebarComponent],
+  imports: [
+    Button,
+    Dialog,
+    Panel,
+    PrimeTemplate,
+    ComparisonSelectorComponent,
+    ContextFilterComponent,
+    PeriodPickerComponent,
+    SavedViewsSidebarComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './filters-modal.html',
   styleUrl: './filters-modal.css',
@@ -53,8 +71,24 @@ export class FiltersModalComponent {
   protected readonly draftExplicitComparisonPeriodIds = signal<Set<string>>(new Set());
   protected readonly draftIvaMode = signal<IvaMode>('con_iva');
 
+  /** Los 3 paneles plegables arrancan cerrados cada vez que se abre el modal -- primer vistazo ordenado, se expande solo lo que se quiere tocar. IVA no es plegable (2 botones, no hay nada que ocultar). */
+  protected readonly periodCollapsed = signal(true);
+  protected readonly comparisonCollapsed = signal(true);
+
+  protected readonly periodSummary = computed(() => {
+    const count = this.draftPeriodIds().size;
+    const countLabel = count === 0 ? 'sin selección' : `${count} periodo${count === 1 ? '' : 's'}`;
+    return `${GRANULARITY_LABEL[this.draftGranularity()]} · ${countLabel}`;
+  });
+
+  protected readonly comparisonSummary = computed(() => COMPARISON_MODE_LABEL[this.draftComparisonMode()]);
+
+  protected readonly ivaSummary = computed(() => (this.draftIvaMode() === 'con_iva' ? 'Con IVA' : 'Sin IVA'));
+
   open(): void {
     this.syncDraftFromApplied();
+    this.periodCollapsed.set(true);
+    this.comparisonCollapsed.set(true);
     this.isOpen.set(true);
   }
 

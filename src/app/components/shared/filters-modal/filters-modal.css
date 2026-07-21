@@ -2,41 +2,49 @@
 
 .filters-modal-body {
   display: grid;
-  grid-template-columns: 14rem 1fr;
+  grid-template-columns: 1fr 16rem;
   gap: 1.5rem;
-  align-items: start;
-}
-
-.filters-modal-sidebar {
-  border-right: 1px solid var(--p-content-border-color);
-  padding-right: 1.25rem;
+  height: 100%;
+  min-height: 0;
 }
 
 .filters-modal-main {
   display: flex;
   flex-direction: column;
+  gap: 1.25rem;
   min-width: 0;
 }
 
 .filters-modal-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-  margin-top: 1.5rem;
+  gap: 1rem;
 }
 
-.filters-modal-iva {
+.filters-modal-config-panel {
+  min-width: 0;
+}
+
+.filters-modal-config-header {
   display: flex;
-  flex-direction: column;
-  gap: 0.625rem;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-width: 0;
 }
 
-.filters-modal-iva-title {
-  font-size: 0.8125rem;
+.filters-modal-config-title {
+  font-size: 0.875rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  color: var(--p-text-color);
+}
+
+.filters-modal-config-summary {
+  font-size: 0.8125rem;
   color: var(--p-text-muted-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .filters-modal-iva-buttons {
@@ -44,11 +52,14 @@
   gap: 0.5rem;
 }
 
+/* Sidebar a la derecha -- separador visual en el borde que ahora la limita (izquierdo). */
+.filters-modal-sidebar {
+  border-left: 1px solid var(--p-content-border-color);
+  padding-left: 1.25rem;
+}
+
 .filters-modal-actions {
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
-  padding-top: 1rem;
-  margin-top: 1.5rem;
-  border-top: 1px solid var(--p-content-border-color);
 }

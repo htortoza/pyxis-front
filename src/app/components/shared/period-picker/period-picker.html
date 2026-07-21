@@ -1,28 +1,9 @@
 <div class="period-picker-panel">
-  <span class="period-picker-title">Período</span>
-
   <div class="period-picker-section period-picker-granularity">
     <p-button label="Día" size="small" severity="secondary" [outlined]="granularity() !== 'dia'" (onClick)="setGranularity('dia')" />
     <p-button label="Semana" size="small" severity="secondary" [outlined]="granularity() !== 'semana'" (onClick)="setGranularity('semana')" />
     <p-button label="Mes" size="small" severity="secondary" [outlined]="granularity() !== 'mes'" (onClick)="setGranularity('mes')" />
   </div>
-
-  @if (presets().length > 0) {
-    <div class="period-picker-section">
-      <span class="period-picker-section-label">Accesos Rápidos</span>
-      <div class="period-picker-preset-list">
-        @for (preset of presets(); track preset.key) {
-          <p-button
-            [label]="preset.label"
-            size="small"
-            severity="secondary"
-            [outlined]="true"
-            (onClick)="applyPreset(preset)"
-          />
-        }
-      </div>
-    </div>
-  }
 
   <div class="period-picker-section">
     <div class="period-picker-year-nav">

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, model, output, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { debounceTime } from 'rxjs';
@@ -11,12 +11,17 @@ import { Message } from 'primeng/message';
 
 import type { ComparisonAlignment, ComparisonMode } from '../../../data/models/comparison.model';
 import type { IvaMode } from '../../../data/models/iva.model';
-import type { PeriodGranularity } from '../../../data/models/period.model';
+import type { Period, PeriodGranularity } from '../../../data/models/period.model';
 import { CONTEXT_TREE, MARCAS, SECTORES } from '../../../data/mock/context-tree.mock';
+import { PERIODS_BY_GRANULARITY } from '../../../data/mock/periods.mock';
 import type { SavedView, SavedViewScope } from '../../../data/models/saved-view.model';
 import { buildSectorMarcaTiendaTree } from '../../../data/utils/sector-marca-tienda-tree.utils';
+import { PERIOD_PRESETS, type PeriodPreset } from '../../../data/utils/period.utils';
 import { computeSelectionStates } from '../../../data/utils/tristate.utils';
 import { SavedViewsService } from '../../../services/saved-views.service';
+
+/** Stands in for the real current date -- same mock constant PeriodPickerComponent uses. */
+const TODAY = { year: 2026, month: 7, day: 20 };
 
 /**
  * Sidebar de Vistas Guardadas del modal de filtros -- extraído de lo que antes vivía embebido
@@ -38,8 +43,8 @@ export class SavedViewsSidebarComponent {
   protected readonly savedViews = inject(SavedViewsService);
 
   readonly draftCheckedIds = input.required<Set<string>>();
-  readonly draftGranularity = input.required<PeriodGranularity>();
-  readonly draftPeriodIds = input.required<Set<string>>();
+  readonly draftGranularity = model.required<PeriodGranularity>();
+  readonly draftPeriodIds = model.required<Set<string>>();
   readonly draftCompare = input.required<boolean>();
   readonly draftComparisonMode = input.required<ComparisonMode>();
   readonly draftComparisonAlignment = input.required<ComparisonAlignment>();
@@ -61,6 +66,17 @@ export class SavedViewsSidebarComponent {
     if (!query) return views;
     return views.filter((view) => view.label.toLowerCase().includes(query));
   });
+
+  /** Accesos rápidos de período -- viven acá (no en PeriodPickerComponent) para ser 1-clic sin abrir el panel plegable de Período. */
+  protected readonly presets = computed<PeriodPreset[]>(() =>
+    PERIOD_PRESETS.filter((preset) => preset.granularity === this.draftGranularity()),
+  );
+
+  private readonly activePeriods = computed<Period[]>(() => PERIODS_BY_GRANULARITY[this.draftGranularity()]);
+
+  applyPreset(preset: PeriodPreset): void {
+    this.draftPeriodIds.set(new Set(preset.resolve(this.activePeriods(), TODAY)));
+  }
 
   protected readonly canSaveCurrent = computed(() => this.draftCheckedIds().size > 0);
 

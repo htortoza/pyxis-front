@@ -7,14 +7,6 @@
   width: 100%;
 }
 
-.comparison-selector-title {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  color: var(--p-text-muted-color);
-}
-
 .comparison-selector-section {
   display: flex;
   flex-direction: column;

@@ -6,12 +6,13 @@ import { ToggleSwitch } from 'primeng/toggleswitch';
 
 import type { Period, PeriodGranularity } from '../../../data/models/period.model';
 import { PERIODS_BY_GRANULARITY } from '../../../data/mock/periods.mock';
-import { groupPeriodsByYear, PERIOD_PRESETS, type PeriodPreset } from '../../../data/utils/period.utils';
+import { groupPeriodsByYear } from '../../../data/utils/period.utils';
 
-/** Stands in for the real current date -- this is a mock-data app with no live clock dependency. */
-const TODAY = { year: 2026, month: 7, day: 20 };
-
-/** Panel presentacional -- sin trigger ni popover propios, embebido en FiltersModalComponent. */
+/**
+ * Panel presentacional -- sin trigger ni popover propios, embebido en FiltersModalComponent.
+ * Los "Accesos Rápidos" (presets) NO viven acá -- están en SavedViewsSidebarComponent, para
+ * ser 1-clic sin necesidad de abrir este panel (que ahora es plegable dentro del modal).
+ */
 @Component({
   selector: 'app-period-picker',
   standalone: true,
@@ -24,10 +25,6 @@ export class PeriodPickerComponent {
   readonly granularity = model.required<PeriodGranularity>();
   readonly periodIds = model.required<Set<string>>();
   readonly compare = model.required<boolean>();
-
-  protected readonly presets = computed<PeriodPreset[]>(() =>
-    PERIOD_PRESETS.filter((preset) => preset.granularity === this.granularity()),
-  );
 
   private readonly activePeriods = computed<Period[]>(() => PERIODS_BY_GRANULARITY[this.granularity()]);
   private readonly periodsByYear = computed(() => groupPeriodsByYear(this.activePeriods()));
@@ -70,9 +67,5 @@ export class PeriodPickerComponent {
 
   goNextYear(): void {
     if (this.canGoNextYear()) this.viewedYear.update((year) => year + 1);
-  }
-
-  applyPreset(preset: PeriodPreset): void {
-    this.periodIds.set(new Set(preset.resolve(this.activePeriods(), TODAY)));
   }
 }

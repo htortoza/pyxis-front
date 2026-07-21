@@ -7,32 +7,10 @@
   width: 100%;
 }
 
-.period-picker-title {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  color: var(--p-text-muted-color);
-}
-
 .period-picker-section {
   display: flex;
   flex-direction: column;
   gap: 0.625rem;
-}
-
-.period-picker-section-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  color: var(--p-text-muted-color);
-}
-
-.period-picker-preset-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
 }
 
 .period-picker-year-nav {

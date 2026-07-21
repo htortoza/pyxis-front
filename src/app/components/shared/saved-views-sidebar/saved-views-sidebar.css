@@ -126,3 +126,17 @@
   color: var(--p-text-muted-color);
   text-align: center;
 }
+
+.saved-views-sidebar-presets {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--p-content-border-color);
+}
+
+.saved-views-sidebar-preset-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}

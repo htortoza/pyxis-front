@@ -107,4 +107,21 @@
       <p class="saved-views-sidebar-empty">Sin vistas guardadas</p>
     }
   </div>
+
+  @if (presets().length > 0) {
+    <div class="saved-views-sidebar-presets">
+      <span class="saved-views-sidebar-title">Accesos Rápidos</span>
+      <div class="saved-views-sidebar-preset-list">
+        @for (preset of presets(); track preset.key) {
+          <p-button
+            [label]="preset.label"
+            size="small"
+            severity="secondary"
+            [outlined]="true"
+            (onClick)="applyPreset(preset)"
+          />
+        }
+      </div>
+    </div>
+  }
 </div>
