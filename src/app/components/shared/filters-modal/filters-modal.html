@@ -68,7 +68,12 @@
   </ng-template>
 </p-dialog>
 
-<p-popover #periodPopoverEl [style]="{ width: '26rem', maxWidth: '92vw' }" [appendTo]="'body'">
+<p-popover
+  #periodPopoverEl
+  styleClass="filters-modal-popover-panel"
+  [style]="{ width: '26rem', maxWidth: '92vw' }"
+  [appendTo]="'body'"
+>
   <span class="filters-modal-popover-title">Período</span>
   <app-period-picker
     [(granularity)]="draftGranularity"
@@ -79,7 +84,12 @@
   </div>
 </p-popover>
 
-<p-popover #comparisonPopoverEl [style]="{ width: '26rem', maxWidth: '92vw' }" [appendTo]="'body'">
+<p-popover
+  #comparisonPopoverEl
+  styleClass="filters-modal-popover-panel"
+  [style]="{ width: '26rem', maxWidth: '92vw' }"
+  [appendTo]="'body'"
+>
   <span class="filters-modal-popover-title">Comparación</span>
   <app-comparison-selector
     [granularity]="draftGranularity()"

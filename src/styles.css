@@ -178,4 +178,12 @@ body {
   .filters-modal-trigger .p-button-label {
     display: none;
   }
+
+  /* Período/Comparación popovers (filters-modal.html) render via [appendTo]="'body'" and
+     position themselves flush against their trigger's left edge -- on the narrow mobile
+     trigger row that reads as glued to the dialog's left edge. Margin (not the popover's own
+     `left`, which PrimeNG's positioning JS keeps overwriting) is what actually sticks. */
+  .filters-modal-popover-panel.p-popover {
+    margin-left: 1rem;
+  }
 }

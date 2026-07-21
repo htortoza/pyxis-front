@@ -146,16 +146,15 @@ button.filters-modal-top-trigger:hover {
   }
 
   .filters-modal-config-title {
-    font-size: 0.625rem;
+    font-size: 0.5625rem;
   }
 
-  /* No truncation here either -- wraps instead of clipping "Mes · 3 períodos" mid-word now
-     that each of the 3 columns is roughly a third of the screen width. */
+  /* Small enough that "Mes · 3 periodos"/"Periodo Anterior" actually fit their column on one
+     line at this size -- nowrap here isn't truncation (no ellipsis, nothing hidden), it's
+     just no longer needed to wrap since the font shrank enough to fit. */
   .filters-modal-config-summary {
-    font-size: 0.6875rem;
-    white-space: normal;
-    overflow: visible;
-    text-overflow: clip;
+    font-size: 0.625rem;
+    white-space: nowrap;
   }
 
   .filters-modal-sidebar {
