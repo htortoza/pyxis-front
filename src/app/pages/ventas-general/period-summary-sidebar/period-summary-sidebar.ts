@@ -52,7 +52,7 @@ export class PeriodSummarySidebarComponent {
       },
       {
         accent: 'info',
-        label: 'Variación pico',
+        label: 'Variación punta',
         value: variation === null ? 'Sin datos' : `${variation >= 0 ? '+' : ''}${variation.toFixed(0)}%`,
         caption: 'vs. periodo anterior',
       },
