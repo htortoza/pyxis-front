@@ -78,3 +78,23 @@ button.filters-modal-top-trigger:hover {
   justify-content: flex-end;
   gap: 0.5rem;
 }
+
+/* p-popover has no header slot of its own (unlike p-dialog) -- a plain title fills that role. */
+.filters-modal-popover-title {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--p-text-color);
+}
+
+/* Explicit "Aceptar" so closing the popover always reads as a deliberate confirmation, not an
+   accidental dismiss -- the draft still updates live underneath as choices are made (the
+   trigger button's own summary reflects that immediately), this is just the closing gesture. */
+.filters-modal-popover-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.875rem;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--p-content-border-color);
+}

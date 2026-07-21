@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PrimeTemplate } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
+import { Popover } from 'primeng/popover';
 import { ToggleSwitch } from 'primeng/toggleswitch';
 
 import type { ComparisonAlignment, ComparisonMode } from '../../../data/models/comparison.model';
@@ -44,6 +45,7 @@ const COMPARISON_MODE_LABEL: Record<ComparisonMode, string> = {
     Button,
     Dialog,
     FormsModule,
+    Popover,
     PrimeTemplate,
     ToggleSwitch,
     ComparisonSelectorComponent,
@@ -73,9 +75,11 @@ export class FiltersModalComponent {
   protected readonly draftExplicitComparisonPeriodIds = signal<Set<string>>(new Set());
   protected readonly draftIvaMode = signal<IvaMode>('con_iva');
 
-  /** Período y Comparación se configuran en mini-modales propios, cerrados por defecto cada vez que se abre el modal principal. IVA es un toggle simple, sin modal -- no hay nada que configurar más allá de encendido/apagado. */
-  protected readonly periodDialogOpen = signal(false);
-  protected readonly comparisonDialogOpen = signal(false);
+  /** Período y Comparación se configuran en popovers propios (anclados a su botón disparador,
+   * no dialogs centrados) -- cerrados por defecto cada vez que se abre el modal principal. IVA
+   * es un toggle simple, sin popover -- no hay nada que configurar más allá de encendido/apagado. */
+  private readonly periodPopover = viewChild<Popover>('periodPopoverEl');
+  private readonly comparisonPopover = viewChild<Popover>('comparisonPopoverEl');
 
   protected readonly periodSummary = computed(() => {
     const count = this.draftPeriodIds().size;
@@ -89,8 +93,8 @@ export class FiltersModalComponent {
 
   open(): void {
     this.syncDraftFromApplied();
-    this.periodDialogOpen.set(false);
-    this.comparisonDialogOpen.set(false);
+    this.periodPopover()?.hide();
+    this.comparisonPopover()?.hide();
     this.isOpen.set(true);
   }
 

@@ -21,12 +21,12 @@
   <div class="filters-modal-body">
     <div class="filters-modal-main">
       <div class="filters-modal-top-row">
-        <button type="button" class="filters-modal-top-trigger" (click)="periodDialogOpen.set(true)">
+        <button type="button" class="filters-modal-top-trigger" (click)="periodPopoverEl.toggle($event)">
           <span class="filters-modal-config-title">Período</span>
           <span class="filters-modal-config-summary">{{ periodSummary() }}</span>
         </button>
 
-        <button type="button" class="filters-modal-top-trigger" (click)="comparisonDialogOpen.set(true)">
+        <button type="button" class="filters-modal-top-trigger" (click)="comparisonPopoverEl.toggle($event)">
           <span class="filters-modal-config-title">Comparación</span>
           <span class="filters-modal-config-summary">{{ comparisonSummary() }}</span>
         </button>
@@ -68,31 +68,27 @@
   </ng-template>
 </p-dialog>
 
-<p-dialog
-  header="Período"
-  [(visible)]="periodDialogOpen"
-  [modal]="true"
-  [appendTo]="'body'"
-  [style]="{ width: '26rem', maxWidth: '92vw' }"
->
+<p-popover #periodPopoverEl [style]="{ width: '26rem', maxWidth: '92vw' }" [appendTo]="'body'">
+  <span class="filters-modal-popover-title">Período</span>
   <app-period-picker
     [(granularity)]="draftGranularity"
     [(periodIds)]="draftPeriodIds"
     [(compare)]="draftCompare"
   />
-</p-dialog>
+  <div class="filters-modal-popover-actions">
+    <p-button label="Aceptar" size="small" (onClick)="periodPopoverEl.hide()" />
+  </div>
+</p-popover>
 
-<p-dialog
-  header="Comparación"
-  [(visible)]="comparisonDialogOpen"
-  [modal]="true"
-  [appendTo]="'body'"
-  [style]="{ width: '26rem', maxWidth: '92vw' }"
->
+<p-popover #comparisonPopoverEl [style]="{ width: '26rem', maxWidth: '92vw' }" [appendTo]="'body'">
+  <span class="filters-modal-popover-title">Comparación</span>
   <app-comparison-selector
     [granularity]="draftGranularity()"
     [(mode)]="draftComparisonMode"
     [(alignment)]="draftComparisonAlignment"
     [(explicitPeriodIds)]="draftExplicitComparisonPeriodIds"
   />
-</p-dialog>
+  <div class="filters-modal-popover-actions">
+    <p-button label="Aceptar" size="small" (onClick)="comparisonPopoverEl.hide()" />
+  </div>
+</p-popover>
