@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { Chip } from 'primeng/chip';
 
 import { CONTEXT_TREE } from '../../../data/mock/context-tree.mock';
-import { DEFAULT_SELECTED_PERIOD_IDS } from '../../../data/mock/periods.mock';
+import { DEFAULT_SELECTED_GRANULARITY, DEFAULT_SELECTED_PERIOD_IDS } from '../../../data/mock/periods.mock';
 import { SalesDataService } from '../../../services/sales-data.service';
 
 interface TiendaChip {
@@ -31,15 +31,26 @@ export class FilterChipsSummaryComponent {
 
   private readonly tiendaLabelById = new Map(CONTEXT_TREE.map((node) => [node.id, node.label]));
 
-  /** Null when the applied period selection matches the default (no chip to show). */
+  /** Null when the applied period selection AND granularity both match the default (no chip to show). */
   protected readonly periodsChipLabel = computed<string | null>(() => {
     const current = new Set(this.salesData.selectedPeriodIds());
     const defaults = new Set(DEFAULT_SELECTED_PERIOD_IDS);
-    const changed =
+    const selectionChanged =
       current.size !== defaults.size || [...current].some((id) => !defaults.has(id));
-    if (!changed) return null;
+    const granularityChanged = this.salesData.selectedPeriodGranularity() !== DEFAULT_SELECTED_GRANULARITY;
+    if (!selectionChanged && !granularityChanged) return null;
     return `${current.size} periodo${current.size === 1 ? '' : 's'}`;
   });
+
+  protected readonly comparisonChipLabel = computed<string | null>(() => {
+    const mode = this.salesData.comparisonMode();
+    if (mode === 'periodo_anterior') return null;
+    return mode === 'meta' ? 'Comparación: Meta' : 'Comparación: Periodo Específico';
+  });
+
+  protected readonly ivaChipLabel = computed<string | null>(() =>
+    this.salesData.ivaMode() === 'sin_iva' ? 'Sin IVA' : null,
+  );
 
   protected readonly tiendaChips = computed<TiendaChip[]>(() => {
     const ids = this.salesData.sectorMarcaTiendaFilter() ?? [];
@@ -47,6 +58,7 @@ export class FilterChipsSummaryComponent {
   });
 
   resetPeriods(): void {
+    this.salesData.selectedPeriodGranularity.set(DEFAULT_SELECTED_GRANULARITY);
     this.salesData.selectedPeriodIds.set([...DEFAULT_SELECTED_PERIOD_IDS]);
   }
 

@@ -5,6 +5,14 @@
     <p-chip [label]="label" [removable]="true" (onRemove)="resetPeriods()" />
   }
 
+  @if (comparisonChipLabel(); as label) {
+    <p-chip [label]="label" />
+  }
+
+  @if (ivaChipLabel(); as label) {
+    <p-chip [label]="label" />
+  }
+
   @for (chip of tiendaChips(); track chip.id) {
     <p-chip [label]="chip.label" [removable]="true" (onRemove)="removeTienda(chip.id)" />
   }
