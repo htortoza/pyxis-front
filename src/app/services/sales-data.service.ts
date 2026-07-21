@@ -269,6 +269,7 @@ export class SalesDataService {
     // hadn't picked an explicit comparison period.
     const mode = this.comparisonMode();
     let previousFacts: SalesFact[];
+    let previousPeriodIds: string[];
     if (mode === 'periodo_especifico') {
       const explicitIds = this.explicitComparisonPeriodIds() ?? [];
       const explicitPeriods = allPeriods.filter((period) => explicitIds.includes(period.id));
@@ -277,6 +278,7 @@ export class SalesDataService {
         crossFilter?.dimension === 'producto'
           ? explicitFacts.filter((fact) => fact.productId === crossFilter.id)
           : explicitFacts;
+      previousPeriodIds = explicitPeriods.map((period) => period.id);
     } else {
       const previousPeriods = previousPeriodWindow(
         selectedPeriods,
@@ -289,13 +291,22 @@ export class SalesDataService {
         crossFilter?.dimension === 'producto'
           ? previousWindowFacts.filter((fact) => fact.productId === crossFilter.id)
           : previousWindowFacts;
+      previousPeriodIds = previousPeriods.map((period) => period.id);
     }
 
     // Step 5: KPIs (current vs previous) + each metric's sparkline trend points. 'meta' mode
     // overrides the 4 original KPI cards' baseline to the scaled meta target; Descuentos y
     // Tasa de Conversión no tienen modo Meta (ver comparison.model.ts) y siguen mostrando su
     // comparación normal aun cuando el modo global sea 'meta'.
-    const baseKpis = computeKpis(currentFacts, previousFacts, trendSourceFacts, allPeriods, periodIds);
+    const baseKpis = computeKpis(
+      currentFacts,
+      previousFacts,
+      trendSourceFacts,
+      allPeriods,
+      periodIds,
+      scopedStoreIds,
+      previousPeriodIds,
+    );
     const kpis =
       mode === 'meta'
         ? computeKpisAgainstMeta(

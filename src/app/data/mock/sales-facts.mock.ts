@@ -59,6 +59,41 @@ function daysInPeriod(period: { startDate: string; endDate: string }): number {
   return Number(period.endDate.slice(-2)) - Number(period.startDate.slice(-2)) + 1;
 }
 
+/**
+ * Totales reales de descuento (dataset de cliente) para los 3 meses que sí trae el dataset --
+ * ancla la tasa de descuento de esos meses a la proporción relativa real entre ellos (Marzo >
+ * Enero > Febrero), aplicada sobre REAL_DESCUENTO_BASE_RATE en vez de importar los montos
+ * absolutos tal cual (esos montos superan el total de ventas del periodo en el dataset
+ * original, así que no calzan como "% de descuento sobre ventas" sin volverse absurdos).
+ * El resto del rango mock (2024-2026) usa una tasa determinística por periodo derivada de un
+ * hash simple del id, no del stream mulberry32 compartido con la generación de transacciones
+ * (así cambiar el catálogo/generación no corre el hash de descuentos).
+ */
+const REAL_DESCUENTO_TOTALS: Record<string, number> = {
+  '2026-01': 538_026_949,
+  '2026-02': 495_310_200,
+  '2026-03': 612_450_100,
+};
+const REAL_DESCUENTO_BASE_RATE = 0.04;
+const REAL_DESCUENTO_MIN = Math.min(...Object.values(REAL_DESCUENTO_TOTALS));
+
+function hashUnitInterval(seed: string): number {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash * 31 + seed.charCodeAt(i)) | 0;
+  }
+  return (hash >>> 0) / 4294967296;
+}
+
+/** % de descuento aplicado sobre las ventas positivas de un periodo (mismo para todas las tiendas de ese periodo). */
+function discountRateForPeriod(periodId: string): number {
+  const real = REAL_DESCUENTO_TOTALS[periodId];
+  if (real !== undefined) {
+    return REAL_DESCUENTO_BASE_RATE * (real / REAL_DESCUENTO_MIN);
+  }
+  return 0.03 + hashUnitInterval(periodId) * 0.03; // 3%-6%
+}
+
 function generateSalesFacts(): SalesFact[] {
   const rng = mulberry32(20260714);
   const tiendaNodes = CONTEXT_TREE.filter((node) => node.type === 'TIENDA');
@@ -68,10 +103,12 @@ function generateSalesFacts(): SalesFact[] {
 
   for (const period of PERIODS_MES) {
     const totalDays = daysInPeriod(period);
+    const discountRate = discountRateForPeriod(period.id);
     for (const tienda of tiendaNodes) {
       const transactionCount = 380 + Math.floor(rng() * 60); // dense enough that most of the
       // ~500-product catalog gets real (non-zero) sales within any 3-period window, not just
       // the top sellers -- see buildProductWeights' doc comment above.
+      let bucketPositiveTotal = 0;
       for (let t = 0; t < transactionCount; t++) {
         txCounter++;
         const transactionId = `tx-${txCounter}`;
@@ -85,6 +122,7 @@ function generateSalesFacts(): SalesFact[] {
           const basePerUnit = 8000 + rng() * 8000; // 8000-16000 CLP per unit
           const multiplier = 0.8 + rng() * 0.6; // 0.8-1.4
           const amount = Math.round(basePerUnit * quantity * multiplier);
+          bucketPositiveTotal += amount;
 
           facts.push({
             transactionId,
@@ -97,40 +135,24 @@ function generateSalesFacts(): SalesFact[] {
           });
         }
       }
+
+      // Descuento sintético del periodo+tienda, proporcional a sus ventas positivas -- así
+      // Descuentos varía de verdad por periodo y por tienda en vez de depender de 3 filas
+      // sueltas hardcodeadas. productId es un placeholder: las filas de amount negativo no se
+      // resuelven por producto (ver sales-detail-tree.utils.ts -- van directo al bucket
+      // sintético zDescuentos, nunca hacen productById.get() sobre ellas).
+      txCounter++;
+      facts.push({
+        transactionId: `tx-descuento-${txCounter}`,
+        date: addDaysIso(period.startDate, Math.floor(rng() * totalDays)),
+        storeId: tienda.id,
+        productId: 'descuento-generico',
+        hour: Math.floor(rng() * 24),
+        amount: -Math.round(bucketPositiveTotal * discountRate),
+        quantity: -1,
+      });
     }
   }
-
-  // Hand-authored negative rows (discounts/mermas) so the negative-amount formatting path
-  // has real data to render.
-  facts.push(
-    {
-      transactionId: 'tx-descuento-1',
-      date: '2026-06-18',
-      storeId: 'tienda-costanera-center',
-      productId: 'prod-lomo-saltado',
-      hour: 13,
-      amount: -6500,
-      quantity: -1,
-    },
-    {
-      transactionId: 'tx-descuento-2',
-      date: '2026-07-24',
-      storeId: 'tienda-parque-arauco',
-      productId: 'prod-coca-cola-z',
-      hour: 20,
-      amount: -3200,
-      quantity: -1,
-    },
-    {
-      transactionId: 'tx-descuento-3',
-      date: '2026-05-04',
-      storeId: 'tienda-vespucio-mall',
-      productId: 'prod-filete-250',
-      hour: 19,
-      amount: -12000,
-      quantity: -1,
-    },
-  );
 
   return facts;
 }

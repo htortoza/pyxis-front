@@ -1,14 +1,14 @@
 import type { Period } from '../models/period.model';
 import type { SalesFact } from '../models/sales-fact.model';
-import { TASA_CONVERSION_ACTUAL, TASA_CONVERSION_ANTERIOR, TASA_CONVERSION_TREND } from '../mock/conversion.mock';
+import { CONVERSION_BASE_BY_STORE } from '../mock/conversion.mock';
 import {
   applyIvaMode,
   buildDailySeries,
   buildHeatmapMatrix,
   buildKpiTrendPoints,
   computeKpisAgainstMeta,
+  computeTasaConversionKpi,
   filterFacts,
-  mockTasaConversionKpiValue,
   pickDescuentoPct,
   scaleMeta,
 } from './sales-fact.utils';
@@ -185,16 +185,53 @@ describe('pickDescuentoPct', () => {
   });
 });
 
-describe('mockTasaConversionKpiValue', () => {
-  it('returns the fixed mock current/previous/trend values, not derived from any facts', () => {
-    const kpi = mockTasaConversionKpiValue();
-    expect(kpi.current).toBe(TASA_CONVERSION_ACTUAL);
-    expect(kpi.previous).toBe(TASA_CONVERSION_ANTERIOR);
-    expect(kpi.deltaPct).toBeCloseTo(
-      ((TASA_CONVERSION_ACTUAL - TASA_CONVERSION_ANTERIOR) / TASA_CONVERSION_ANTERIOR) * 100,
-      5,
-    );
-    expect(kpi.trend.map((p) => p.value)).toEqual(TASA_CONVERSION_TREND);
+describe('computeTasaConversionKpi', () => {
+  const allPeriods = [
+    period({ id: '2026-01', order: 2026 * 12 + 1, startDate: '2026-01-01', endDate: '2026-01-31' }),
+    period({ id: '2026-02', order: 2026 * 12 + 2, startDate: '2026-02-01', endDate: '2026-02-28' }),
+    period({ id: '2026-03', order: 2026 * 12 + 3, startDate: '2026-03-01', endDate: '2026-03-31' }),
+  ];
+  const [storeA, storeB] = Object.keys(CONVERSION_BASE_BY_STORE);
+
+  it('aggregates tickets/entradas across the scoped stores (weighted, not a simple average of %)', () => {
+    const baseA = CONVERSION_BASE_BY_STORE[storeA];
+    const baseB = CONVERSION_BASE_BY_STORE[storeB];
+    const rateA = (baseA.tickets / baseA.entradas) * 100;
+    const expectedTwoStoreRate = ((baseA.tickets + baseB.tickets) / (baseA.entradas + baseB.entradas)) * 100;
+
+    const oneStoreRate = computeTasaConversionKpi([storeA], ['2026-01'], [], allPeriods).current;
+    const twoStoreRate = computeTasaConversionKpi([storeA, storeB], ['2026-01'], [], allPeriods).current;
+
+    // Both calls use the same period ('2026-01'), so the same variation multiplier applies to
+    // both -- comparing the RATIO isolates the aggregation math from that multiplier.
+    expect(twoStoreRate / oneStoreRate).toBeCloseTo(expectedTwoStoreRate / rateA, 5);
+  });
+
+  it('returns 0 for a store id with no base conversion data', () => {
+    expect(computeTasaConversionKpi(['tienda-inexistente'], ['2026-01'], [], allPeriods).current).toBe(0);
+  });
+
+  it('varies by period (deterministic simulated variation, since the real snapshot is a single day)', () => {
+    const jan = computeTasaConversionKpi([storeA], ['2026-01'], [], allPeriods).current;
+    const feb = computeTasaConversionKpi([storeA], ['2026-02'], [], allPeriods).current;
+    expect(jan).not.toBe(feb);
+  });
+
+  it('is deterministic -- same inputs always produce the same output', () => {
+    const first = computeTasaConversionKpi([storeA], ['2026-03'], ['2026-02'], allPeriods);
+    const second = computeTasaConversionKpi([storeA], ['2026-03'], ['2026-02'], allPeriods);
+    expect(first).toEqual(second);
+  });
+
+  it('produces a trend of up to MAX_TRAILING_TREND_POINTS periods, excluding the anchor itself', () => {
+    const kpi = computeTasaConversionKpi([storeA], ['2026-03'], ['2026-02'], allPeriods);
+    expect(kpi.trend.map((p) => p.periodId)).toEqual(['2026-01', '2026-02']);
+  });
+
+  it('returns deltaPct null when the store scope has no conversion data (both current and previous end up 0)', () => {
+    const kpi = computeTasaConversionKpi(['tienda-inexistente'], ['2026-01'], ['2026-02'], allPeriods);
+    expect(kpi.current).toBe(0);
+    expect(kpi.deltaPct).toBeNull();
   });
 });
 
@@ -238,7 +275,7 @@ describe('computeKpisAgainstMeta', () => {
     unidadesPorTransaccion: emptyKpiValue,
     ticketPromedio: emptyKpiValue,
     descuentos: { current: 5, previous: 4, deltaPct: 25, trend: [] },
-    tasaConversion: mockTasaConversionKpiValue(),
+    tasaConversion: { current: 20, previous: 18, deltaPct: 11.1, trend: [] },
   };
 
   it('computes deltaPct as % distance from the scaled meta, not from a previous period', () => {

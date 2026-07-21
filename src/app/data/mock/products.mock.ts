@@ -1,22 +1,13 @@
 import type { Product } from '../models/product.model';
 
-/**
- * Legacy hand-authored products -- kept verbatim (same ids/category/subcategory) because
- * sales-facts.mock.ts's hand-authored discount rows reference these ids directly.
- */
-const LEGACY_PRODUCTS: Product[] = [
-  { id: 'prod-lomo-saltado', name: 'Lomo Saltado', categoryId: 'cat-comida', categoryName: 'Comida', subcategoryId: 'sub-carnes', subcategoryName: 'Carnes' },
-  { id: 'prod-entrana-200', name: 'Entraña 200g', categoryId: 'cat-comida', categoryName: 'Comida', subcategoryId: 'sub-cortes', subcategoryName: '7 Cortes' },
-  { id: 'prod-filete-250', name: 'Filete 250g', categoryId: 'cat-comida', categoryName: 'Comida', subcategoryId: 'sub-cortes', subcategoryName: '7 Cortes' },
-  { id: 'prod-coca-cola-z', name: 'Coca Cola Z.', categoryId: 'cat-bebidas', categoryName: 'Bebidas', subcategoryId: 'sub-gaseosas', subcategoryName: 'Gaseosas' },
-  { id: 'prod-limonada-m', name: 'Limonada M.', categoryId: 'cat-bebidas', categoryName: 'Bebidas', subcategoryId: 'sub-jugos', subcategoryName: 'Jugos y Refrescos' },
-];
-
 const SIZE_VARIANTS = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'];
 const COLOR_VARIANTS = ['Blanco', 'Negro', 'Azul Marino', 'Gris Melange', 'Rojo', 'Verde Oliva', 'Beige', 'Celeste', 'Café', 'Amarillo'];
-const PORTION_VARIANTS = ['Individual', 'Para Compartir', 'Familiar'];
-const CAPACITY_VARIANTS = ['350ml', '500ml', '1L', '1.5L', '2L', 'Lata 350cc', 'Six Pack'];
-const STYLE_VARIANTS = ['Moderno', 'Clásico', 'Vintage', 'Minimalista', 'Rústico'];
+const SHOE_SIZE_VARIANTS = ['37', '38', '39', '40', '41', '42', '43'];
+const KIDS_AGE_VARIANTS = ['2 años', '4 años', '6 años', '8 años', '10 años', '12 años'];
+const KIDS_SHOE_SIZE_VARIANTS = ['28', '30', '32', '34', '36'];
+const BELT_SIZE_VARIANTS = ['S', 'M', 'L'];
+const TIER_VARIANTS = ['Estándar', 'Premium', 'Edición Limitada'];
+const BAG_SIZE_VARIANTS = ['Chico', 'Mediano', 'Grande'];
 
 interface SubfamiliaDef {
   categoryId: string;
@@ -30,96 +21,85 @@ interface SubfamiliaDef {
 }
 
 /**
- * Deliberately spans a wide range of branch sizes (from a handful of items to 40+) so the
- * Detalle de Ventas table's progressive-loading ("cargar más" past ~20 rows) and the treemap's
- * long-tail grouping (items below ~1% of their level) both have real branches to exercise, per
- * the product spec's testing needs. Mixes gastronomía and retail familias on purpose -- the
- * spec requires both views to behave identically regardless of rubro.
+ * Catálogo de moda/retail (Vestuario, Calzado, Accesorios, Deportivo, Niños) -- reemplaza el
+ * catálogo anterior (gastronomía + retail mixto). Los primeros nombres de cada subfamilia
+ * "ancla" coinciden con los productos reales del dataset de cliente (Camisa Slim Fit Azul,
+ * Jean Skinny Negro, Zapatilla Running Pro, Cinturón Cuero Café, etc.); el resto de bases y
+ * las subfamilias/categorías sin equivalente en ese dataset (Calzado Formal/Botas, Deportivo,
+ * Niños, Relojes y Lentes, Bolsos y Mochilas) son inventadas para llenar el catálogo. Sigue
+ * abarcando un rango amplio de tamaños de rama (chicas a 40+) por la misma razón que antes:
+ * ejercitar el "cargar más" de Detalle de Ventas y el long-tail del treemap.
  */
 const SUBFAMILIA_DEFS: SubfamiliaDef[] = [
-  // Comida
-  { categoryId: 'cat-comida', categoryName: 'Comida', subcategoryId: 'sub-carnes', subcategoryName: 'Carnes',
-    bases: ['Bife a lo Pobre', 'Churrasco Italiano', 'Anticucho de Res', 'Costillar BBQ', 'Chorizo Parrillero', 'Pollo Arvejado', 'Asado de Tira'],
-    variants: PORTION_VARIANTS, count: 21 },
-  { categoryId: 'cat-comida', categoryName: 'Comida', subcategoryId: 'sub-cortes', subcategoryName: '7 Cortes',
-    bases: ['Lomo Vetado', 'Punta Paleta', 'Plateada', 'Asiento', 'Tapapecho', 'Abastero', 'Malaya'],
-    variants: ['150g', '200g', '250g', '300g'], count: 28 },
-  { categoryId: 'cat-comida', categoryName: 'Comida', subcategoryId: 'sub-pastas', subcategoryName: 'Pastas',
-    bases: ['Tallarines', 'Ravioles', 'Ñoquis', 'Lasaña', 'Canelones', 'Fettuccine'],
-    variants: ['Clásico', 'Picante', 'Light', 'Premium', 'Artesanal'], count: 30 },
-  { categoryId: 'cat-comida', categoryName: 'Comida', subcategoryId: 'sub-ensaladas', subcategoryName: 'Ensaladas',
-    bases: ['César', 'Griega', 'Caprese', 'Mixta', 'Quinoa', 'Atún'],
-    variants: ['Individual', 'Grande'], count: 12 },
-  { categoryId: 'cat-comida', categoryName: 'Comida', subcategoryId: 'sub-sandwiches', subcategoryName: 'Sándwiches',
-    bases: ['Chacarero', 'Barros Luco', 'Italiano', 'Ave Palta', 'Lomo Completo', 'Vegetariano'],
-    variants: PORTION_VARIANTS, count: 18 },
-  { categoryId: 'cat-comida', categoryName: 'Comida', subcategoryId: 'sub-pescados', subcategoryName: 'Pescados y Mariscos',
-    bases: ['Salmón', 'Congrio', 'Reineta', 'Camarones', 'Pulpo', 'Machas', 'Ceviche', 'Corvina'],
-    variants: ['A la Plancha', 'Frito', 'Al Vapor'], count: 24 },
-  { categoryId: 'cat-comida', categoryName: 'Comida', subcategoryId: 'sub-guarniciones', subcategoryName: 'Guarniciones',
-    bases: ['Papas Fritas', 'Puré', 'Arroz', 'Ensalada de la Casa', 'Vegetales Salteados', 'Pan Amasado', 'Choclo', 'Palta Reina'],
-    variants: ['Chica', 'Mediana', 'Grande'], count: 24 },
-
-  // Bebidas
-  { categoryId: 'cat-bebidas', categoryName: 'Bebidas', subcategoryId: 'sub-gaseosas', subcategoryName: 'Gaseosas',
-    bases: ['Fanta', 'Sprite', 'Pepsi', 'Bilz', 'Ginger Ale', 'Schweppes Piña', 'Kem Piña'],
-    variants: CAPACITY_VARIANTS, count: 27 },
-  { categoryId: 'cat-bebidas', categoryName: 'Bebidas', subcategoryId: 'sub-jugos', subcategoryName: 'Jugos y Refrescos',
-    bases: ['Jugo de Naranja', 'Jugo de Frutilla', 'Mango Sour', 'Refresco de Maracuyá', 'Agua de Piña'],
-    variants: CAPACITY_VARIANTS, count: 19 },
-  { categoryId: 'cat-bebidas', categoryName: 'Bebidas', subcategoryId: 'sub-cervezas', subcategoryName: 'Cervezas',
-    bases: ['Lager', 'IPA', 'Stout', 'Pilsner', 'Cerveza de Trigo', 'Cerveza Artesanal Roja'],
-    variants: CAPACITY_VARIANTS, count: 20 },
-  { categoryId: 'cat-bebidas', categoryName: 'Bebidas', subcategoryId: 'sub-vinos', subcategoryName: 'Vinos',
-    bases: ['Cabernet Sauvignon', 'Carmenere', 'Sauvignon Blanc', 'Chardonnay', 'Pinot Noir', 'Malbec', 'Syrah', 'Rosé'],
-    variants: ['Copa', 'Botella 375ml', 'Botella 750ml', 'Reserva', 'Gran Reserva'], count: 32 },
-  { categoryId: 'cat-bebidas', categoryName: 'Bebidas', subcategoryId: 'sub-cocteles', subcategoryName: 'Cócteles',
-    bases: ['Pisco Sour', 'Mojito', 'Piña Colada', 'Margarita', 'Daiquiri', 'Aperol Spritz', 'Gin Tonic'],
-    variants: ['Clásico', 'Sin Alcohol'], count: 14 },
-  { categoryId: 'cat-bebidas', categoryName: 'Bebidas', subcategoryId: 'sub-aguas', subcategoryName: 'Aguas',
-    bases: ['Agua Mineral', 'Agua con Gas', 'Agua Saborizada'],
-    variants: ['500ml', '1L', '1.5L'], count: 9 },
-
-  // Postres
-  { categoryId: 'cat-postres', categoryName: 'Postres', subcategoryId: 'sub-tortas', subcategoryName: 'Tortas',
-    bases: ['Torta de Chocolate', 'Torta de Zanahoria', 'Cheesecake', 'Torta Tres Leches', 'Torta Red Velvet', 'Torta Selva Negra'],
-    variants: ['Porción', 'Entera Chica', 'Entera Grande'], count: 18 },
-  { categoryId: 'cat-postres', categoryName: 'Postres', subcategoryId: 'sub-helados', subcategoryName: 'Helados',
-    bases: ['Vainilla', 'Chocolate', 'Frutilla', 'Menta', 'Manjar', 'Lúcuma', 'Piña', 'Maracuyá'],
-    variants: ['1 Bola', '2 Bolas', 'Copa'], count: 24 },
-  { categoryId: 'cat-postres', categoryName: 'Postres', subcategoryId: 'sub-reposteria', subcategoryName: 'Repostería Individual',
-    bases: ['Alfajor', 'Brownie', 'Cheesecake Individual', 'Kuchen', 'Empanada de Manzana', 'Mousse de Chocolate', 'Tiramisú', 'Panqueque'],
-    variants: ['Clásico', 'Premium', 'Sin Azúcar'], count: 24 },
-
-  // Retail -- Indumentaria
-  { categoryId: 'cat-indumentaria', categoryName: 'Indumentaria', subcategoryId: 'sub-camisetas', subcategoryName: 'Camisetas',
-    bases: ['Camiseta Básica', 'Camiseta Estampada', 'Camiseta Deportiva', 'Camiseta Oversize', 'Camiseta Manga Larga'],
-    variants: COLOR_VARIANTS, count: 40 },
-  { categoryId: 'cat-indumentaria', categoryName: 'Indumentaria', subcategoryId: 'sub-pantalones', subcategoryName: 'Pantalones',
-    bases: ['Jeans Slim', 'Jeans Recto', 'Jogger', 'Pantalón de Vestir', 'Short Deportivo'],
+  // Vestuario
+  { categoryId: 'cat-vestuario', categoryName: 'Vestuario', subcategoryId: 'sub-camisas', subcategoryName: 'Camisas',
+    bases: ['Camisa Slim Fit Azul', 'Camisa Slim Fit Blanca', 'Camisa Oxford Celeste', 'Camisa Cuadros Rojo', 'Camisa Lino Beige'],
     variants: SIZE_VARIANTS, count: 35 },
-  { categoryId: 'cat-indumentaria', categoryName: 'Indumentaria', subcategoryId: 'sub-accesorios-vestir', subcategoryName: 'Accesorios de Vestir',
-    bases: ['Cinturón', 'Gorro', 'Bufanda', 'Guantes', 'Corbata', 'Pañuelo', 'Cartera'],
-    variants: ['Cuero', 'Algodón', 'Lana', 'Sintético'], count: 28 },
+  { categoryId: 'cat-vestuario', categoryName: 'Vestuario', subcategoryId: 'sub-jeans', subcategoryName: 'Jeans',
+    bases: ['Jean Skinny Negro', 'Jean Recto Azul', 'Jean Mom Fit', 'Jean Slim Gris'],
+    variants: SIZE_VARIANTS, count: 28 },
+  { categoryId: 'cat-vestuario', categoryName: 'Vestuario', subcategoryId: 'sub-vestidos', subcategoryName: 'Vestidos',
+    bases: ['Vestido Casual Floral', 'Vestido Midi Negro', 'Vestido Lino Beige', 'Vestido Satén Rojo'],
+    variants: SIZE_VARIANTS, count: 26 },
+  { categoryId: 'cat-vestuario', categoryName: 'Vestuario', subcategoryId: 'sub-blazers', subcategoryName: 'Blazers',
+    bases: ['Blazer Formal Gris', 'Blazer Cruzado Azul Marino', 'Blazer Lino Beige'],
+    variants: SIZE_VARIANTS, count: 20 },
+  { categoryId: 'cat-vestuario', categoryName: 'Vestuario', subcategoryId: 'sub-poleras', subcategoryName: 'Poleras',
+    bases: ['Polera Básica Algodón', 'Polera Estampada', 'Polera Cuello V', 'Polera Oversize'],
+    variants: COLOR_VARIANTS, count: 38 },
+  { categoryId: 'cat-vestuario', categoryName: 'Vestuario', subcategoryId: 'sub-chaquetas', subcategoryName: 'Chaquetas',
+    bases: ['Chaqueta Cortavientos', 'Chaqueta de Cuero', 'Parka Invierno', 'Chaqueta Denim'],
+    variants: SIZE_VARIANTS, count: 26 },
+  { categoryId: 'cat-vestuario', categoryName: 'Vestuario', subcategoryId: 'sub-shorts', subcategoryName: 'Shorts',
+    bases: ['Short Deportivo', 'Short Jean', 'Bermuda Chino'],
+    variants: SIZE_VARIANTS, count: 18 },
+  { categoryId: 'cat-vestuario', categoryName: 'Vestuario', subcategoryId: 'sub-faldas', subcategoryName: 'Faldas',
+    bases: ['Falda Plisada', 'Falda Lápiz', 'Falda Denim'],
+    variants: SIZE_VARIANTS, count: 15 },
 
-  // Retail -- Hogar
-  { categoryId: 'cat-hogar', categoryName: 'Hogar', subcategoryId: 'sub-decoracion', subcategoryName: 'Decoración',
-    bases: ['Cojín', 'Espejo', 'Cuadro Decorativo', 'Vela Aromática', 'Jarrón', 'Portarretrato', 'Alfombra', 'Cortina', 'Manta'],
-    variants: STYLE_VARIANTS, count: 45 },
-  { categoryId: 'cat-hogar', categoryName: 'Hogar', subcategoryId: 'sub-cocina', subcategoryName: 'Cocina',
-    bases: ['Olla', 'Sartén', 'Set de Cuchillos', 'Tabla de Picar', 'Juego de Vasos', 'Tetera', 'Cafetera'],
-    variants: ['Básico', 'Premium', 'Antiadherente', 'Acero Inoxidable'], count: 28 },
-  { categoryId: 'cat-hogar', categoryName: 'Hogar', subcategoryId: 'sub-textil-hogar', subcategoryName: 'Textil Hogar',
-    bases: ['Sábana', 'Funda de Almohada', 'Toalla', 'Cubrecama', 'Mantel'],
-    variants: ['Algodón 300 Hilos', 'Microfibra', 'Lino', 'Percal', 'Jacquard', 'Franela'], count: 30 },
+  // Calzado
+  { categoryId: 'cat-calzado', categoryName: 'Calzado', subcategoryId: 'sub-running', subcategoryName: 'Running',
+    bases: ['Zapatilla Running Pro', 'Zapatilla Running Lite', 'Zapatilla Trail'],
+    variants: SHOE_SIZE_VARIANTS, count: 20 },
+  { categoryId: 'cat-calzado', categoryName: 'Calzado', subcategoryId: 'sub-casual', subcategoryName: 'Casual',
+    bases: ['Zapatilla Urbana', 'Zapatilla Lona', 'Náutico Cuero', 'Slip-On'],
+    variants: SHOE_SIZE_VARIANTS, count: 26 },
+  { categoryId: 'cat-calzado', categoryName: 'Calzado', subcategoryId: 'sub-formal', subcategoryName: 'Formal',
+    bases: ['Zapato Oxford Cuero', 'Zapato Derby Negro', 'Mocasín Café'],
+    variants: SHOE_SIZE_VARIANTS, count: 18 },
+  { categoryId: 'cat-calzado', categoryName: 'Calzado', subcategoryId: 'sub-botas', subcategoryName: 'Botas',
+    bases: ['Bota Chelsea', 'Bota Trekking', 'Bota de Cuero'],
+    variants: SHOE_SIZE_VARIANTS, count: 15 },
 
-  // Retail -- Electro
-  { categoryId: 'cat-electro', categoryName: 'Electro', subcategoryId: 'sub-electro-menor', subcategoryName: 'Pequeños Electrodomésticos',
-    bases: ['Batidora', 'Licuadora', 'Tostadora', 'Sandwichera', 'Hervidor', 'Freidora de Aire'],
-    variants: ['Básico', 'Digital', 'Pro'], count: 18 },
-  { categoryId: 'cat-electro', categoryName: 'Electro', subcategoryId: 'sub-audio-video', subcategoryName: 'Audio y Video',
-    bases: ['Parlante Bluetooth', 'Audífonos', 'Barra de Sonido', 'Smart TV 43"', 'Proyector Portátil'],
-    variants: ['Estándar', 'Plus'], count: 10 },
+  // Accesorios
+  { categoryId: 'cat-accesorios', categoryName: 'Accesorios', subcategoryId: 'sub-cinturones', subcategoryName: 'Cinturones',
+    bases: ['Cinturón Cuero Café', 'Cinturón Cuero Negro', 'Cinturón Reversible'],
+    variants: BELT_SIZE_VARIANTS, count: 9 },
+  { categoryId: 'cat-accesorios', categoryName: 'Accesorios', subcategoryId: 'sub-bufandas-gorros', subcategoryName: 'Bufandas y Gorros',
+    bases: ['Bufanda Lana', 'Bufanda Seda', 'Gorro de Lana', 'Gorro Trucker'],
+    variants: COLOR_VARIANTS, count: 30 },
+  { categoryId: 'cat-accesorios', categoryName: 'Accesorios', subcategoryId: 'sub-relojes-lentes', subcategoryName: 'Relojes y Lentes',
+    bases: ['Reloj Análogo Acero', 'Reloj Digital Deportivo', 'Lentes de Sol Aviador', 'Lentes de Sol Redondos'],
+    variants: TIER_VARIANTS, count: 12 },
+  { categoryId: 'cat-accesorios', categoryName: 'Accesorios', subcategoryId: 'sub-bolsos-mochilas', subcategoryName: 'Bolsos y Mochilas',
+    bases: ['Mochila Urbana', 'Bolso Bandolera', 'Cartera de Mano', 'Billetera Cuero'],
+    variants: BAG_SIZE_VARIANTS, count: 12 },
+
+  // Deportivo
+  { categoryId: 'cat-deportivo', categoryName: 'Deportivo', subcategoryId: 'sub-training', subcategoryName: 'Training',
+    bases: ['Polerón Training', 'Calza Deportiva', 'Top Deportivo', 'Chaqueta Running', 'Short Training'],
+    variants: SIZE_VARIANTS, count: 35 },
+  { categoryId: 'cat-deportivo', categoryName: 'Deportivo', subcategoryId: 'sub-accesorios-deportivos', subcategoryName: 'Accesorios Deportivos',
+    bases: ['Banda para el Pelo', 'Guantes de Entrenamiento', 'Botella Deportiva', 'Mochila Gym'],
+    variants: BAG_SIZE_VARIANTS, count: 12 },
+
+  // Niños
+  { categoryId: 'cat-ninos', categoryName: 'Niños', subcategoryId: 'sub-ropa-infantil', subcategoryName: 'Ropa Infantil',
+    bases: ['Polera Infantil Estampada', 'Pantalón Infantil', 'Vestido Infantil Floral', 'Polerón Infantil'],
+    variants: KIDS_AGE_VARIANTS, count: 24 },
+  { categoryId: 'cat-ninos', categoryName: 'Niños', subcategoryId: 'sub-calzado-infantil', subcategoryName: 'Calzado Infantil',
+    bases: ['Zapatilla Infantil', 'Sandalia Infantil'],
+    variants: KIDS_SHOE_SIZE_VARIANTS, count: 10 },
 ];
 
 function generateSubfamiliaProducts(def: SubfamiliaDef): Product[] {
@@ -142,7 +122,4 @@ function generateSubfamiliaProducts(def: SubfamiliaDef): Product[] {
   return products;
 }
 
-export const PRODUCTS: Product[] = [
-  ...LEGACY_PRODUCTS,
-  ...SUBFAMILIA_DEFS.flatMap(generateSubfamiliaProducts),
-];
+export const PRODUCTS: Product[] = SUBFAMILIA_DEFS.flatMap(generateSubfamiliaProducts);

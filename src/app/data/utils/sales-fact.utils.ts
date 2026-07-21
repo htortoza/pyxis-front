@@ -5,7 +5,7 @@ import type { IvaMode } from '../models/iva.model';
 import type { KpiSet, KpiValue, TrendPoint } from '../models/kpi.model';
 import type { Period, PeriodGranularity } from '../models/period.model';
 import type { RankingItem } from '../models/ranking.model';
-import { TASA_CONVERSION_ACTUAL, TASA_CONVERSION_ANTERIOR, TASA_CONVERSION_TREND } from '../mock/conversion.mock';
+import { CONVERSION_BASE_BY_STORE } from '../mock/conversion.mock';
 
 export const OPERATIONAL_HOURS: number[] = [
   6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4, 5,
@@ -61,18 +61,6 @@ export function pickDescuentoPct(facts: SalesFact[]): number {
   const positive = sumAmount(facts.filter((f) => f.amount > 0));
   const negative = Math.abs(sumAmount(facts.filter((f) => f.amount < 0)));
   return positive === 0 ? 0 : (negative / positive) * 100;
-}
-
-/** No hay datos de visitantes/tráfico en este mock -- valor de prueba fijo, no derivado de facts. */
-export function mockTasaConversionKpiValue(): KpiValue {
-  const current = TASA_CONVERSION_ACTUAL;
-  const previous = TASA_CONVERSION_ANTERIOR;
-  return {
-    current,
-    previous,
-    deltaPct: ((current - previous) / Math.abs(previous)) * 100,
-    trend: TASA_CONVERSION_TREND.map((value, index) => ({ periodId: `mock-${index}`, value })),
-  };
 }
 
 /** Minimum candidate points for a sparkline to be considered representative of a real trend. */
@@ -142,12 +130,91 @@ export function buildKpiTrendPoints(
   }));
 }
 
+/** Mismo criterio de ventana hacia atrás que buildKpiTrendPoints (ancla excluida, tope en
+ * MAX_TRAILING_TREND_POINTS), pero sin gate de hasData -- la tasa de conversión siempre
+ * "existe" sintéticamente para cualquier periodo dentro del rango mock, no depende de que
+ * haya SalesFact reales en ese periodo. */
+function trailingPeriodIds(allPeriods: Period[], selectedPeriodIds: string[]): string[] {
+  const periodById = new Map(allPeriods.map((period) => [period.id, period]));
+  const selectedPeriods = selectedPeriodIds
+    .map((id) => periodById.get(id))
+    .filter((period): period is Period => !!period)
+    .sort((a, b) => a.order - b.order);
+  if (selectedPeriods.length === 0) return [];
+
+  const targetOrder = selectedPeriods[selectedPeriods.length - 1].order;
+  const orderToPeriod = new Map(allPeriods.map((period) => [period.order, period]));
+  const trailing: Period[] = [];
+  for (let offset = 1; offset <= MAX_TRAILING_TREND_POINTS; offset++) {
+    const candidate = orderToPeriod.get(targetOrder - offset);
+    if (!candidate) break;
+    trailing.push(candidate);
+  }
+  return trailing.reverse().map((period) => period.id);
+}
+
+/** ±15% de variación determinística por periodo -- no hay dato real de tasa de conversión por
+ * mes (el snapshot de origen, CONVERSION_BASE_BY_STORE, es de un solo día), así que la
+ * variación temporal es simulada a propósito (decisión de producto), superpuesta sobre la
+ * tasa real agregada por tienda. */
+function conversionPeriodVariation(periodId: string): number {
+  let hash = 0;
+  for (let i = 0; i < periodId.length; i++) {
+    hash = (hash * 31 + periodId.charCodeAt(i)) | 0;
+  }
+  const unit = (hash >>> 0) / 4294967296;
+  return 0.85 + unit * 0.3; // 0.85..1.15
+}
+
+/** Tasa agregada (suma tickets / suma entradas, no promedio simple de %) sobre las tiendas en
+ * alcance, con la variación por periodo de conversionPeriodVariation superpuesta. */
+function conversionRateForScope(storeIds: string[], periodIds: string[]): number {
+  let entradas = 0;
+  let tickets = 0;
+  for (const storeId of storeIds) {
+    const base = CONVERSION_BASE_BY_STORE[storeId];
+    if (!base) continue;
+    entradas += base.entradas;
+    tickets += base.tickets;
+  }
+  if (entradas === 0) return 0;
+  const baseRate = (tickets / entradas) * 100;
+  if (periodIds.length === 0) return baseRate;
+  const avgVariation = periodIds.reduce((sum, id) => sum + conversionPeriodVariation(id), 0) / periodIds.length;
+  return baseRate * avgVariation;
+}
+
+/**
+ * Tasa de Conversión dinámica: agrega tráfico/tickets reales (CONVERSION_BASE_BY_STORE) sobre
+ * las tiendas en alcance del filtro de Contexto, con una variación determinística por periodo
+ * superpuesta (el snapshot de origen es de un solo día, no una serie real por mes -- ver
+ * conversionPeriodVariation). Antes era un valor fijo (mockTasaConversionKpiValue); ahora
+ * cambia con el filtro de tienda/contexto y con el periodo seleccionado.
+ */
+export function computeTasaConversionKpi(
+  scopedStoreIds: string[],
+  selectedPeriodIds: string[],
+  previousPeriodIds: string[],
+  allPeriods: Period[],
+): KpiValue {
+  const current = conversionRateForScope(scopedStoreIds, selectedPeriodIds);
+  const previous = conversionRateForScope(scopedStoreIds, previousPeriodIds);
+  const deltaPct = previous === 0 ? null : ((current - previous) / Math.abs(previous)) * 100;
+  const trend = trailingPeriodIds(allPeriods, selectedPeriodIds).map((periodId) => ({
+    periodId,
+    value: conversionRateForScope(scopedStoreIds, [periodId]),
+  }));
+  return { current, previous, deltaPct, trend };
+}
+
 export function computeKpis(
   currentFacts: SalesFact[],
   previousFacts: SalesFact[],
   trendSourceFacts: SalesFact[],
   allPeriods: Period[],
   selectedPeriodIds: string[],
+  scopedStoreIds: string[],
+  previousPeriodIds: string[],
 ): KpiSet {
   const build = (pick: (facts: SalesFact[]) => number): KpiValue => ({
     ...computeKpiValue(currentFacts, previousFacts, pick),
@@ -160,7 +227,7 @@ export function computeKpis(
     unidadesPorTransaccion: build(pickUnidadesPorTransaccion),
     ticketPromedio: build(pickTicketPromedio),
     descuentos: build(pickDescuentoPct),
-    tasaConversion: mockTasaConversionKpiValue(),
+    tasaConversion: computeTasaConversionKpi(scopedStoreIds, selectedPeriodIds, previousPeriodIds, allPeriods),
   };
 }
 
