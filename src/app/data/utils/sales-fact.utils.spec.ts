@@ -5,9 +5,11 @@ import {
   buildDailySeries,
   buildHeatmapMatrix,
   buildKpiTrendPoints,
+  computeKpisAgainstMeta,
   filterFacts,
   mockTasaConversionKpiValue,
   pickDescuentoPct,
+  scaleMeta,
 } from './sales-fact.utils';
 
 function fact(overrides: Partial<SalesFact>): SalesFact {
@@ -168,5 +170,61 @@ describe('buildDailySeries', () => {
 
   it('returns an empty array when there are no facts', () => {
     expect(buildDailySeries([])).toEqual([]);
+  });
+});
+
+describe('scaleMeta', () => {
+  it('scales a monthly meta by the number of selected months for Mes granularity', () => {
+    expect(scaleMeta(150_000_000, 'mes', 3)).toBe(450_000_000);
+  });
+
+  it('scales a monthly meta down proportionally for Semana granularity', () => {
+    expect(scaleMeta(150_000_000, 'semana', 1)).toBeCloseTo(150_000_000 / 4.35, 0);
+  });
+
+  it('scales a monthly meta down proportionally for Dia granularity', () => {
+    expect(scaleMeta(150_000_000, 'dia', 1)).toBeCloseTo(150_000_000 / 30.44, 0);
+  });
+});
+
+describe('computeKpisAgainstMeta', () => {
+  const emptyKpiValue = { current: 0, previous: 0, deltaPct: null, trend: [] };
+  const fallback = {
+    ventasTotales: emptyKpiValue,
+    transacciones: emptyKpiValue,
+    unidadesPorTransaccion: emptyKpiValue,
+    ticketPromedio: emptyKpiValue,
+    descuentos: { current: 5, previous: 4, deltaPct: 25, trend: [] },
+    tasaConversion: mockTasaConversionKpiValue(),
+  };
+
+  it('computes deltaPct as % distance from the scaled meta, not from a previous period', () => {
+    const facts = [fact({ amount: 200_000_000, date: '2026-07-15' })];
+    const kpis = computeKpisAgainstMeta(
+      facts,
+      facts,
+      [period({ id: '2026-07', order: 2026 * 12 + 7 })],
+      ['2026-07'],
+      { ventasTotales: 150_000_000, transacciones: 1, unidadesPorTransaccion: 1, ticketPromedio: 1 },
+      'mes',
+      fallback,
+    );
+    expect(kpis.ventasTotales.current).toBe(200_000_000);
+    expect(kpis.ventasTotales.previous).toBe(150_000_000);
+    expect(kpis.ventasTotales.deltaPct).toBeCloseTo(((200_000_000 - 150_000_000) / 150_000_000) * 100, 5);
+  });
+
+  it('passes Descuentos and Tasa de Conversion through unchanged from the fallback', () => {
+    const kpis = computeKpisAgainstMeta(
+      [],
+      [],
+      [],
+      [],
+      { ventasTotales: 1, transacciones: 1, unidadesPorTransaccion: 1, ticketPromedio: 1 },
+      'mes',
+      fallback,
+    );
+    expect(kpis.descuentos).toBe(fallback.descuentos);
+    expect(kpis.tasaConversion).toBe(fallback.tasaConversion);
   });
 });

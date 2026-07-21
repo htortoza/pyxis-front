@@ -9,6 +9,7 @@ import type { Period, PeriodGranularity } from '../data/models/period.model';
 import type { RankingDimension, RankingSet } from '../data/models/ranking.model';
 import type { SalesFact } from '../data/models/sales-fact.model';
 import { CONTEXT_TREE, MARCAS, SECTORES } from '../data/mock/context-tree.mock';
+import { KPI_METAS_MENSUALES } from '../data/mock/kpi-metas.mock';
 import {
   DEFAULT_SELECTED_GRANULARITY,
   DEFAULT_SELECTED_PERIOD_IDS,
@@ -29,6 +30,7 @@ import {
   buildHeatmapMatrix,
   buildHourlySeries,
   computeKpis,
+  computeKpisAgainstMeta,
   filterFacts,
   type DailyPoint,
 } from '../data/utils/sales-fact.utils';
@@ -266,8 +268,23 @@ export class SalesDataService {
           : previousWindowFacts;
     }
 
-    // Step 5: KPIs (current vs previous) + each metric's sparkline trend points.
-    const kpis = computeKpis(currentFacts, previousFacts, trendSourceFacts, allPeriods, periodIds);
+    // Step 5: KPIs (current vs previous) + each metric's sparkline trend points. 'meta' mode
+    // overrides the 4 original KPI cards' baseline to the scaled meta target; Descuentos y
+    // Tasa de Conversión no tienen modo Meta (ver comparison.model.ts) y siguen mostrando su
+    // comparación normal aun cuando el modo global sea 'meta'.
+    const baseKpis = computeKpis(currentFacts, previousFacts, trendSourceFacts, allPeriods, periodIds);
+    const kpis =
+      mode === 'meta'
+        ? computeKpisAgainstMeta(
+            currentFacts,
+            trendSourceFacts,
+            allPeriods,
+            periodIds,
+            KPI_METAS_MENSUALES,
+            granularity,
+            baseKpis,
+          )
+        : baseKpis;
 
     // Step 6: hourly series per selected period (date-range membership, not periodId string match).
     const hourlySeries: Record<string, number[]> = {};

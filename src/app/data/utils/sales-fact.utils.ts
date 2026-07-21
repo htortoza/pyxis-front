@@ -1,7 +1,8 @@
 import { getDayOfWeek } from './date.utils';
 import type { SalesFact } from '../models/sales-fact.model';
+import type { KpiMetaMensual } from '../models/comparison.model';
 import type { KpiSet, KpiValue, TrendPoint } from '../models/kpi.model';
-import type { Period } from '../models/period.model';
+import type { Period, PeriodGranularity } from '../models/period.model';
 import type { RankingItem } from '../models/ranking.model';
 import { TASA_CONVERSION_ACTUAL, TASA_CONVERSION_ANTERIOR, TASA_CONVERSION_TREND } from '../mock/conversion.mock';
 
@@ -235,4 +236,52 @@ export function aggregateRanking(
       quantity,
     }))
     .sort((a, b) => b.amount - a.amount);
+}
+
+/** Promedios de calendario usados para prorratear una meta mensual a Día/Semana. */
+const AVG_DAYS_PER_MONTH = 30.44;
+const AVG_WEEKS_PER_MONTH = 4.35;
+
+export function scaleMeta(monthlyMeta: number, granularity: PeriodGranularity, selectedPeriodCount: number): number {
+  if (granularity === 'mes') return monthlyMeta * selectedPeriodCount;
+  if (granularity === 'semana') return (monthlyMeta / AVG_WEEKS_PER_MONTH) * selectedPeriodCount;
+  return (monthlyMeta / AVG_DAYS_PER_MONTH) * selectedPeriodCount;
+}
+
+/**
+ * Descuentos y Tasa de Conversión no participan del modo Meta (ver comentario en
+ * KpiMetaMensual) -- `fallback` provee sus KpiValue tal cual (ya calculados vs. periodo
+ * anterior) para que el KpiSet resultante siga completo.
+ */
+export function computeKpisAgainstMeta(
+  currentFacts: SalesFact[],
+  trendSourceFacts: SalesFact[],
+  allPeriods: Period[],
+  selectedPeriodIds: string[],
+  metas: KpiMetaMensual,
+  granularity: PeriodGranularity,
+  fallback: KpiSet,
+): KpiSet {
+  const selectedCount = selectedPeriodIds.length;
+
+  const build = (pick: (facts: SalesFact[]) => number, monthlyMeta: number): KpiValue => {
+    const current = pick(currentFacts);
+    const target = scaleMeta(monthlyMeta, granularity, selectedCount);
+    const deltaPct = target === 0 ? null : ((current - target) / Math.abs(target)) * 100;
+    return {
+      current,
+      previous: target,
+      deltaPct,
+      trend: buildKpiTrendPoints(trendSourceFacts, allPeriods, selectedPeriodIds, pick),
+    };
+  };
+
+  return {
+    ventasTotales: build(sumAmount, metas.ventasTotales),
+    transacciones: build(countDistinctTransactions, metas.transacciones),
+    unidadesPorTransaccion: build(pickUnidadesPorTransaccion, metas.unidadesPorTransaccion),
+    ticketPromedio: build(pickTicketPromedio, metas.ticketPromedio),
+    descuentos: fallback.descuentos,
+    tasaConversion: fallback.tasaConversion,
+  };
 }
