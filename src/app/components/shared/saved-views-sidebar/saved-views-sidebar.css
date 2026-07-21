@@ -1,0 +1,128 @@
+:host { display: block; }
+
+.saved-views-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  min-width: 0;
+}
+
+.saved-views-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-height: 2rem;
+}
+
+.saved-views-sidebar-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--p-text-muted-color);
+}
+
+.saved-views-sidebar-header .p-button-text {
+  color: var(--p-primary-color);
+  padding: 0.125rem 0.375rem;
+}
+
+.saved-views-sidebar-save-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.625rem;
+  border-radius: var(--p-border-radius-md);
+  background: var(--p-surface-50);
+}
+
+.saved-views-sidebar-save-scope {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.saved-views-sidebar-save-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.saved-views-sidebar-search {
+  width: 100%;
+}
+
+.saved-views-sidebar-search input {
+  width: 100%;
+  padding-top: 0.625rem;
+  padding-bottom: 0.625rem;
+  font-size: 0.875rem;
+}
+
+.saved-views-sidebar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-height: 28rem;
+  overflow-y: auto;
+}
+
+.saved-views-sidebar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.5rem;
+  border-radius: var(--p-border-radius-sm);
+}
+
+.saved-views-sidebar-row:hover {
+  background: var(--p-surface-100);
+}
+
+.saved-views-sidebar-label {
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  padding: 0.125rem 0;
+  font-size: 0.8125rem;
+  color: var(--p-text-color);
+  cursor: pointer;
+  text-align: left;
+}
+
+.saved-views-sidebar-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.saved-views-sidebar-owner {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  color: var(--p-text-muted-color);
+}
+
+.saved-views-sidebar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+  flex-shrink: 0;
+}
+
+.saved-views-sidebar-rename-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.saved-views-sidebar-empty {
+  margin: 0;
+  padding: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--p-text-muted-color);
+  text-align: center;
+}
