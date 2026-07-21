@@ -1,0 +1,54 @@
+:host { display: block; }
+
+.filters-modal-body {
+  display: grid;
+  grid-template-columns: 14rem 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.filters-modal-sidebar {
+  border-right: 1px solid var(--p-content-border-color);
+  padding-right: 1.25rem;
+}
+
+.filters-modal-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.filters-modal-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.filters-modal-iva {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.filters-modal-iva-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--p-text-muted-color);
+}
+
+.filters-modal-iva-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.filters-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--p-content-border-color);
+}

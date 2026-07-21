@@ -1,0 +1,104 @@
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { Button } from 'primeng/button';
+import { Dialog } from 'primeng/dialog';
+
+import type { ComparisonAlignment, ComparisonMode } from '../../../data/models/comparison.model';
+import type { IvaMode } from '../../../data/models/iva.model';
+import type { PeriodGranularity } from '../../../data/models/period.model';
+import { CONTEXT_TREE, MARCAS, SECTORES } from '../../../data/mock/context-tree.mock';
+import { buildSectorMarcaTiendaTree } from '../../../data/utils/sector-marca-tienda-tree.utils';
+import { getEffectiveLeafIds } from '../../../data/utils/tristate.utils';
+import { SalesDataService } from '../../../services/sales-data.service';
+import { ComparisonSelectorComponent } from '../comparison-selector/comparison-selector';
+import { ContextFilterComponent } from '../context-filter/context-filter';
+import { PeriodPickerComponent } from '../period-picker/period-picker';
+import { SavedViewsSidebarComponent } from '../saved-views-sidebar/saved-views-sidebar';
+
+/**
+ * Modal único de filtros -- reemplaza los 3 popovers + los botones sueltos de IVA que existían
+ * antes en el Header Global. Dueño de las 8 señales de draft; un solo Aplicar/Cancelar para
+ * las 4 secciones juntas. Aplicar una vista guardada desde el sidebar sigue siendo instantáneo
+ * (bypassa el draft, ver SavedViewsSidebarComponent) -- tras aplicar, resincroniza el draft
+ * completo desde SalesDataService para que el resto del modal refleje la vista recién aplicada.
+ *
+ * `draftCheckedIds` guarda ids del árbol de filtro (FilterTreeNode.id, ej.
+ * 'sector-costanera::marca-x::tienda-y'), NO tiendaContextId directamente -- por eso apply()
+ * construye su propio filterTree/nodeById (mismo patrón que ContextFilterComponent) para
+ * convertir la selección a tiendaContextId antes de escribirla en SalesDataService, igual que
+ * hacía el ContextFilterComponent original antes de este refactor.
+ */
+@Component({
+  selector: 'app-filters-modal',
+  standalone: true,
+  imports: [Button, Dialog, ComparisonSelectorComponent, ContextFilterComponent, PeriodPickerComponent, SavedViewsSidebarComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  templateUrl: './filters-modal.html',
+  styleUrl: './filters-modal.css',
+})
+export class FiltersModalComponent {
+  private readonly salesData = inject(SalesDataService);
+
+  /** Static mock data -- built once, never recomputed reactively. Same tree ContextFilterComponent builds independently -- see doc comment above. */
+  private readonly filterTree = buildSectorMarcaTiendaTree(CONTEXT_TREE, MARCAS, SECTORES);
+  private readonly nodeById = new Map(this.filterTree.map((node) => [node.id, node]));
+
+  protected readonly isOpen = signal(false);
+
+  protected readonly draftCheckedIds = signal<Set<string>>(new Set());
+  protected readonly draftGranularity = signal<PeriodGranularity>('mes');
+  protected readonly draftPeriodIds = signal<Set<string>>(new Set());
+  protected readonly draftCompare = signal<boolean>(true);
+  protected readonly draftComparisonMode = signal<ComparisonMode>('periodo_anterior');
+  protected readonly draftComparisonAlignment = signal<ComparisonAlignment>('calendario');
+  protected readonly draftExplicitComparisonPeriodIds = signal<Set<string>>(new Set());
+  protected readonly draftIvaMode = signal<IvaMode>('con_iva');
+
+  open(): void {
+    this.syncDraftFromApplied();
+    this.isOpen.set(true);
+  }
+
+  /** También sirve para resincronizar tras aplicar una vista guardada (bypassa el draft). */
+  onViewApplied(): void {
+    this.syncDraftFromApplied();
+  }
+
+  private syncDraftFromApplied(): void {
+    this.draftCheckedIds.set(new Set(this.salesData.sectorMarcaTiendaFilter() ?? []));
+    this.draftGranularity.set(this.salesData.selectedPeriodGranularity());
+    this.draftPeriodIds.set(new Set(this.salesData.selectedPeriodIds()));
+    this.draftCompare.set(this.salesData.compareToPrevious());
+    this.draftComparisonMode.set(this.salesData.comparisonMode());
+    this.draftComparisonAlignment.set(this.salesData.comparisonAlignment());
+    this.draftExplicitComparisonPeriodIds.set(new Set(this.salesData.explicitComparisonPeriodIds() ?? []));
+    this.draftIvaMode.set(this.salesData.ivaMode());
+  }
+
+  apply(): void {
+    if (this.draftCheckedIds().size === 0) {
+      this.salesData.setSectorMarcaTiendaFilter(null);
+    } else {
+      const effectiveLeafIds = getEffectiveLeafIds(this.filterTree, this.draftCheckedIds());
+      const tiendaContextIds = effectiveLeafIds
+        .map((id) => this.nodeById.get(id)?.tiendaContextId)
+        .filter((id): id is string => !!id);
+      this.salesData.setSectorMarcaTiendaFilter(tiendaContextIds);
+    }
+    this.salesData.selectedPeriodGranularity.set(this.draftGranularity());
+    this.salesData.selectedPeriodIds.set([...this.draftPeriodIds()]);
+    this.salesData.compareToPrevious.set(this.draftCompare());
+    this.salesData.comparisonMode.set(this.draftComparisonMode());
+    this.salesData.comparisonAlignment.set(this.draftComparisonAlignment());
+    this.salesData.explicitComparisonPeriodIds.set(
+      this.draftComparisonMode() === 'periodo_especifico'
+        ? [...this.draftExplicitComparisonPeriodIds()]
+        : null,
+    );
+    this.salesData.ivaMode.set(this.draftIvaMode());
+    this.isOpen.set(false);
+  }
+
+  cancel(): void {
+    this.isOpen.set(false);
+  }
+}
