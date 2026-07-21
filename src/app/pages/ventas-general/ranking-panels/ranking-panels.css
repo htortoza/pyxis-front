@@ -30,18 +30,35 @@
 
 /* minmax(0, 1fr), not a bare 1fr -- see kpi-cards-grid.css for the full reasoning: a bare
    1fr track's minimum is its content's own min-content size, which can force the grid
-   wider than .page-body and overflow past its padding instead of shrinking to fit. */
+   wider than .page-body and overflow past its padding instead of shrinking to fit.
+
+   gap: 0 on purpose -- the divider spacing below lives entirely in each item's own
+   padding (not the grid gap) so every column keeps the same usable content width. Splitting
+   it as gap + one-sided padding-left (the old approach) gave first-column items the full
+   track width while every other column lost 1.5rem to its own inner padding -- exactly the
+   "Sectores/Tiendas wider than Marcas/Productos" bug this replaces. */
 .rankings-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1.5rem;
+  gap: 0;
+}
+
+.rankings-grid > * {
+  padding: 0 1.5rem;
+}
+
+.rankings-grid > *:first-child {
+  padding-left: 0;
+}
+
+.rankings-grid > *:last-child {
+  padding-right: 0;
 }
 
 /* Thin vertical divider between columns instead of 4 separate cards -- one unified card,
    per the reference mockup. */
 .rankings-grid > *:not(:first-child) {
   border-left: 1px solid var(--p-content-border-color);
-  padding-left: 1.5rem;
 }
 
 /* Container query (against .page-body's inline-size, see ventas-general.css), not a
@@ -53,9 +70,17 @@
   }
 
   /* Only the 2nd column of each row still has a left neighbor at this width -- the 3rd
-     column starts a new row, so its divider would sit against nothing above it. */
+     column starts a new row, so it's a fresh first-column item (own divider removed,
+     left padding reset to line up with the true first item above it). */
   .rankings-grid > *:nth-child(3) {
     border-left: none;
     padding-left: 0;
+  }
+
+  /* The 2nd item is also the last column of its own row here (only :last-child in the DOM,
+     the 4th item, gets padding-right: 0 by default) -- without this its row's divider gutter
+     would sit unused on the right edge instead of the 4th item's row matching it. */
+  .rankings-grid > *:nth-child(2) {
+    padding-right: 0;
   }
 }
