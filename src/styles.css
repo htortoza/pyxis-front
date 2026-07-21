@@ -26,13 +26,12 @@ body {
 }
 
 /*
- * Brand accent tokens -- the exact 3 gradient stops from Logo/SVG/icono-color copia.svg
- * (violet #8400c8 0% -> indigo #2010c0 50% -> blue #0271ed 100%), not an approximation.
- * Reserved for decorative "aurora" moments (accent strips, glows) -- everyday UI color
- * comes from the primary scale in app.config.ts, itself anchored on these same 3 hexes.
+ * Brand accent glow -- from the same 3 gradient stops as Logo/SVG/icono-color copia.svg
+ * (violet #8400c8, indigo #2010c0, blue #0271ed), not an approximation. Used for the KPI
+ * cards' hover shadow -- everyday UI color comes from the primary scale in app.config.ts,
+ * itself anchored on these same 3 hexes.
  */
 :root {
-  --aurora-gradient: linear-gradient(135deg, #8400c8 0%, #2010c0 50%, #0271ed 100%);
   --aurora-glow: 0 4px 16px -4px rgba(132, 0, 200, 0.35), 0 2px 8px -2px rgba(2, 113, 237, 0.25);
 }
 
