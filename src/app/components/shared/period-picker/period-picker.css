@@ -4,7 +4,15 @@
   display: flex;
   flex-direction: column;
   gap: 1.125rem;
-  width: 22rem;
+  width: 100%;
+}
+
+.period-picker-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--p-text-muted-color);
 }
 
 .period-picker-section {
@@ -100,8 +108,6 @@
   outline-offset: 2px;
 }
 
-/* Native checkbox stays in the DOM (keyboard focus + label click-forwarding still work)
-   but is visually replaced entirely by the pill styling above. */
 .period-chip-input {
   position: absolute;
   width: 1px;
@@ -165,10 +171,4 @@
   font-size: 0.875rem;
   color: var(--p-text-color);
   cursor: pointer;
-}
-
-.period-picker-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
 }
