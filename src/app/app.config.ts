@@ -1,6 +1,7 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core';
 import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { MessageService } from 'primeng/api';
 import { providePrimeNG } from 'primeng/config';
 import { definePreset } from '@primeuix/themes';
 import Aura from '@primeuix/themes/aura';
@@ -142,6 +143,9 @@ export const appConfig: ApplicationConfig = {
       withInMemoryScrolling({ scrollPositionRestoration: 'top', anchorScrolling: 'enabled' }),
     ),
     provideAnimationsAsync(),
-    providePrimeNG({ theme: { preset: PyxisPreset, options: { darkModeSelector: false } } })
+    providePrimeNG({ theme: { preset: PyxisPreset, options: { darkModeSelector: false } } }),
+    // Backs every <p-toast /> in the app (see app.html) -- app-wide feedback for actions like
+    // "Guardar como vista por defecto" (global-header.html), not tied to any one page/route.
+    MessageService,
   ]
 };

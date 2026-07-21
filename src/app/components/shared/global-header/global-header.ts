@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { PrimeTemplate } from 'primeng/api';
+import { MessageService, PrimeTemplate } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { Toolbar } from 'primeng/toolbar';
 import { Tooltip } from 'primeng/tooltip';
@@ -30,4 +30,18 @@ import { FiltersModalComponent } from '../filters-modal/filters-modal';
 export class GlobalHeaderComponent {
   protected readonly salesData = inject(SalesDataService);
   protected readonly mobileNav = inject(MobileNavService);
+  private readonly messageService = inject(MessageService);
+
+  /** SalesDataService.saveAsDefault() stays UI-agnostic (it's also reachable from anywhere
+   * else that ends up calling it later) -- the toast is this component's own concern, fired
+   * right after the save actually happens. */
+  onSaveAsDefault(): void {
+    this.salesData.saveAsDefault();
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Filtros guardados',
+      detail: 'Esta será la vista que se cargue siempre que abras la página.',
+      life: 4000,
+    });
+  }
 }
