@@ -4,34 +4,24 @@
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  width: 72rem;
-  max-width: 94vw;
-  padding: 0.25rem;
+  width: 100%;
 }
 
-.context-filter-body {
-  display: grid;
-  grid-template-columns: 1fr 23rem;
-  gap: 1.5rem;
-  align-items: start;
-}
-
-.context-filter-main {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  min-width: 0;
+.context-filter-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--p-text-muted-color);
 }
 
 .context-filter-global-search,
-.context-filter-column-search,
-.context-filter-saved-views-search {
+.context-filter-column-search {
   width: 100%;
 }
 
 .context-filter-global-search input,
-.context-filter-column-search input,
-.context-filter-saved-views-search input {
+.context-filter-column-search input {
   width: 100%;
   padding-top: 0.625rem;
   padding-bottom: 0.625rem;
@@ -131,7 +121,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  height: 19rem;
+  height: 16rem;
   overflow-y: auto;
   border: 1px solid var(--p-content-border-color);
   border-radius: var(--p-border-radius-md);
@@ -207,120 +197,4 @@
   background: var(--p-surface-100);
   font-size: 0.8125rem;
   color: var(--p-text-color);
-}
-
-.context-filter-saved-views {
-  display: flex;
-  flex-direction: column;
-  gap: 0.625rem;
-  padding-left: 1rem;
-  border-left: 1px solid var(--p-content-border-color);
-  min-width: 0;
-}
-
-.context-filter-saved-views-header {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  flex-wrap: nowrap;
-  gap: 0.75rem;
-  min-height: 2rem;
-}
-
-.context-filter-saved-views-header .context-filter-column-title {
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-/* Text button: primary-colored label, no fill/border -- recognizable via color, lighter than Aplicar. */
-.context-filter-saved-views-header .p-button-text {
-  color: var(--p-primary-color);
-  padding: 0.125rem 0.375rem;
-}
-
-.context-filter-save-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 0.625rem;
-  border-radius: var(--p-border-radius-md);
-  background: var(--p-surface-50);
-}
-
-.context-filter-save-scope {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.context-filter-save-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-}
-
-.context-filter-saved-views-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  max-height: 15rem;
-  overflow-y: auto;
-}
-
-.context-filter-saved-view-row {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.375rem 0.5rem;
-  border-radius: var(--p-border-radius-sm);
-}
-
-.context-filter-saved-view-row:hover {
-  background: var(--p-surface-100);
-}
-
-.context-filter-saved-view-label {
-  display: flex;
-  align-items: baseline;
-  gap: 0.375rem;
-  flex: 1;
-  min-width: 0;
-  border: none;
-  background: transparent;
-  padding: 0.125rem 0;
-  font-size: 0.8125rem;
-  color: var(--p-text-color);
-  cursor: pointer;
-  text-align: left;
-}
-
-.context-filter-saved-view-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.context-filter-saved-view-owner {
-  flex-shrink: 0;
-  font-size: 0.75rem;
-  color: var(--p-text-muted-color);
-}
-
-.context-filter-saved-view-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.125rem;
-  flex-shrink: 0;
-}
-
-.context-filter-saved-view-rename-input {
-  flex: 1;
-  min-width: 0;
-}
-
-.context-filter-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--p-content-border-color);
 }

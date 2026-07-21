@@ -1,18 +1,14 @@
-import { ChangeDetectionStrategy, Component, Signal, WritableSignal, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Signal, WritableSignal, computed, inject, model, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { debounceTime } from 'rxjs';
 
-import { Button } from 'primeng/button';
-import { Checkbox } from 'primeng/checkbox';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
 import { InputText } from 'primeng/inputtext';
-import { Message } from 'primeng/message';
-import { Popover } from 'primeng/popover';
+import { Checkbox } from 'primeng/checkbox';
 
 import { CONTEXT_TREE, MARCAS, SECTORES } from '../../../data/mock/context-tree.mock';
-import type { SavedView, SavedViewScope } from '../../../data/models/saved-view.model';
 import {
   buildSectorMarcaTiendaTree,
   type FilterNodeType,
@@ -27,8 +23,6 @@ import {
   toggleNode,
   type SelectionState,
 } from '../../../data/utils/tristate.utils';
-import { SalesDataService } from '../../../services/sales-data.service';
-import { SavedViewsService } from '../../../services/saved-views.service';
 import { TenantVocabularyService } from '../../../services/tenant-vocabulary.service';
 
 interface DebouncedSearch {
@@ -44,23 +38,24 @@ function createDebouncedSearch(): DebouncedSearch {
 }
 
 /**
- * Sector/Marca/Tienda context filter, with an embedded "Vistas Guardadas" panel per the
- * product spec (saved views live in the same filter panel, not a separate popover). Lives in
- * GlobalHeaderComponent, so it applies to (and is editable from) both Ventas General and
- * Detalle de Ventas. Follows the same draft/apply popover shell as PeriodPickerComponent.
+ * Panel presentacional de Sector/Marca/Tienda -- sin trigger ni popover propios, se embebe
+ * dentro de FiltersModalComponent. La selección es un `model()` bidireccional; el padre decide
+ * cuándo/si se aplica (FiltersModalComponent.apply()) y cuándo se guarda como vista
+ * (SavedViewsSidebarComponent, que la recibe como draft). Vistas Guardadas ya no vive aquí --
+ * ver SavedViewsSidebarComponent.
  */
 @Component({
   selector: 'app-context-filter',
   standalone: true,
-  imports: [Button, Checkbox, FormsModule, IconField, InputIcon, InputText, Message, Popover],
+  imports: [Checkbox, FormsModule, IconField, InputIcon, InputText],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './context-filter.html',
   styleUrl: './context-filter.css',
 })
 export class ContextFilterComponent {
-  protected readonly salesData = inject(SalesDataService);
-  protected readonly savedViews = inject(SavedViewsService);
   protected readonly vocab = inject(TenantVocabularyService);
+
+  readonly checkedIds = model.required<Set<string>>();
 
   /** Static mock data -- built once, never recomputed reactively. */
   protected readonly filterTree: FilterTreeNode[] = buildSectorMarcaTiendaTree(
@@ -71,8 +66,6 @@ export class ContextFilterComponent {
   private readonly nodeById = new Map(this.filterTree.map((node) => [node.id, node]));
   private readonly labelOf = (id: string): string => this.nodeById.get(id)?.label ?? '';
 
-  /** Draft selection -- only synced from the applied filter on (onShow), applied explicitly. */
-  protected readonly checkedIds = signal<Set<string>>(new Set());
   protected readonly selectionStates = computed(() =>
     computeSelectionStates(this.filterTree, this.checkedIds()),
   );
@@ -85,7 +78,6 @@ export class ContextFilterComponent {
   protected readonly marcaSearch = createDebouncedSearch();
   protected readonly tiendaSearch = createDebouncedSearch();
   protected readonly globalSearch = createDebouncedSearch();
-  protected readonly savedViewsSearch = createDebouncedSearch();
 
   private readonly visibleSectorIds = computed(() =>
     filterVisibleNodeIds(this.filterTree, this.labelOf, this.sectorSearch.debounced()),
@@ -158,60 +150,6 @@ export class ContextFilterComponent {
 
     return parts.length > 0 ? parts.join(' · ') : 'Sin selección';
   });
-
-  /** Live summary of the APPLIED (not draft) filter, shown on the trigger button. */
-  protected readonly triggerLabel = computed(() => {
-    const applied = this.salesData.sectorMarcaTiendaFilter();
-    if (!applied || applied.length === 0) return 'Sin filtro de contexto';
-    return `${applied.length} tienda${applied.length === 1 ? '' : 's'} seleccionada${applied.length === 1 ? '' : 's'}`;
-  });
-
-  protected readonly canSaveCurrent = computed(() => this.checkedIds().size > 0);
-
-  protected readonly suggestedLabel = computed(() => {
-    const states = this.selectionStates();
-    const topChecked = this.filterTree
-      .filter((node) => node.parentId === null)
-      .filter((node) => {
-        const state = states.get(node.id);
-        return state === 'checked' || state === 'indeterminate';
-      })
-      .slice(0, 3)
-      .map((node) => node.label);
-
-    const base = topChecked.length > 0 ? topChecked.join(' · ') : 'Selección personalizada';
-    const periodCount = this.salesData.selectedPeriodIds().length;
-    return `${base} · ${periodCount} periodo${periodCount === 1 ? '' : 's'}`;
-  });
-
-  protected readonly filteredSavedViews = computed(() => {
-    const query = this.savedViewsSearch.debounced().trim().toLowerCase();
-    const views = this.savedViews.visibleViews();
-    if (!query) return views;
-    return views.filter((view) => view.label.toLowerCase().includes(query));
-  });
-
-  protected readonly warningMessage = signal<string | null>(null);
-  protected readonly editingViewId = signal<string | null>(null);
-  protected readonly renameDraft = signal('');
-  protected readonly showSaveForm = signal(false);
-  protected readonly saveLabel = signal('');
-  protected readonly saveScope = signal<SavedViewScope>('personal');
-
-  /** Reseeds the draft (and resets navigation/search/save-form UI) every time the popover opens. */
-  onPopoverShow(): void {
-    this.checkedIds.set(new Set(this.salesData.sectorMarcaTiendaFilter() ?? []));
-    this.navSectorId.set(null);
-    this.navMarcaId.set(null);
-    this.sectorSearch.raw.set('');
-    this.marcaSearch.raw.set('');
-    this.tiendaSearch.raw.set('');
-    this.globalSearch.raw.set('');
-    this.savedViewsSearch.raw.set('');
-    this.showSaveForm.set(false);
-    this.editingViewId.set(null);
-    this.warningMessage.set(null);
-  }
 
   nodeState(nodeId: string): SelectionState {
     return this.selectionStates().get(nodeId) ?? 'unchecked';
@@ -302,92 +240,5 @@ export class ContextFilterComponent {
 
   resetToSector(): void {
     this.navMarcaId.set(null);
-  }
-
-  canEditOrDeleteView(view: SavedView): boolean {
-    return (
-      view.ownerId === this.savedViews.currentUser.id ||
-      (view.scope === 'equipo' && this.savedViews.canCreateTeamViews())
-    );
-  }
-
-  onApplyView(viewId: string): void {
-    const result = this.savedViews.applyView(viewId, null, this.filterTree);
-    this.warningMessage.set(
-      result && result.droppedNodeIds.length > 0
-        ? 'Algunos elementos de esta vista ya no están disponibles y no se aplicaron.'
-        : null,
-    );
-    // applyView writes straight into SalesDataService, bypassing this component's own draft --
-    // resync so further manual edits in this session build on the just-applied state.
-    this.checkedIds.set(new Set(this.salesData.sectorMarcaTiendaFilter() ?? []));
-  }
-
-  onDeleteView(viewId: string): void {
-    this.savedViews.deleteView(viewId);
-  }
-
-  startRename(view: SavedView): void {
-    this.editingViewId.set(view.id);
-    this.renameDraft.set(view.label);
-  }
-
-  confirmRename(viewId: string): void {
-    const label = this.renameDraft().trim();
-    if (label) {
-      this.savedViews.renameView(viewId, label);
-    }
-    this.editingViewId.set(null);
-  }
-
-  cancelRename(): void {
-    this.editingViewId.set(null);
-  }
-
-  onDuplicateView(view: SavedView): void {
-    this.savedViews.duplicateAsPersonal(view.id, `${view.label} (copia)`);
-  }
-
-  openSaveForm(): void {
-    this.saveLabel.set(this.suggestedLabel());
-    this.saveScope.set('personal');
-    this.showSaveForm.set(true);
-  }
-
-  cancelSaveForm(): void {
-    this.showSaveForm.set(false);
-  }
-
-  confirmSave(): void {
-    const label = this.saveLabel().trim();
-    if (!label) return;
-    this.savedViews.saveCurrentSelection({
-      label,
-      scope: this.saveScope(),
-      checkedNodeIds: [...this.checkedIds()],
-    });
-    this.showSaveForm.set(false);
-    this.saveLabel.set('');
-  }
-
-  dismissWarning(): void {
-    this.warningMessage.set(null);
-  }
-
-  apply(popover: Popover): void {
-    if (this.checkedIds().size === 0) {
-      this.salesData.setSectorMarcaTiendaFilter(null);
-    } else {
-      const effectiveLeafIds = getEffectiveLeafIds(this.filterTree, this.checkedIds());
-      const tiendaContextIds = effectiveLeafIds
-        .map((id) => this.nodeById.get(id)?.tiendaContextId)
-        .filter((id): id is string => !!id);
-      this.salesData.setSectorMarcaTiendaFilter(tiendaContextIds);
-    }
-    popover.hide();
-  }
-
-  cancel(popover: Popover): void {
-    popover.hide();
   }
 }
