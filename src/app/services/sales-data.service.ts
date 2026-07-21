@@ -190,8 +190,14 @@ export class SalesDataService {
   clearFilters(): void {
     this.selectedContextId.set('holding');
     this.selectedPeriodIds.set([...DEFAULT_SELECTED_PERIOD_IDS]);
+    this.selectedPeriodGranularity.set(DEFAULT_SELECTED_GRANULARITY);
     this.crossFilter.set(null);
     this.sectorMarcaTiendaFilter.set(null);
+    this.compareToPrevious.set(true);
+    this.comparisonMode.set('periodo_anterior');
+    this.comparisonAlignment.set('calendario');
+    this.explicitComparisonPeriodIds.set(null);
+    this.ivaMode.set('con_iva');
   }
 
   setSectorMarcaTiendaFilter(tiendaIds: string[] | null): void {
