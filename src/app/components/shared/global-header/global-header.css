@@ -27,11 +27,6 @@
   gap: 1.25rem;
 }
 
-.global-header-iva-toggle {
-  display: flex;
-  gap: 0.5rem;
-}
-
 /* Tabs -- same row as the filters (toolbar's "end" slot), at the opposite/right end. */
 .global-header-tabs {
   display: flex;
