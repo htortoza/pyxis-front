@@ -1,0 +1,74 @@
+<p-button
+  class="comparison-selector-trigger"
+  [label]="modeLabel()"
+  severity="secondary"
+  [outlined]="true"
+  (onClick)="op.toggle($event)"
+>
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 3 4 7l4 4"></path>
+    <path d="M4 7h16"></path>
+    <path d="M16 21l4-4-4-4"></path>
+    <path d="M20 17H4"></path>
+  </svg>
+</p-button>
+
+<p-popover #op (onShow)="onPopoverShow()">
+  <div class="comparison-selector-panel">
+    <div class="comparison-selector-section">
+      <span class="comparison-selector-section-label">Comparar contra</span>
+      <div class="comparison-selector-mode-list">
+        <p-button label="Periodo Anterior" size="small" severity="secondary" [outlined]="draftMode() !== 'periodo_anterior'" (onClick)="setMode('periodo_anterior')" />
+        <p-button label="Periodo Específico" size="small" severity="secondary" [outlined]="draftMode() !== 'periodo_especifico'" (onClick)="setMode('periodo_especifico')" />
+        <p-button label="Meta" size="small" severity="secondary" [outlined]="draftMode() !== 'meta'" (onClick)="setMode('meta')" />
+      </div>
+    </div>
+
+    @if (showAlignment()) {
+      <div class="comparison-selector-section">
+        <span class="comparison-selector-section-label">Alinear por</span>
+        <div class="comparison-selector-mode-list">
+          <p-button label="Fecha calendario" size="small" severity="secondary" [outlined]="draftAlignment() !== 'calendario'" (onClick)="setAlignment('calendario')" />
+          <p-button label="Día de semana" size="small" severity="secondary" [outlined]="draftAlignment() !== 'dia_semana'" (onClick)="setAlignment('dia_semana')" />
+        </div>
+      </div>
+    }
+
+    @if (showExplicitPicker()) {
+      <div class="comparison-selector-section">
+        <div class="comparison-selector-year-nav">
+          <p-button severity="secondary" [text]="true" [rounded]="true" [disabled]="!canGoPrevYear()" (onClick)="goPrevYear()" ariaLabel="Año anterior">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </p-button>
+          <span class="comparison-selector-year-label">{{ viewedYear() }}</span>
+          <p-button severity="secondary" [text]="true" [rounded]="true" [disabled]="!canGoNextYear()" (onClick)="goNextYear()" ariaLabel="Año siguiente">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </p-button>
+        </div>
+        <div class="comparison-selector-period-list">
+          @for (period of viewedYearPeriods(); track period.id) {
+            <label class="comparison-selector-list-row" [class.is-active]="isExplicitSelected(period.id)">
+              <p-checkbox
+                [binary]="true"
+                [ngModel]="isExplicitSelected(period.id)"
+                (onChange)="toggleExplicitPeriod(period.id)"
+              />
+              <span>{{ period.label }}</span>
+            </label>
+          } @empty {
+            <p class="comparison-selector-empty">Sin periodos</p>
+          }
+        </div>
+      </div>
+    }
+
+    <div class="comparison-selector-actions">
+      <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="cancel(op)" />
+      <p-button label="Aplicar" (onClick)="apply(op)" />
+    </div>
+  </div>
+</p-popover>

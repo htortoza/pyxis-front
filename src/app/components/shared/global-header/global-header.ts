@@ -5,6 +5,7 @@ import { Button } from 'primeng/button';
 import { Toolbar } from 'primeng/toolbar';
 
 import { SalesDataService } from '../../../services/sales-data.service';
+import { ComparisonSelectorComponent } from '../comparison-selector/comparison-selector';
 import { ContextFilterComponent } from '../context-filter/context-filter';
 import { FilterChipsSummaryComponent } from '../filter-chips-summary/filter-chips-summary';
 import { PeriodPickerComponent } from '../period-picker/period-picker';
@@ -18,6 +19,7 @@ import { PeriodPickerComponent } from '../period-picker/period-picker';
     PrimeTemplate,
     RouterLink,
     RouterLinkActive,
+    ComparisonSelectorComponent,
     ContextFilterComponent,
     PeriodPickerComponent,
     FilterChipsSummaryComponent,
