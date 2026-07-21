@@ -18,6 +18,18 @@ const INT_FORMATTER = new Intl.NumberFormat('es-CL');
 export class KpiCardsGridComponent {
   protected readonly salesData = inject(SalesDataService);
 
+  /** Solo para las 4 cards con modo Meta propio -- Descuentos/Tasa de Conversión siempre dicen "periodo anterior". */
+  protected readonly comparisonLabel = computed(() => {
+    switch (this.salesData.comparisonMode()) {
+      case 'periodo_anterior':
+        return 'periodo anterior';
+      case 'periodo_especifico':
+        return 'periodo específico';
+      case 'meta':
+        return 'meta';
+    }
+  });
+
   protected readonly ventasTotalesValue = computed(() =>
     formatSignedAmount(this.salesData.kpis().ventasTotales.current).text,
   );

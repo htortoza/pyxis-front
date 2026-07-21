@@ -24,6 +24,8 @@ export class KpiCardComponent {
   readonly label = input.required<string>();
   readonly value = input.required<string>();
   readonly deltaPct = input<number | null>(null);
+  /** Contra qué se compara el delta (ej. "periodo anterior", "meta") -- las cards sin modo Meta propio siempre lo dejan en el default. */
+  readonly comparisonLabel = input<string>('periodo anterior');
   /** Candidate sparkline points from SalesDataService -- not yet threshold-checked (see trendState). */
   readonly trendPoints = input<TrendPoint[]>([]);
 
