@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input, model, signal } fr
 
 import type { PeriodGranularity } from '../../../data/models/period.model';
 import { MONTH_LABELS_ES, PERIODS_DIA, WEEK_ID_BY_DATE } from '../../../data/mock/periods.mock';
-import { buildCalendarGrid, type CalendarDay } from '../../../data/utils/date.utils';
+import { addDaysIso, buildCalendarGrid, daysBetweenIso, type CalendarDay } from '../../../data/utils/date.utils';
 
 const MIN_YEAR = PERIODS_DIA[0].year;
 const MIN_MONTH = PERIODS_DIA[0].month;
@@ -109,24 +109,52 @@ export class CalendarPeriodPickerComponent {
     return Number(day.iso.slice(8, 10));
   }
 
-  private idFor(day: CalendarDay): string {
-    return this.granularity() === 'dia' ? day.iso : (WEEK_ID_BY_DATE.get(day.iso) ?? '');
+  private idFor(iso: string): string {
+    return this.granularity() === 'dia' ? iso : (WEEK_ID_BY_DATE.get(iso) ?? '');
   }
 
   isSelected(day: CalendarDay): boolean {
-    const id = this.idFor(day);
+    const id = this.idFor(day.iso);
     return id !== '' && this.selectedIds().has(id);
   }
 
-  toggle(day: CalendarDay): void {
+  /** Ancla para el rango de shift+click -- el último día/semana clickeado SIN shift. */
+  private readonly rangeAnchorIso = signal<string | null>(null);
+
+  /**
+   * Click normal: alterna esa celda sola y la vuelve el ancla del próximo shift+click.
+   * Shift+click: en vez de alternar, SELECCIONA (nunca deselecciona) cada celda entre el ancla
+   * y esta, inclusive en ambos extremos -- así "click en el 1, shift+click en el 15" deja
+   * seleccionados los 15 días sin importar cuáles ya estuvieran marcados antes.
+   */
+  toggle(day: CalendarDay, event?: MouseEvent): void {
     if (this.granularity() === 'dia' && !day.inMonth) return; // no seleccionar días de desborde del mes vecino
-    const id = this.idFor(day);
+
+    const anchor = this.rangeAnchorIso();
+    if (event?.shiftKey && anchor) {
+      this.selectRange(anchor, day.iso);
+      return;
+    }
+
+    const id = this.idFor(day.iso);
     if (!id) return;
     const next = new Set(this.selectedIds());
     if (next.has(id)) {
       next.delete(id);
     } else {
       next.add(id);
+    }
+    this.selectedIds.set(next);
+    this.rangeAnchorIso.set(day.iso);
+  }
+
+  private selectRange(anchorIso: string, targetIso: string): void {
+    const [fromIso, toIso] = anchorIso <= targetIso ? [anchorIso, targetIso] : [targetIso, anchorIso];
+    const span = daysBetweenIso(fromIso, toIso);
+    const next = new Set(this.selectedIds());
+    for (let i = 0; i <= span; i++) {
+      const id = this.idFor(addDaysIso(fromIso, i));
+      if (id) next.add(id);
     }
     this.selectedIds.set(next);
   }

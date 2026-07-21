@@ -59,7 +59,7 @@
                 class="calendar-cell"
                 [class.is-outside]="!day.inMonth"
                 [class.is-selected]="isSelected(day)"
-                (click)="toggle(day)"
+                (click)="toggle(day, $event)"
               >
                 {{ dayNumber(day) }}
               </button>
@@ -70,7 +70,7 @@
             type="button"
             class="calendar-row calendar-row--week"
             [class.is-selected]="isSelected(week[0])"
-            (click)="toggle(week[0])"
+            (click)="toggle(week[0], $event)"
           >
             @for (day of week; track day.iso) {
               <span class="calendar-cell calendar-cell--week" [class.is-outside]="!day.inMonth">

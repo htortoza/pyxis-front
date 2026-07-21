@@ -10,15 +10,4 @@
   } @else {
     <app-calendar-period-picker [granularity]="granularity()" [(selectedIds)]="periodIds" />
   }
-
-  <div class="period-picker-section period-picker-compare">
-    <label class="period-picker-compare-label" for="period-picker-compare-toggle">
-      Mostrar comparación
-    </label>
-    <p-toggleswitch
-      inputId="period-picker-compare-toggle"
-      [ngModel]="compare()"
-      (onChange)="compare.set($event.checked)"
-    />
-  </div>
 </div>
