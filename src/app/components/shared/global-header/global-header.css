@@ -148,6 +148,17 @@
     white-space: nowrap;
   }
 
+  /* Second FAB next to Filtros (filters-modal.css positions that one via its own :host) --
+     same bottom inset, offset left by its own width + a gap. Real sizing/label-hiding lives in
+     styles.css (PrimeNG's internal .p-button/.p-button-label, unreachable from here). */
+  .global-header-save-view-trigger {
+    display: inline-flex;
+    position: fixed;
+    right: 5.25rem;
+    bottom: 1.25rem;
+    z-index: 40;
+  }
+
   .global-header-chips-scroll {
     padding: 0.25rem 1rem;
   }
