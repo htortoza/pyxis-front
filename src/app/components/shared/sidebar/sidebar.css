@@ -40,7 +40,7 @@ p-drawer {
 }
 
 .sidebar-user-name {
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--p-text-color);
   overflow: hidden;
@@ -49,6 +49,6 @@ p-drawer {
 }
 
 .sidebar-user-role {
-  font-size: 0.6875rem;
+  font-size: 0.625rem;
   color: var(--p-text-muted-color);
 }

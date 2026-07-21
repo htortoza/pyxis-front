@@ -57,7 +57,7 @@ body {
  * if the sidebar's width ever changes, both sides update together automatically.
  */
 :root {
-  --sidebar-width: 264px;
+  --sidebar-width: 224px;
 }
 
 /*
@@ -93,6 +93,27 @@ body {
 
 .app-sidebar .p-menu-item-link-active .p-menu-item-icon {
   color: var(--p-primary-contrast-color);
+}
+
+/* PrimeNG's Menu doesn't expose a font-size token for its own item/group text (it inherits
+   the page's base 1rem) -- smaller text here so the whole sidebar can run narrower
+   (--sidebar-width above) without every long label (e.g. "Backoffice multi-tenant") wrapping
+   to 2-3 lines. */
+.app-sidebar .p-menu-submenu-label {
+  font-size: 0.6875rem;
+}
+
+.app-sidebar .p-menu-item-label {
+  font-size: 0.8125rem;
+}
+
+.app-sidebar .p-menu-item-icon {
+  font-size: 0.875rem;
+}
+
+.app-sidebar .p-menu-item-link {
+  padding: 0.5rem 0.75rem;
+  gap: 0.5rem;
 }
 
 /* p-badge has no per-item severity input reachable through MenuItem -- this is the "Pronto"
