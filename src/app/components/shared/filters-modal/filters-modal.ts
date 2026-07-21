@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { PrimeTemplate } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
-import { Panel } from 'primeng/panel';
+import { ToggleSwitch } from 'primeng/toggleswitch';
 
 import type { ComparisonAlignment, ComparisonMode } from '../../../data/models/comparison.model';
 import type { IvaMode } from '../../../data/models/iva.model';
@@ -42,8 +43,9 @@ const COMPARISON_MODE_LABEL: Record<ComparisonMode, string> = {
   imports: [
     Button,
     Dialog,
-    Panel,
+    FormsModule,
     PrimeTemplate,
+    ToggleSwitch,
     ComparisonSelectorComponent,
     ContextFilterComponent,
     PeriodPickerComponent,
@@ -71,9 +73,9 @@ export class FiltersModalComponent {
   protected readonly draftExplicitComparisonPeriodIds = signal<Set<string>>(new Set());
   protected readonly draftIvaMode = signal<IvaMode>('con_iva');
 
-  /** Los 3 paneles plegables arrancan cerrados cada vez que se abre el modal -- primer vistazo ordenado, se expande solo lo que se quiere tocar. IVA no es plegable (2 botones, no hay nada que ocultar). */
-  protected readonly periodCollapsed = signal(true);
-  protected readonly comparisonCollapsed = signal(true);
+  /** Período y Comparación se configuran en mini-modales propios, cerrados por defecto cada vez que se abre el modal principal. IVA es un toggle simple, sin modal -- no hay nada que configurar más allá de encendido/apagado. */
+  protected readonly periodDialogOpen = signal(false);
+  protected readonly comparisonDialogOpen = signal(false);
 
   protected readonly periodSummary = computed(() => {
     const count = this.draftPeriodIds().size;
@@ -87,8 +89,8 @@ export class FiltersModalComponent {
 
   open(): void {
     this.syncDraftFromApplied();
-    this.periodCollapsed.set(true);
-    this.comparisonCollapsed.set(true);
+    this.periodDialogOpen.set(false);
+    this.comparisonDialogOpen.set(false);
     this.isOpen.set(true);
   }
 

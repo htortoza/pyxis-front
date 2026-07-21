@@ -15,41 +15,56 @@
   min-width: 0;
 }
 
-.filters-modal-row {
+.filters-modal-top-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
 }
 
-.filters-modal-config-panel {
+.filters-modal-top-trigger {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
   min-width: 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--p-border-radius-md);
+  background: var(--p-surface-0);
+  text-align: left;
+  cursor: pointer;
 }
 
-.filters-modal-config-header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.5rem;
-  min-width: 0;
+button.filters-modal-top-trigger:hover {
+  background: var(--p-surface-100);
+  border-color: var(--p-primary-color);
 }
 
 .filters-modal-config-title {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--p-text-color);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--p-text-muted-color);
 }
 
 .filters-modal-config-summary {
-  font-size: 0.8125rem;
-  color: var(--p-text-muted-color);
+  font-size: 0.875rem;
+  color: var(--p-text-color);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.filters-modal-iva-buttons {
+.filters-modal-iva {
+  cursor: default;
+}
+
+.filters-modal-iva-switch {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 0.5rem;
+  cursor: pointer;
 }
 
 /* Sidebar a la derecha -- separador visual en el borde que ahora la limita (izquierdo). */

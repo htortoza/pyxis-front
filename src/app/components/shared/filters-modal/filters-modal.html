@@ -20,59 +20,30 @@
 >
   <div class="filters-modal-body">
     <div class="filters-modal-main">
-      <app-context-filter [(checkedIds)]="draftCheckedIds" />
+      <div class="filters-modal-top-row">
+        <button type="button" class="filters-modal-top-trigger" (click)="periodDialogOpen.set(true)">
+          <span class="filters-modal-config-title">Período</span>
+          <span class="filters-modal-config-summary">{{ periodSummary() }}</span>
+        </button>
 
-      <div class="filters-modal-row">
-        <p-panel
-          class="filters-modal-config-panel"
-          [toggleable]="true"
-          [(collapsed)]="periodCollapsed"
-        >
-          <ng-template pTemplate="header">
-            <div class="filters-modal-config-header">
-              <span class="filters-modal-config-title">Período</span>
-              <span class="filters-modal-config-summary">{{ periodSummary() }}</span>
-            </div>
-          </ng-template>
-          <app-period-picker
-            [(granularity)]="draftGranularity"
-            [(periodIds)]="draftPeriodIds"
-            [(compare)]="draftCompare"
-          />
-        </p-panel>
+        <button type="button" class="filters-modal-top-trigger" (click)="comparisonDialogOpen.set(true)">
+          <span class="filters-modal-config-title">Comparación</span>
+          <span class="filters-modal-config-summary">{{ comparisonSummary() }}</span>
+        </button>
 
-        <p-panel
-          class="filters-modal-config-panel"
-          [toggleable]="true"
-          [(collapsed)]="comparisonCollapsed"
-        >
-          <ng-template pTemplate="header">
-            <div class="filters-modal-config-header">
-              <span class="filters-modal-config-title">Comparación</span>
-              <span class="filters-modal-config-summary">{{ comparisonSummary() }}</span>
-            </div>
-          </ng-template>
-          <app-comparison-selector
-            [granularity]="draftGranularity()"
-            [(mode)]="draftComparisonMode"
-            [(alignment)]="draftComparisonAlignment"
-            [(explicitPeriodIds)]="draftExplicitComparisonPeriodIds"
-          />
-        </p-panel>
-
-        <p-panel class="filters-modal-config-panel" [toggleable]="false">
-          <ng-template pTemplate="header">
-            <div class="filters-modal-config-header">
-              <span class="filters-modal-config-title">IVA</span>
-              <span class="filters-modal-config-summary">{{ ivaSummary() }}</span>
-            </div>
-          </ng-template>
-          <div class="filters-modal-iva-buttons">
-            <p-button label="Con IVA" size="small" severity="secondary" [outlined]="draftIvaMode() !== 'con_iva'" (onClick)="draftIvaMode.set('con_iva')" />
-            <p-button label="Sin IVA" size="small" severity="secondary" [outlined]="draftIvaMode() !== 'sin_iva'" (onClick)="draftIvaMode.set('sin_iva')" />
-          </div>
-        </p-panel>
+        <div class="filters-modal-top-trigger filters-modal-iva">
+          <span class="filters-modal-config-title">IVA</span>
+          <label class="filters-modal-iva-switch">
+            <span class="filters-modal-config-summary">{{ ivaSummary() }}</span>
+            <p-toggleswitch
+              [ngModel]="draftIvaMode() === 'sin_iva'"
+              (onChange)="draftIvaMode.set($event.checked ? 'sin_iva' : 'con_iva')"
+            />
+          </label>
+        </div>
       </div>
+
+      <app-context-filter [(checkedIds)]="draftCheckedIds" />
     </div>
 
     <app-saved-views-sidebar
@@ -95,4 +66,33 @@
       <p-button label="Aplicar" (onClick)="apply()" />
     </div>
   </ng-template>
+</p-dialog>
+
+<p-dialog
+  header="Período"
+  [(visible)]="periodDialogOpen"
+  [modal]="true"
+  [appendTo]="'body'"
+  [style]="{ width: '26rem', maxWidth: '92vw' }"
+>
+  <app-period-picker
+    [(granularity)]="draftGranularity"
+    [(periodIds)]="draftPeriodIds"
+    [(compare)]="draftCompare"
+  />
+</p-dialog>
+
+<p-dialog
+  header="Comparación"
+  [(visible)]="comparisonDialogOpen"
+  [modal]="true"
+  [appendTo]="'body'"
+  [style]="{ width: '26rem', maxWidth: '92vw' }"
+>
+  <app-comparison-selector
+    [granularity]="draftGranularity()"
+    [(mode)]="draftComparisonMode"
+    [(alignment)]="draftComparisonAlignment"
+    [(explicitPeriodIds)]="draftExplicitComparisonPeriodIds"
+  />
 </p-dialog>
