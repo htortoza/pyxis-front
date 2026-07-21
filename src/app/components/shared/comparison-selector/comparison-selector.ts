@@ -1,39 +1,37 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, model, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Button } from 'primeng/button';
 import { Checkbox } from 'primeng/checkbox';
-import { Popover } from 'primeng/popover';
 
 import type { ComparisonAlignment, ComparisonMode } from '../../../data/models/comparison.model';
-import type { Period } from '../../../data/models/period.model';
+import type { Period, PeriodGranularity } from '../../../data/models/period.model';
 import { PERIODS_BY_GRANULARITY } from '../../../data/mock/periods.mock';
 import { groupPeriodsByYear } from '../../../data/utils/period.utils';
-import { SalesDataService } from '../../../services/sales-data.service';
 
+/** Panel presentacional -- sin trigger ni popover propios, embebido en FiltersModalComponent. */
 @Component({
   selector: 'app-comparison-selector',
   standalone: true,
-  imports: [Button, Checkbox, FormsModule, Popover],
+  imports: [Button, Checkbox, FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './comparison-selector.html',
   styleUrl: './comparison-selector.css',
 })
 export class ComparisonSelectorComponent {
-  protected readonly salesData = inject(SalesDataService);
+  /** Granularidad activa en el draft del modal -- de solo lectura acá, la dueña es PeriodPickerComponent. */
+  readonly granularity = input.required<PeriodGranularity>();
 
-  protected readonly draftMode = signal<ComparisonMode>('periodo_anterior');
-  protected readonly draftAlignment = signal<ComparisonAlignment>('calendario');
-  protected readonly draftExplicitPeriodIds = signal<Set<string>>(new Set());
+  readonly mode = model.required<ComparisonMode>();
+  readonly alignment = model.required<ComparisonAlignment>();
+  readonly explicitPeriodIds = model.required<Set<string>>();
 
   /** El toggle de alineación solo tiene sentido en modo periodo_anterior y granularidad Día/Semana. */
   protected readonly showAlignment = computed(
-    () => this.draftMode() === 'periodo_anterior' && this.salesData.selectedPeriodGranularity() !== 'mes',
+    () => this.mode() === 'periodo_anterior' && this.granularity() !== 'mes',
   );
-  protected readonly showExplicitPicker = computed(() => this.draftMode() === 'periodo_especifico');
+  protected readonly showExplicitPicker = computed(() => this.mode() === 'periodo_especifico');
 
-  private readonly activePeriods = computed<Period[]>(
-    () => PERIODS_BY_GRANULARITY[this.salesData.selectedPeriodGranularity()],
-  );
+  private readonly activePeriods = computed<Period[]>(() => PERIODS_BY_GRANULARITY[this.granularity()]);
   private readonly periodsByYear = computed(() => groupPeriodsByYear(this.activePeriods()));
   private readonly minYear = computed(() => Math.min(...this.activePeriods().map((period) => period.year)));
   private readonly maxYear = computed(() => Math.max(...this.activePeriods().map((period) => period.year)));
@@ -45,32 +43,6 @@ export class ComparisonSelectorComponent {
   protected readonly canGoPrevYear = computed(() => this.viewedYear() > this.minYear());
   protected readonly canGoNextYear = computed(() => this.viewedYear() < this.maxYear());
 
-  protected readonly modeLabel = computed(() => {
-    switch (this.salesData.comparisonMode()) {
-      case 'periodo_anterior':
-        return 'Periodo Anterior';
-      case 'periodo_especifico':
-        return 'Periodo Específico';
-      case 'meta':
-        return 'Meta';
-    }
-  });
-
-  onPopoverShow(): void {
-    this.draftMode.set(this.salesData.comparisonMode());
-    this.draftAlignment.set(this.salesData.comparisonAlignment());
-    this.draftExplicitPeriodIds.set(new Set(this.salesData.explicitComparisonPeriodIds() ?? []));
-    this.viewedYear.set(2026);
-  }
-
-  setMode(mode: ComparisonMode): void {
-    this.draftMode.set(mode);
-  }
-
-  setAlignment(alignment: ComparisonAlignment): void {
-    this.draftAlignment.set(alignment);
-  }
-
   goPrevYear(): void {
     if (this.canGoPrevYear()) this.viewedYear.update((year) => year - 1);
   }
@@ -80,29 +52,16 @@ export class ComparisonSelectorComponent {
   }
 
   isExplicitSelected(periodId: string): boolean {
-    return this.draftExplicitPeriodIds().has(periodId);
+    return this.explicitPeriodIds().has(periodId);
   }
 
   toggleExplicitPeriod(periodId: string): void {
-    const next = new Set(this.draftExplicitPeriodIds());
+    const next = new Set(this.explicitPeriodIds());
     if (next.has(periodId)) {
       next.delete(periodId);
     } else {
       next.add(periodId);
     }
-    this.draftExplicitPeriodIds.set(next);
-  }
-
-  apply(popover: Popover): void {
-    this.salesData.comparisonMode.set(this.draftMode());
-    this.salesData.comparisonAlignment.set(this.draftAlignment());
-    this.salesData.explicitComparisonPeriodIds.set(
-      this.draftMode() === 'periodo_especifico' ? [...this.draftExplicitPeriodIds()] : null,
-    );
-    popover.hide();
-  }
-
-  cancel(popover: Popover): void {
-    popover.hide();
+    this.explicitPeriodIds.set(next);
   }
 }
