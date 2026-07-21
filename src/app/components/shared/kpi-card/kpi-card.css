@@ -61,14 +61,10 @@ p-card:hover {
   }
 }
 
-/* Explicitly capped at 2 lines (line-clamp) per request -- unlike .kpi-value/.kpi-delta,
-   where completeness wins, a KPI title is decorative context, not the data itself, so a
-   smaller font plus a hard 2-line ceiling is the right trade here. */
+/* No line-clamp/ellipsis, ever -- wraps across as many lines as it needs. A title must
+   always show in full; the smaller font size below is what keeps every current label to a
+   real 2 lines in practice, not a hard cutoff that would hide part of the text. */
 .kpi-label {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
   font-size: 0.625rem;
   font-weight: 600;
   letter-spacing: 0.04em;
