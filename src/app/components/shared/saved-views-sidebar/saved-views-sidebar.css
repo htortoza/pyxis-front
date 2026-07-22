@@ -122,3 +122,12 @@
   text-align: center;
 }
 
+/* Same 900px breakpoint as filters-modal.css/global-header.css. The list is short and reads
+   more like Accesos Rápidos' always-visible chips than a searchable list at this size -- drop
+   the search box entirely rather than have it sit empty/unused above the (few) saved views. */
+@media (max-width: 900px) {
+  .saved-views-sidebar-search {
+    display: none;
+  }
+}
+
