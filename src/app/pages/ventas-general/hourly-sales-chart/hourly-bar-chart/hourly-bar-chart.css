@@ -41,11 +41,21 @@
 /* Frozen y-axis (left) + independently horizontally-scrollable bars (right) -- the two
    <p-chart> canvases share an identical bottom/top chrome height (see mobileAxisChartOptions/
    mobilePlotChartOptions) so their y=0 and y=max gridlines land on the same row; only the
-   left one's ticks are actually visible. */
+   left one's ticks are actually visible.
+
+   Fixed px height, not a percentage -- this block only ever renders inside the mobile @if
+   branch (hourly-bar-chart.html), where .hourly-row's grid drops to a single column
+   (ventas-general.css) and no longer stretches this card to match a sibling's height. Without
+   a sibling to stretch against, the ancestor chain up to :host's own height:100% resolves
+   against an auto-height row, and Chart.js's `maintainAspectRatio: false` + its internal
+   ResizeObserver then feeds back on that undefined size: it measures the container, sets the
+   canvas to match, which can nudge the container's own (content-driven) height, which the
+   observer sees as a new size to match -- an unbounded growth loop, worse the more the
+   .mobile-legend row above wraps (e.g. selecting more periods pushes it over the edge, as
+   seen with "Últimos 6 Meses"). A flat px height has nothing to feed back against. */
 .chart-scroll-shell {
   display: flex;
-  height: calc(100% - 1.5rem);
-  min-height: 260px;
+  height: 320px;
 }
 
 .chart-axis {

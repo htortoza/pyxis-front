@@ -11,11 +11,12 @@
 }
 
 /* Frozen y-axis (left) + independently horizontally-scrollable bars (right) -- see
-   hourly-bar-chart.css for the full rationale (same pattern, same class names). */
+   hourly-bar-chart.css for the full rationale, including why this is a fixed px height
+   instead of a percentage (a runaway Chart.js resize loop on mobile, where .hourly-row's
+   grid no longer stretches this card against a sibling). */
 .chart-scroll-shell {
   display: flex;
-  height: 100%;
-  min-height: 260px;
+  height: 320px;
 }
 
 .chart-axis {
