@@ -113,10 +113,75 @@ button.filters-modal-top-trigger:hover {
   cursor: pointer;
 }
 
-/* Sidebar a la derecha -- separador visual en el borde que ahora la limita (izquierdo). */
+/* Sidebar a la derecha -- separador visual en el borde que ahora la limita (izquierdo). Ambos
+   fijados a la columna 2 explícitamente (no basta con el orden del DOM): sin esto, un 3er hijo
+   del grid (.filters-modal-presets) se ubicaría por defecto en la columna 1, fila 2, en vez de
+   apilarse bajo el sidebar en la columna 2. */
 .filters-modal-sidebar {
+  grid-column: 2;
   border-left: 1px solid var(--p-content-border-color);
   padding-left: 1.25rem;
+}
+
+.filters-modal-presets {
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border-left: 1px solid var(--p-content-border-color);
+  padding-left: 1.25rem;
+}
+
+.filters-modal-presets-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--p-text-muted-color);
+}
+
+.filters-modal-preset-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.filters-modal-preset-group-label {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--p-text-muted-color);
+}
+
+.filters-modal-preset-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+/* Smaller, denser than a p-button (even at size="small") -- these are meant to read as
+   compact chips so all ~12 presets across 3 granularities fit without dominating the sidebar. */
+.filters-modal-preset-chip {
+  padding: 0.25rem 0.625rem;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: 9999px;
+  background: var(--p-surface-0);
+  color: var(--p-text-color);
+  font: inherit;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease-out;
+}
+
+.filters-modal-preset-chip:hover {
+  border-color: var(--p-primary-color);
+  color: var(--p-primary-color);
+}
+
+.filters-modal-preset-chip:active {
+  transform: scale(0.96);
 }
 
 .filters-modal-actions {
@@ -143,6 +208,12 @@ button.filters-modal-top-trigger:hover {
   margin-top: 0.875rem;
   padding-top: 0.875rem;
   border-top: 1px solid var(--p-content-border-color);
+}
+
+.filters-modal-save-view-scope {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.625rem;
 }
 
 /* Placed after every base rule above on purpose -- a mobile override declared *before* the
@@ -173,9 +244,17 @@ button.filters-modal-top-trigger:hover {
     white-space: nowrap;
   }
 
-  /* Vistas Guardadas + Accesos rápidos move above Período/Comparación/IVA/Contexto on mobile
-     -- order (not a DOM move) since .filters-modal-body is already a grid here, and this is
-     purely a visual reflow, not a change in tab/reading order. Border moves from left→bottom
+  /* grid-column: 2 only means something with 2 explicit columns (desktop) -- reset to auto so
+     these don't force a phantom 2nd column now that .filters-modal-body is 1 column wide. */
+  .filters-modal-sidebar,
+  .filters-modal-presets {
+    grid-column: auto;
+  }
+
+  /* Only Vistas Guardadas moves above Período/Comparación/IVA/Contexto on mobile -- order (not
+     a DOM move) since .filters-modal-body is already a grid here, and this is purely a visual
+     reflow, not a change in tab/reading order. Accesos Rápidos (.filters-modal-presets) keeps
+     its natural order, staying below Contexto same as before. Border moves from left→bottom
      (was separating it from .filters-modal-main on its left; now that same content sits below
      it instead). */
   .filters-modal-sidebar {
@@ -184,5 +263,10 @@ button.filters-modal-top-trigger:hover {
     padding-left: 0;
     border-bottom: 1px solid var(--p-content-border-color);
     padding-bottom: 1.25rem;
+  }
+
+  .filters-modal-presets {
+    border-left: none;
+    padding-left: 0;
   }
 }

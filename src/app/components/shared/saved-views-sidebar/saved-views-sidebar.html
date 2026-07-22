@@ -1,15 +1,11 @@
 <div class="saved-views-sidebar">
   <div class="saved-views-sidebar-header">
     <span class="saved-views-sidebar-title">Vistas Guardadas</span>
-    <p-button
-      label="Guardar vista actual"
-      size="small"
-      [text]="true"
-      [disabled]="!canSaveCurrent()"
-      (onClick)="openSaveForm()"
-    />
   </div>
 
+  <!-- Desktop only in practice -- on mobile, FiltersModalComponent's header button opens its
+       own popover instead of calling openSaveForm() on this component, so showSaveForm never
+       turns true there. See FiltersModalComponent.openSaveViewPopover(). -->
   @if (showSaveForm()) {
     <div class="saved-views-sidebar-save-form">
       <input
@@ -105,22 +101,6 @@
       </div>
     } @empty {
       <p class="saved-views-sidebar-empty">Sin vistas guardadas</p>
-    }
-  </div>
-
-  <div class="saved-views-sidebar-presets">
-    <span class="saved-views-sidebar-title">Accesos Rápidos</span>
-    @for (group of presetGroups; track group.label) {
-      <div class="saved-views-sidebar-preset-group">
-        <span class="saved-views-sidebar-preset-group-label">{{ group.label }}</span>
-        <div class="saved-views-sidebar-preset-list">
-          @for (preset of group.presets; track preset.key) {
-            <button type="button" class="saved-views-sidebar-preset-chip" (click)="applyPreset(preset)">
-              {{ preset.label }}
-            </button>
-          }
-        </div>
-      </div>
     }
   </div>
 </div>

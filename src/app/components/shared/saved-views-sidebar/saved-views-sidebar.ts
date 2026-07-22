@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, model, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { debounceTime } from 'rxjs';
@@ -9,27 +9,24 @@ import { InputIcon } from 'primeng/inputicon';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 
-import type { ComparisonAlignment, ComparisonMode } from '../../../data/models/comparison.model';
-import type { IvaMode } from '../../../data/models/iva.model';
-import type { PeriodGranularity } from '../../../data/models/period.model';
 import { CONTEXT_TREE, MARCAS, SECTORES } from '../../../data/mock/context-tree.mock';
-import { PERIODS_BY_GRANULARITY } from '../../../data/mock/periods.mock';
 import type { SavedView, SavedViewScope } from '../../../data/models/saved-view.model';
 import { buildSectorMarcaTiendaTree } from '../../../data/utils/sector-marca-tienda-tree.utils';
-import { PERIOD_PRESETS, type PeriodPreset } from '../../../data/utils/period.utils';
-import { computeSelectionStates } from '../../../data/utils/tristate.utils';
 import { SavedViewsService } from '../../../services/saved-views.service';
-
-/** Stands in for the real current date -- same mock constant PeriodPickerComponent uses. */
-const TODAY = { year: 2026, month: 7, day: 20 };
 
 /**
  * Sidebar de Vistas Guardadas del modal de filtros -- extraído de lo que antes vivía embebido
- * en ContextFilterComponent. "Aplicar" una vista sigue siendo instantáneo (escribe directo a
- * SalesDataService vía SavedViewsService.applyView, sin pasar por el draft del modal); tras
- * aplicar, emite `viewApplied` para que FiltersModalComponent resincronice sus 8 draft signals.
- * "Guardar vista actual" captura el DRAFT (los 8 inputs de este componente), no el estado ya
- * aplicado, para que refleje exactamente lo que el usuario está configurando ahora mismo.
+ * en ContextFilterComponent. Lista/aplica/renombra/borra vistas existentes, y en desktop
+ * también posee el formulario inline de "Guardar vista actual" -- en mobile ese mismo botón del
+ * header del diálogo abre un popover en vez (ver FiltersModalComponent.openSaveViewPopover()),
+ * así que este componente NO conoce el draft directamente: solo junta {label, scope} y emite
+ * `saveRequested` para que el padre (dueño del draft) haga el guardado real. "Accesos Rápidos"
+ * vive en FiltersModalComponent porque en mobile necesita reordenarse independiente de esta
+ * sidebar (ver su doc comment).
+ *
+ * "Aplicar" una vista sigue siendo instantáneo (escribe directo a SalesDataService vía
+ * SavedViewsService.applyView, sin pasar por el draft del modal); tras aplicar, emite
+ * `viewApplied` para que FiltersModalComponent resincronice sus 8 draft signals.
  */
 @Component({
   selector: 'app-saved-views-sidebar',
@@ -42,16 +39,34 @@ const TODAY = { year: 2026, month: 7, day: 20 };
 export class SavedViewsSidebarComponent {
   protected readonly savedViews = inject(SavedViewsService);
 
-  readonly draftCheckedIds = input.required<Set<string>>();
-  readonly draftGranularity = model.required<PeriodGranularity>();
-  readonly draftPeriodIds = model.required<Set<string>>();
-  readonly draftCompare = input.required<boolean>();
-  readonly draftComparisonMode = input.required<ComparisonMode>();
-  readonly draftComparisonAlignment = input.required<ComparisonAlignment>();
-  readonly draftExplicitComparisonPeriodIds = input.required<Set<string>>();
-  readonly draftIvaMode = input.required<IvaMode>();
-
   readonly viewApplied = output<void>();
+  /** Parent owns the draft and does the actual SavedViewsService.saveCurrentSelection() call --
+   * this component only collects the name/scope choice. */
+  readonly saveRequested = output<{ label: string; scope: SavedViewScope }>();
+
+  protected readonly showSaveForm = signal(false);
+  protected readonly saveLabel = signal('');
+  protected readonly saveScope = signal<SavedViewScope>('personal');
+
+  /** Called externally by FiltersModalComponent (desktop only -- see its openSaveViewPopover)
+   * with a suggested name computed from the draft, which this component has no access to. */
+  openSaveForm(suggestedLabel: string): void {
+    this.saveLabel.set(suggestedLabel);
+    this.saveScope.set('personal');
+    this.showSaveForm.set(true);
+  }
+
+  cancelSaveForm(): void {
+    this.showSaveForm.set(false);
+  }
+
+  confirmSave(): void {
+    const label = this.saveLabel().trim();
+    if (!label) return;
+    this.saveRequested.emit({ label, scope: this.saveScope() });
+    this.showSaveForm.set(false);
+    this.saveLabel.set('');
+  }
 
   private readonly filterTree = buildSectorMarcaTiendaTree(CONTEXT_TREE, MARCAS, SECTORES);
 
@@ -67,56 +82,9 @@ export class SavedViewsSidebarComponent {
     return views.filter((view) => view.label.toLowerCase().includes(query));
   });
 
-  /**
-   * Accesos rápidos de período -- viven acá (no en PeriodPickerComponent) para ser 1-clic sin
-   * abrir el panel plegable de Período. Todos disponibles a la vez (no solo los de la
-   * granularidad actualmente elegida), agrupados por granularidad en el orden en que se
-   * seleccionan más seguido: Meses, luego Semanas, luego Días.
-   */
-  protected readonly presetGroups: { label: string; presets: PeriodPreset[] }[] = (
-    [
-      ['mes', 'Meses'],
-      ['semana', 'Semanas'],
-      ['dia', 'Días'],
-    ] as const
-  )
-    .map(([granularity, label]) => ({
-      label,
-      presets: PERIOD_PRESETS.filter((preset) => preset.granularity === granularity),
-    }))
-    .filter((group) => group.presets.length > 0);
-
-  /** Aplicar un preset también cambia la granularidad a la suya -- ya no está filtrada por la
-   * granularidad actual, así que un preset de Semana debe poder aplicarse estando en Mes. */
-  applyPreset(preset: PeriodPreset): void {
-    this.draftGranularity.set(preset.granularity);
-    this.draftPeriodIds.set(new Set(preset.resolve(PERIODS_BY_GRANULARITY[preset.granularity], TODAY)));
-  }
-
-  protected readonly canSaveCurrent = computed(() => this.draftCheckedIds().size > 0);
-
-  protected readonly suggestedLabel = computed(() => {
-    const states = computeSelectionStates(this.filterTree, this.draftCheckedIds());
-    const topChecked = this.filterTree
-      .filter((node) => node.parentId === null)
-      .filter((node) => {
-        const state = states.get(node.id);
-        return state === 'checked' || state === 'indeterminate';
-      })
-      .slice(0, 3)
-      .map((node) => node.label);
-
-    const base = topChecked.length > 0 ? topChecked.join(' · ') : 'Selección personalizada';
-    const periodCount = this.draftPeriodIds().size;
-    return `${base} · ${periodCount} periodo${periodCount === 1 ? '' : 's'}`;
-  });
-
   protected readonly warningMessage = signal<string | null>(null);
   protected readonly editingViewId = signal<string | null>(null);
   protected readonly renameDraft = signal('');
-  protected readonly showSaveForm = signal(false);
-  protected readonly saveLabel = signal('');
-  protected readonly saveScope = signal<SavedViewScope>('personal');
 
   canEditOrDeleteView(view: SavedView): boolean {
     return (
@@ -158,38 +126,6 @@ export class SavedViewsSidebarComponent {
 
   onDuplicateView(view: SavedView): void {
     this.savedViews.duplicateAsPersonal(view.id, `${view.label} (copia)`);
-  }
-
-  openSaveForm(): void {
-    this.saveLabel.set(this.suggestedLabel());
-    this.saveScope.set('personal');
-    this.showSaveForm.set(true);
-  }
-
-  cancelSaveForm(): void {
-    this.showSaveForm.set(false);
-  }
-
-  confirmSave(): void {
-    const label = this.saveLabel().trim();
-    if (!label) return;
-    this.savedViews.saveCurrentSelection({
-      label,
-      scope: this.saveScope(),
-      checkedNodeIds: [...this.draftCheckedIds()],
-      periodIds: [...this.draftPeriodIds()],
-      granularity: this.draftGranularity(),
-      compareToPrevious: this.draftCompare(),
-      comparisonMode: this.draftComparisonMode(),
-      comparisonAlignment: this.draftComparisonAlignment(),
-      explicitComparisonPeriodIds:
-        this.draftComparisonMode() === 'periodo_especifico'
-          ? [...this.draftExplicitComparisonPeriodIds()]
-          : null,
-      ivaMode: this.draftIvaMode(),
-    });
-    this.showSaveForm.set(false);
-    this.saveLabel.set('');
   }
 
   dismissWarning(): void {

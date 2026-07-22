@@ -25,7 +25,7 @@
         severity="secondary"
         [text]="true"
         size="small"
-        (onClick)="openToSaveView()"
+        (onClick)="openSaveViewPopover($event)"
       />
     </div>
   </ng-template>
@@ -61,16 +61,27 @@
     <app-saved-views-sidebar
       #savedViewsSidebarEl
       class="filters-modal-sidebar"
-      [draftCheckedIds]="draftCheckedIds()"
-      [(draftGranularity)]="draftGranularity"
-      [(draftPeriodIds)]="draftPeriodIds"
-      [draftCompare]="draftCompare()"
-      [draftComparisonMode]="draftComparisonMode()"
-      [draftComparisonAlignment]="draftComparisonAlignment()"
-      [draftExplicitComparisonPeriodIds]="draftExplicitComparisonPeriodIds()"
-      [draftIvaMode]="draftIvaMode()"
       (viewApplied)="onViewApplied()"
+      (saveRequested)="onSidebarSaveRequested($event)"
     />
+
+    <!-- Siempre visible (no detrás de un colapsable), igual que Vistas Guardadas -- ver
+         FiltersModalComponent para por qué esto vive acá y no en el sidebar. -->
+    <div class="filters-modal-presets">
+      <span class="filters-modal-presets-title">Accesos Rápidos</span>
+      @for (group of presetGroups; track group.label) {
+        <div class="filters-modal-preset-group">
+          <span class="filters-modal-preset-group-label">{{ group.label }}</span>
+          <div class="filters-modal-preset-list">
+            @for (preset of group.presets; track preset.key) {
+              <button type="button" class="filters-modal-preset-chip" (click)="applyPreset(preset)">
+                {{ preset.label }}
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
   </div>
 
   <ng-template pTemplate="footer">
@@ -112,5 +123,31 @@
   />
   <div class="filters-modal-popover-actions">
     <p-button label="Aceptar" size="small" (onClick)="comparisonPopoverEl.hide()" />
+  </div>
+</p-popover>
+
+<p-popover
+  #saveViewPopoverEl
+  styleClass="filters-modal-popover-panel"
+  [style]="{ width: '22rem', maxWidth: '92vw' }"
+  [appendTo]="'body'"
+>
+  <span class="filters-modal-popover-title">Guardar vista actual</span>
+  <input
+    pInputText
+    type="text"
+    placeholder="Nombre de la vista"
+    [ngModel]="saveViewLabel()"
+    (ngModelChange)="saveViewLabel.set($event)"
+  />
+  <div class="filters-modal-save-view-scope">
+    <p-button label="Personal" size="small" [outlined]="saveViewScope() !== 'personal'" (onClick)="saveViewScope.set('personal')" />
+    @if (savedViews.canCreateTeamViews()) {
+      <p-button label="Equipo" size="small" [outlined]="saveViewScope() !== 'equipo'" (onClick)="saveViewScope.set('equipo')" />
+    }
+  </div>
+  <div class="filters-modal-popover-actions">
+    <p-button label="Cancelar" severity="secondary" [text]="true" size="small" (onClick)="saveViewPopoverEl.hide()" />
+    <p-button label="Guardar" size="small" (onClick)="confirmSaveView()" />
   </div>
 </p-popover>
