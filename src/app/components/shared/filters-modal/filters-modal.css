@@ -251,12 +251,14 @@ button.filters-modal-top-trigger:hover {
     grid-column: auto;
   }
 
-  /* Only Vistas Guardadas moves above Período/Comparación/IVA/Contexto on mobile -- order (not
-     a DOM move) since .filters-modal-body is already a grid here, and this is purely a visual
-     reflow, not a change in tab/reading order. Accesos Rápidos (.filters-modal-presets) keeps
-     its natural order, staying below Contexto same as before. Border moves from left→bottom
-     (was separating it from .filters-modal-main on its left; now that same content sits below
-     it instead). */
+  /* Vistas Guardadas + Accesos Rápidos both move above Período/Comparación/IVA/Contexto on
+     mobile -- order (not a DOM move) since .filters-modal-body is already a grid here, and
+     this is purely a visual reflow, not a change in tab/reading order. Same order value (-1)
+     on both: ties break by DOM order, and .filters-modal-sidebar comes first in the markup, so
+     Vistas Guardadas still lands above Accesos Rápidos, both above .filters-modal-main. Border
+     moves from left→bottom on the sidebar (was separating it from .filters-modal-main on its
+     left; now Accesos Rápidos sits right below it instead), and disappears on presets (no
+     column-2 divider left to continue once it's no longer beside anything). */
   .filters-modal-sidebar {
     order: -1;
     border-left: none;
@@ -266,7 +268,10 @@ button.filters-modal-top-trigger:hover {
   }
 
   .filters-modal-presets {
+    order: -1;
     border-left: none;
     padding-left: 0;
+    border-bottom: 1px solid var(--p-content-border-color);
+    padding-bottom: 1.25rem;
   }
 }
