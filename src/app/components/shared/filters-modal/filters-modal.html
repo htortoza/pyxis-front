@@ -11,13 +11,25 @@
 </p-button>
 
 <p-dialog
-  header="Filtros"
   [(visible)]="isOpen"
   [modal]="true"
   [appendTo]="'body'"
   [style]="{ width: '88vw', height: '88vh' }"
   [contentStyle]="{ flex: '1', overflow: 'auto' }"
 >
+  <ng-template pTemplate="header">
+    <div class="filters-modal-header">
+      <span class="filters-modal-header-title">Filtros</span>
+      <p-button
+        label="Guardar vista actual"
+        severity="secondary"
+        [text]="true"
+        size="small"
+        (onClick)="openToSaveView()"
+      />
+    </div>
+  </ng-template>
+
   <div class="filters-modal-body">
     <div class="filters-modal-main">
       <div class="filters-modal-top-row">

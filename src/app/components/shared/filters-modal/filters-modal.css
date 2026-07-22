@@ -23,6 +23,22 @@
   }
 }
 
+/* Replaces p-dialog's plain `header` string input (see filters-modal.html) so "Guardar vista
+   actual" can sit next to the title -- the dialog's own close (X) button is separate chrome,
+   rendered alongside this regardless of the custom header template. */
+.filters-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.filters-modal-header-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--p-text-color);
+}
+
 .filters-modal-body {
   display: grid;
   grid-template-columns: 1fr 16rem;

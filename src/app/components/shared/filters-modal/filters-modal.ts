@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PrimeTemplate } from 'primeng/api';
 import { Button } from 'primeng/button';
@@ -82,21 +82,6 @@ export class FiltersModalComponent {
   private readonly comparisonPopover = viewChild<Popover>('comparisonPopoverEl');
   private readonly savedViewsSidebar = viewChild<SavedViewsSidebarComponent>('savedViewsSidebarEl');
 
-  /** p-dialog doesn't render its content until `visible` turns true, so the sidebar's
-   * viewChild is still undefined the instant openToSaveView() sets isOpen -- this flag plus
-   * the effect below waits for the sidebar to actually exist before opening its save form. */
-  private readonly pendingOpenSaveForm = signal(false);
-
-  constructor() {
-    effect(() => {
-      const sidebar = this.savedViewsSidebar();
-      if (sidebar && this.pendingOpenSaveForm()) {
-        sidebar.openSaveForm();
-        this.pendingOpenSaveForm.set(false);
-      }
-    });
-  }
-
   protected readonly periodSummary = computed(() => {
     const count = this.draftPeriodIds().size;
     const countLabel = count === 0 ? 'sin selección' : `${count} periodo${count === 1 ? '' : 's'}`;
@@ -114,12 +99,12 @@ export class FiltersModalComponent {
     this.isOpen.set(true);
   }
 
-  /** Header shortcut ("Guardar vista actual", global-header.html) -- opens straight to the
-   * save-name form instead of the browsing view, so saving doesn't require first navigating
-   * to Vistas Guardadas inside the modal. */
+  /** Dialog-header shortcut (next to the "Filtros" title, see filters-modal.html) -- jumps
+   * straight to the save-name form instead of the browsing view, so saving doesn't require
+   * first navigating to Vistas Guardadas inside the modal. Only reachable while the dialog is
+   * already open, so the sidebar viewChild is guaranteed to exist by the time this runs. */
   openToSaveView(): void {
-    this.open();
-    this.pendingOpenSaveForm.set(true);
+    this.savedViewsSidebar()?.openSaveForm();
   }
 
   /** También sirve para resincronizar tras aplicar una vista guardada (bypassa el draft). */
