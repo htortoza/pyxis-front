@@ -20,7 +20,12 @@ import {
   type CollectionsFilterNode,
 } from '../data/utils/collections-filter-tree.utils';
 import { documentStateAsOf } from '../data/utils/collections-history.utils';
-import { computeCollectionsKpis, type CollectionsKpiSet } from '../data/utils/collections-kpi.utils';
+import {
+  computeCollectionsKpis,
+  previousPeriodWindow,
+  resolvePeriods,
+  type CollectionsKpiSet,
+} from '../data/utils/collections-kpi.utils';
 import {
   buildHardcodedDefaultCollectionsView,
   loadDefaultCollectionsView,
@@ -29,6 +34,7 @@ import {
 } from '../data/utils/default-collections-view.utils';
 import { sameStringArrayOrNull } from '../data/utils/default-view.utils';
 import { getEffectiveLeafIds } from '../data/utils/tristate.utils';
+import { buildVentaCajaBridge, collectedRatioForWindow, type VentaCajaBridge } from '../data/utils/venta-caja-bridge.utils';
 
 /** Drill-down cross-filter coming from a future Cobranzas visualization (Puente/Antigüedad/
  * Concentración, SP2-SP3) clicking a Sector/Marca/Local/Contraparte segment. `dimension` is a
@@ -53,6 +59,9 @@ interface CollectionsDashboardData {
    * NOT yet cut off by `cutoffDate` (see `scopedDocumentsByDimension`), since the trend inside
    * `computeCollectionsKpis` needs to reconstruct PAST cutoffs, not just the active one. */
   kpis: CollectionsKpiSet;
+  /** Puente Venta→Caja (Task 5, SP2) -- opera sobre periodo de EMISIÓN, no sobre `cutoffDate`
+   * (ver `buildVentaCajaBridge`). Mismo `allDocuments` dimension-scoped que `kpis`. */
+  bridge: VentaCajaBridge;
 }
 
 function intersect(a: Set<string>, b: Set<string>): Set<string> {
@@ -243,6 +252,33 @@ export class CollectionsDataService {
    * with current/previous/deltaPct/trend (Task 4 reads this to render kpi-cards-grid). */
   readonly kpis = computed(() => this.dashboardData().kpis);
 
+  /** Puente Venta→Caja (Task 5, SP2) -- 4 segmentos (Cobrado/Por vencer/Vencido/Notas de crédito)
+   * sobre el periodo de EMISIÓN seleccionado, no sobre `cutoffDate` (ver `buildVentaCajaBridge`). */
+  readonly bridge = computed(() => this.dashboardData().bridge);
+
+  /** Mejora #1 (titular + variación) -- diferencia en puntos porcentuales entre el ratio
+   * Cobrado/Venta del periodo ACTIVO y el mismo ratio para la ventana de periodos INMEDIATAMENTE
+   * anterior (misma resolución que usa CEI/Recuperado, vía `previousPeriodWindow`). `null` cuando
+   * cualquiera de los dos ratios no es calculable (ventana vacía o venta total 0 en esa ventana)
+   * -- mismo convenio "sin dato anterior" que el resto de los KPIs de Cobranzas. */
+  readonly bridgeCollectedRatioDelta = computed<number | null>(() => {
+    const selectedPeriods = resolvePeriods(this.selectedPeriodIds(), this.periods());
+    if (selectedPeriods.length === 0) {
+      return null;
+    }
+    const documents = this.scopedDocumentsByDimension();
+    const cutoffIso = this.cutoffDate();
+
+    const currentRatio = collectedRatioForWindow(documents, cutoffIso, selectedPeriods, PERIOD_SALES_TOTAL_CLP);
+    const previousWindow = previousPeriodWindow(selectedPeriods, this.periods());
+    const previousRatio = collectedRatioForWindow(documents, cutoffIso, previousWindow, PERIOD_SALES_TOTAL_CLP);
+
+    if (currentRatio === null || previousRatio === null) {
+      return null;
+    }
+    return (currentRatio - previousRatio) * 100;
+  });
+
   /** Toggles a drill-down cross-filter: clicking the active segment again clears it. */
   setCrossFilter(dimension: string, id: string): void {
     const current = this.crossFilter();
@@ -332,11 +368,18 @@ export class CollectionsDataService {
 
     const crossFilter = this.crossFilter();
     if (crossFilter !== null) {
-      const fromCross =
-        crossFilter.dimension === 'contraparte'
-          ? new Set([crossFilter.id])
-          : this.counterpartyIdsForNodeIds([crossFilter.id]);
-      allowed = allowed === null ? fromCross : intersect(allowed, fromCross);
+      if (crossFilter.dimension === 'contraparte') {
+        const fromCross = new Set([crossFilter.id]);
+        allowed = allowed === null ? fromCross : intersect(allowed, fromCross);
+      } else if (this.collectionsFilterTree.some((node) => node.id === crossFilter.id)) {
+        const fromCross = this.counterpartyIdsForNodeIds([crossFilter.id]);
+        allowed = allowed === null ? fromCross : intersect(allowed, fromCross);
+      }
+      // else: la dimensión no mapea a un concepto de contraparte (p.ej. un segmento del Puente
+      // Venta->Caja, 'bridge-COLLECTED'/etc., o un bucket de Antigüedad, SP2-SP3) -- crossFilter()
+      // queda igual seteado para que el propio componente lo lea y resalte su selección, pero no
+      // angosta scopedCounterpartyIds (de lo contrario resolvería a un Set VACÍO, reduciendo el
+      // scope de TODA la pantalla a "ninguna contraparte" con solo clickear un segmento).
     }
 
     return allowed;
@@ -375,8 +418,9 @@ export class CollectionsDataService {
   }
 
   private computeCollectionsData(): CollectionsDashboardData {
+    const allDocuments = this.scopedDocumentsByDimension();
     const kpis = computeCollectionsKpis({
-      allDocuments: this.scopedDocumentsByDimension(),
+      allDocuments,
       cutoffIso: this.cutoffDate(),
       selectedPeriodIds: this.selectedPeriodIds(),
       periods: this.periods(),
@@ -384,6 +428,13 @@ export class CollectionsDataService {
       periodSalesTotal: PERIOD_SALES_TOTAL_CLP,
       collectionTargets: COLLECTION_TARGETS,
     });
-    return { saldoTotal: this.saldoTotalFromScope(), kpis };
+    const bridge = buildVentaCajaBridge(
+      allDocuments,
+      this.cutoffDate(),
+      this.selectedPeriodIds(),
+      this.periods(),
+      PERIOD_SALES_TOTAL_CLP,
+    );
+    return { saldoTotal: this.saldoTotalFromScope(), kpis, bridge };
   }
 }

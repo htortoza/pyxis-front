@@ -130,4 +130,28 @@ describe('CollectionsDataService', () => {
     expect(kpis.cei).toBeDefined();
     expect(kpis.recuperado).toBeDefined();
   });
+
+  it('bridge (tras el pipeline de carga de 400ms) expone 4 segmentos con totalSales bajo el default', async () => {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    const bridge = service.bridge();
+    expect(bridge).toBeDefined();
+    expect(bridge.segments.map((s) => s.key)).toEqual(['COLLECTED', 'UPCOMING', 'OVERDUE', 'CREDIT_NOTE']);
+    expect(bridge.totalSales).toBeGreaterThan(0);
+  });
+
+  it('bridgeCollectedRatioDelta es un número (o null) bajo el default, nunca NaN', async () => {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    const delta = service.bridgeCollectedRatioDelta();
+    expect(delta === null || Number.isFinite(delta)).toBe(true);
+  });
+
+  it('setCrossFilter con una dimensión que no es de contraparte (p.ej. un segmento del Puente) NO angosta scopedDocuments', () => {
+    const before = new Set(service.scopedDocuments().map((doc) => doc.id));
+    service.setCrossFilter('bridge-COLLECTED', 'COLLECTED');
+    const after = new Set(service.scopedDocuments().map((doc) => doc.id));
+    expect(after).toEqual(before);
+    // El cross-filter sigue seteado (el componente lo lee para resaltar su propia selección) --
+    // solo no debe reducir el scope de contrapartes, que es lo que rompía antes de este fix.
+    expect(service.crossFilter()).toEqual({ dimension: 'bridge-COLLECTED', id: 'COLLECTED' });
+  });
 });

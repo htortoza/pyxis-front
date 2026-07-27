@@ -124,7 +124,7 @@ function trailingCutoffs(
 // Ventanas de periodo (para DSO/CEI/Recuperado, que son de flujo, no de stock)
 // -----------------------------------------------------------------------------------------------
 
-function resolvePeriods(ids: string[], periods: Period[]): Period[] {
+export function resolvePeriods(ids: string[], periods: Period[]): Period[] {
   const byId = new Map(periods.map((period) => [period.id, period]));
   return ids
     .map((id) => byId.get(id))
@@ -141,7 +141,7 @@ function resolvePeriods(ids: string[], periods: Period[]): Period[] {
  * anterior). Si algún periodo de la ventana anterior no existe en `allPeriodsForGranularity`
  * (borde del dataset), esa ventana queda parcial -- se documenta, no se rellena.
  */
-function previousPeriodWindow(selectedPeriods: Period[], allPeriodsForGranularity: Period[]): Period[] {
+export function previousPeriodWindow(selectedPeriods: Period[], allPeriodsForGranularity: Period[]): Period[] {
   if (selectedPeriods.length === 0) {
     return [];
   }

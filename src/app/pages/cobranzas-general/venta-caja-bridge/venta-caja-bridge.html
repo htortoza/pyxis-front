@@ -1,0 +1,46 @@
+@if (collectionsData.loading()) {
+  <app-loading-skeleton height="180px" />
+} @else {
+  <section class="bridge">
+    <h3 class="bridge-title">Puente Venta → Caja</h3>
+    <p class="bridge-subtitle">Ventas emitidas en el periodo seleccionado -- no en la fecha de corte</p>
+
+    <div class="bridge-headline">
+      <span class="bridge-headline-value">{{ collectedRatioPct() }}% de lo vendido ya es caja</span>
+      @if (ratioDeltaPp(); as delta) {
+        <span class="bridge-headline-delta" [class.is-positive]="delta >= 0" [class.is-negative]="delta < 0">
+          {{ delta >= 0 ? '+' : '' }}{{ delta.toFixed(1) }} pp vs. periodo anterior
+        </span>
+      }
+    </div>
+
+    <div
+      class="bridge-bar"
+      role="img"
+      aria-label="Distribución de la venta del periodo entre cobrado, por vencer, vencido y notas de crédito"
+    >
+      @for (segment of segments(); track segment.key) {
+        <div class="bridge-bar-segment" [attr.data-segment]="segment.key" [style.width.%]="barWidthPct(segment)"></div>
+      }
+    </div>
+
+    <div class="bridge-breakdown">
+      @for (segment of segments(); track segment.key) {
+        <button
+          type="button"
+          class="bridge-segment-row"
+          [class.is-active]="isActive(segment)"
+          (click)="onSegmentClick(segment)"
+        >
+          <span class="bridge-segment-swatch" [attr.data-segment]="segment.key"></span>
+          <span class="bridge-segment-label">{{ segment.label }}</span>
+          <span class="bridge-segment-amount" [class.is-negative]="segment.key === 'CREDIT_NOTE'">{{ formattedAmount(segment) }}</span>
+        </button>
+      }
+    </div>
+
+    <!-- Placeholder de navegación real -- preservar el querystring de filtros activos queda para
+         un follow-up si se complica (fuera de alcance de Task 5, SP2). -->
+    <a class="bridge-ventas-link" routerLink="/">Ver en Ventas General</a>
+  </section>
+}

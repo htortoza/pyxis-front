@@ -1,0 +1,160 @@
+:host { display: block; }
+
+.bridge {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  padding: 1.25rem;
+  background: var(--p-surface-0);
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--p-border-radius-md, 6px);
+}
+
+.bridge-title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--p-text-color);
+}
+
+/* Rótulo explícito: este panel opera sobre periodo de EMISIÓN, no sobre la fecha de corte
+   (spec §4.2) -- debe quedar visible, no solo documentado en un comentario. */
+.bridge-subtitle {
+  margin: -0.5rem 0 0;
+  font-size: 0.75rem;
+  color: var(--p-text-muted-color);
+}
+
+.bridge-headline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.625rem;
+}
+
+.bridge-headline-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--p-text-color);
+}
+
+.bridge-headline-delta {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.bridge-headline-delta.is-positive { color: var(--dash-green); }
+.bridge-headline-delta.is-negative { color: var(--dash-coral); }
+
+.bridge-bar {
+  display: flex;
+  width: 100%;
+  height: 1.5rem;
+  border-radius: var(--p-border-radius-md, 6px);
+  overflow: hidden;
+  background: var(--p-surface-100);
+}
+
+.bridge-bar-segment {
+  height: 100%;
+  transition: width 0.2s ease;
+}
+
+.bridge-bar-segment[data-segment='COLLECTED'] { background: var(--dash-green); }
+.bridge-bar-segment[data-segment='UPCOMING'] { background: var(--dash-blue); }
+.bridge-bar-segment[data-segment='OVERDUE'] { background: var(--dash-coral); }
+.bridge-bar-segment[data-segment='CREDIT_NOTE'] { background: var(--p-orange-500); }
+
+.bridge-breakdown {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.bridge-segment-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  min-width: 0;
+  padding: 0.5rem 0.625rem;
+  border: none;
+  border-radius: var(--p-border-radius-md, 6px);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition: background 0.15s ease;
+}
+
+.bridge-segment-row:hover {
+  background: var(--p-surface-100);
+}
+
+.bridge-segment-row.is-active {
+  background: var(--p-surface-100);
+  outline: 1px solid var(--p-primary-color);
+  outline-offset: -1px;
+}
+
+.bridge-segment-swatch {
+  display: inline-block;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 50%;
+}
+
+.bridge-segment-swatch[data-segment='COLLECTED'] { background: var(--dash-green); }
+.bridge-segment-swatch[data-segment='UPCOMING'] { background: var(--dash-blue); }
+.bridge-segment-swatch[data-segment='OVERDUE'] { background: var(--dash-coral); }
+.bridge-segment-swatch[data-segment='CREDIT_NOTE'] { background: var(--p-orange-500); }
+
+.bridge-segment-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--p-text-muted-color);
+}
+
+.bridge-segment-amount {
+  font-size: 0.875rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--p-text-color);
+  white-space: nowrap;
+}
+
+.bridge-segment-amount.is-negative {
+  color: var(--dash-coral);
+}
+
+.bridge-ventas-link {
+  align-self: flex-start;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--p-primary-color);
+  text-decoration: none;
+}
+
+.bridge-ventas-link:hover {
+  text-decoration: underline;
+}
+
+/* Mismo breakpoint 900px que el resto de Cobranzas/Ventas -- el desglose pasa a 2 columnas y
+   luego a 1, nunca truncando montos/labels (siempre pueden wrappear a una 2ª línea). */
+@media (max-width: 900px) {
+  .bridge-breakdown {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bridge-headline-value {
+    font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .bridge-breakdown {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
