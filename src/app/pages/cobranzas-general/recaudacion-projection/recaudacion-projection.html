@@ -1,0 +1,93 @@
+@if (collectionsData.loading()) {
+  <app-loading-skeleton height="280px" />
+} @else {
+  <section class="recaudacion-projection">
+    <header class="projection-header">
+      <h3 class="projection-title">Proyección de Recaudación</h3>
+      <p class="projection-subtitle">Horizonte: {{ horizonLabel() }}</p>
+    </header>
+
+    @if (collectionsData.ivaMode() === 'sin_iva') {
+      <p class="iva-note">Proyección en monto bruto (incluye IVA), independiente del toggle activo.</p>
+    }
+
+    @if (gapHeadline(); as headline) {
+      <p class="gap-headline">
+        @if (headline.gapBuckets > 0) {
+          @if (headline.isOutOfHorizon) {
+            El comportamiento real corre tu caja más de ~{{ headline.gapBuckets }} {{ gapBucketsLabel(headline) }}
+            y ~{{ formattedAmount(headline.gapAmount) }} vs. lo pactado.
+          } @else {
+            El comportamiento real corre tu caja ~{{ headline.gapBuckets }} {{ gapBucketsLabel(headline) }}
+            y ~{{ formattedAmount(headline.gapAmount) }} vs. lo pactado.
+          }
+        } @else {
+          Tu comportamiento real de cobranza va igual de rápido o más rápido que lo pactado.
+        }
+      </p>
+    } @else {
+      <p class="degradation-note">
+        Historial insuficiente para proyectar comportamiento de pago en este alcance. Se muestra solo la
+        proyección contractual.
+      </p>
+    }
+
+    <div class="horizon-toggle">
+      <p-selectButton
+        [options]="horizonOptions"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="horizonMode()"
+        (onChange)="onHorizonChange($event.value)"
+      />
+    </div>
+
+    <div class="projection-body">
+      <div class="backlog-column">
+        <span class="backlog-label">Backlog vencido (no se proyecta)</span>
+        <span class="backlog-amount">{{ formattedAmount(projection().backlogOverdue) }}</span>
+      </div>
+
+      <div class="projection-divider"></div>
+
+      <div class="chart-scroll">
+        <div class="chart-plot" [style.min-width.px]="projection().buckets.length * 56">
+          @for (bucket of projection().buckets; track bucket.startDate) {
+            <div class="bucket-group">
+              <div class="bars-pair">
+                <span
+                  class="bar bar-contractual"
+                  [style.height.%]="barHeightPct(bucket.contractual)"
+                  [pTooltip]="'Contractual ' + bucket.label + ': ' + formattedAmount(bucket.contractual)"
+                  tooltipPosition="top"
+                ></span>
+                @if (projection().adjustedSeriesAvailable) {
+                  <span
+                    class="bar bar-adjusted"
+                    [style.height.%]="barHeightPct(bucket.adjusted)"
+                    [pTooltip]="'Ajustada ' + bucket.label + ': ' + formattedAmount(bucket.adjusted)"
+                    tooltipPosition="top"
+                  ></span>
+                }
+              </div>
+              <span class="bucket-label">{{ bucket.label }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-legend">
+      <span class="legend-item"><span class="legend-swatch legend-contractual"></span>Contractual</span>
+      @if (projection().adjustedSeriesAvailable) {
+        <span class="legend-item"><span class="legend-swatch legend-adjusted"></span>Ajustada por comportamiento</span>
+      }
+    </div>
+
+    @if (projection().excludedNoDueDate > 0) {
+      <p class="excluded-note">
+        Excluye {{ formattedAmount(projection().excludedNoDueDate) }} sin fecha de vencimiento definida.
+      </p>
+    }
+  </section>
+}
