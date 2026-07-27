@@ -1,0 +1,46 @@
+@if (isVisible()) {
+  @if (collectionsData.loading()) {
+    <app-loading-skeleton height="240px" />
+  } @else {
+    <section class="concentration">
+      <div class="concentration-header">
+        <h3 class="concentration-title">{{ title() }}</h3>
+        <p-select
+          class="concentration-sort-select"
+          [options]="sortOptions"
+          optionLabel="label"
+          optionValue="value"
+          [ngModel]="sortMode()"
+          (onChange)="onSortChange($event.value)"
+        />
+      </div>
+
+      @if (highestRiskSummary(); as summary) {
+        <p class="concentration-risk-summary">⚠ {{ summary }}</p>
+      }
+
+      <div class="concentration-list">
+        @for (row of result().rows; track row.counterpartyId; let i = $index) {
+          @let tooltip = comparisonTooltip(row);
+          <button
+            type="button"
+            class="concentration-row"
+            [class.is-active]="isActive(row)"
+            [class.is-highest-risk]="isHighestRisk(row)"
+            [pTooltip]="tooltip"
+            [tooltipDisabled]="!tooltip"
+            tooltipPosition="top"
+            (click)="onRowClick(row)"
+          >
+            <span class="concentration-rank">{{ rank(i) }}</span>
+            <span class="concentration-label">{{ row.label }}</span>
+            <span class="concentration-bar-track">
+              <span class="concentration-bar-fill" [style.width.%]="barWidthPct(row)"></span>
+            </span>
+            <span class="concentration-value">{{ formattedValue(row) }}</span>
+          </button>
+        }
+      </div>
+    </section>
+  }
+}

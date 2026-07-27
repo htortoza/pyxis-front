@@ -1,0 +1,171 @@
+:host { display: block; }
+
+.concentration {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  padding: 1.25rem;
+  background: var(--p-surface-0);
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--p-border-radius-md, 6px);
+}
+
+.concentration-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.concentration-title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--p-text-color);
+}
+
+.concentration-sort-select {
+  min-width: 220px;
+}
+
+/* Mismo tono rojo sutil que el realce de fila, para que el texto de síntesis y la fila resaltada
+   se lean como una sola señal (mejora #3) sin ser agresivos. */
+.concentration-risk-summary {
+  margin: 0;
+  padding: 0.625rem 0.875rem;
+  border-radius: var(--p-border-radius-md, 6px);
+  background: var(--p-red-100);
+  color: var(--p-red-700);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.concentration-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.concentration-row {
+  display: grid;
+  grid-template-columns: 1.5rem minmax(140px, 1fr) minmax(100px, 200px) auto;
+  grid-template-areas: 'rank label bar value';
+  align-items: center;
+  column-gap: 0.75rem;
+  width: 100%;
+  padding: 0.5rem 0.375rem;
+  margin: 0 -0.375rem;
+  border: none;
+  border-radius: var(--p-border-radius-md, 6px);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition: background 0.15s ease, transform 0.1s ease-out;
+}
+
+.concentration-row:hover {
+  background: var(--p-surface-100);
+}
+
+.concentration-row:active {
+  transform: scale(0.98);
+}
+
+.concentration-row.is-active {
+  background: var(--p-surface-100);
+  outline: 1px solid var(--p-primary-color);
+  outline-offset: -1px;
+}
+
+.concentration-row.is-active .concentration-label {
+  color: var(--p-primary-color);
+  font-weight: 700;
+}
+
+/* Realce de "mayor riesgo" (mejora #3) -- gana visualmente sobre .is-active si ambas coinciden
+   (orden de declaración: esta regla va después), tono rojo sutil, nunca agresivo. */
+.concentration-row.is-highest-risk {
+  background: var(--p-red-100);
+  outline: 1px solid var(--p-red-400);
+  outline-offset: -1px;
+}
+
+.concentration-row.is-highest-risk .concentration-label {
+  color: var(--p-red-600);
+  font-weight: 700;
+}
+
+.concentration-rank {
+  grid-area: rank;
+  flex-shrink: 0;
+  color: var(--p-text-muted-color);
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.65;
+}
+
+/* Sin ellipsis/nowrap: los nombres largos de contraparte envuelven a una 2ª línea en vez de
+   truncarse (nunca ocultar texto en silencio). */
+.concentration-label {
+  grid-area: label;
+  min-width: 0;
+  color: var(--p-text-color);
+  font-weight: 500;
+  font-size: 0.8125rem;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+.concentration-bar-track {
+  grid-area: bar;
+  position: relative;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--p-surface-100);
+  overflow: hidden;
+}
+
+.concentration-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--p-primary-color);
+  transition: width 0.2s ease;
+}
+
+.concentration-value {
+  grid-area: value;
+  justify-self: end;
+  color: var(--p-text-color);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Mismo breakpoint 900px que el resto de Cobranzas/Ventas -- la barra pasa a su propia línea
+   completa y el monto nunca se trunca. */
+@media (max-width: 900px) {
+  .concentration-row {
+    grid-template-columns: 1.5rem 1fr auto;
+    grid-template-areas:
+      'rank label value'
+      'bar bar bar';
+    row-gap: 0.375rem;
+  }
+
+  .concentration-label {
+    font-size: 0.75rem;
+  }
+
+  .concentration-value {
+    font-size: 0.75rem;
+  }
+
+  .concentration-sort-select {
+    min-width: 0;
+    width: 100%;
+  }
+}
