@@ -1,7 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+
 import { MessageService } from 'primeng/api';
 import { Button } from 'primeng/button';
-import { Card } from 'primeng/card';
+import { SelectButton } from 'primeng/selectbutton';
 import { Tooltip } from 'primeng/tooltip';
 
 import { CollectionsFilterChipsSummaryComponent } from '../../components/shared/collections-filter-chips-summary/collections-filter-chips-summary';
@@ -10,6 +12,20 @@ import { CollectionsFooterComponent } from '../../components/shared/collections-
 import { GlobalHeaderComponent, type GlobalHeaderTab } from '../../components/shared/global-header/global-header';
 import { LoadingSkeletonComponent } from '../../components/shared/loading-skeleton/loading-skeleton';
 import { CollectionsDataService } from '../../services/collections-data.service';
+import { CollectionsDetailTreeTableComponent } from './collections-detail-tree-table/collections-detail-tree-table';
+import { CollectionsDetailTreemapComponent } from './collections-detail-treemap/collections-detail-treemap';
+
+type ViewMode = 'tabla' | 'mapa';
+
+interface ViewModeOption {
+  label: string;
+  value: ViewMode;
+}
+
+const VIEW_MODE_OPTIONS: ViewModeOption[] = [
+  { label: 'Tabla', value: 'tabla' },
+  { label: 'Mapa', value: 'mapa' },
+];
 
 const HEADER_TABS: GlobalHeaderTab[] = [
   { label: 'Cobranzas General', route: '/cobranzas', exact: true },
@@ -17,21 +33,26 @@ const HEADER_TABS: GlobalHeaderTab[] = [
 ];
 
 /**
- * Shell for "Detalle de Cartera" -- SP1 only wires the page around CollectionsDataService
- * (filters, loading, footer); the dual Vista Tabla/Vista Mapa (calca Detalle de Ventas, foco
- * compartido `focusedCounterpartyId`) lands in SP4 without touching this composition root.
+ * Composition root for "Detalle de Cartera" -- SP4 wires the dual Vista Tabla/Vista Mapa
+ * (calca Detalle de Ventas' viewMode/p-selectButton pattern) on top of the SP1 shell
+ * (filters, loading, footer). Both views read `CollectionsDataService.scopedDocuments()`
+ * directly and derive their own tree/band internally (Task 1/2 utils are cheap over a
+ * few hundred documents, no need to hoist that computation up here like Ventas does).
  */
 @Component({
   selector: 'app-detalle-cartera',
   standalone: true,
   imports: [
+    FormsModule,
+    SelectButton,
     GlobalHeaderComponent,
     CollectionsFiltersModalComponent,
     CollectionsFilterChipsSummaryComponent,
     CollectionsFooterComponent,
     LoadingSkeletonComponent,
+    CollectionsDetailTreeTableComponent,
+    CollectionsDetailTreemapComponent,
     Button,
-    Card,
     Tooltip,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -43,6 +64,14 @@ export class DetalleCarteraComponent {
   private readonly messageService = inject(MessageService);
 
   protected readonly headerTabs = HEADER_TABS;
+
+  protected readonly viewModeOptions = VIEW_MODE_OPTIONS;
+  protected readonly viewMode = signal<ViewMode>('tabla');
+  protected readonly focusedCounterpartyId = signal<string | null>(null);
+
+  protected onViewModeChange(mode: ViewMode): void {
+    this.viewMode.set(mode);
+  }
 
   /** CollectionsDataService.saveAsDefault() stays UI-agnostic -- the toast is this component's
    * own concern, fired right after the save actually happens. No `life` here -- the app-wide
