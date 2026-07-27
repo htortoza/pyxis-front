@@ -71,16 +71,38 @@ export class KpiCardComponent {
   readonly isMetaMode = input<boolean>(false);
   /** Candidate sparkline points from SalesDataService -- not yet threshold-checked (see trendState). */
   readonly trendPoints = input<TrendPoint[]>([]);
+  /** Unit the caller already computed deltaPct() in -- the card only formats the suffix, it never
+   * converts. Default 'pct' matches every Ventas card today (e.g. Cobranzas passes 'pp' for
+   * %Vencido/CEI/%Utilización and 'dias' for DSO). */
+  readonly deltaUnit = input<'pct' | 'pp' | 'dias'>('pct');
+  /** Whether a rise in deltaPct is good or bad for this metric -- default 'higher-good' matches
+   * every Ventas card (Cobranzas passes 'lower-good' for %Vencido/DSO). Only affects the band
+   * color; the arrow below always reflects the raw sign of the delta. */
+  readonly deltaDirection = input<'higher-good' | 'lower-good'>('higher-good');
+  /** Threshold (in the same unit as deltaPct) under which a move is muted to 'medium' instead of
+   * colored -- default 0 never fires, so Ventas cards are unaffected. DSO uses this so a small
+   * day-count wobble doesn't flip red/green. */
+  readonly deltaSensitivityPct = input<number>(0);
 
   /** Semaphore band (good/medium/bad) -- single source of truth for the delta text and the sparkline color. */
   readonly band = computed(() =>
-    this.isMetaMode() ? cumplimientoBand(this.deltaPct()) : comparisonBand(this.deltaPct()),
+    this.isMetaMode()
+      ? cumplimientoBand(this.deltaPct())
+      : comparisonBand(this.deltaPct(), this.deltaDirection(), this.deltaSensitivityPct()),
   );
   readonly isPositive = computed(() => (this.deltaPct() ?? 0) >= 0);
   readonly deltaText = computed(() => {
     const pct = this.deltaPct();
     if (pct === null) return '';
-    return `${Math.abs(pct).toFixed(1)}%`;
+    const abs = Math.abs(pct);
+    switch (this.deltaUnit()) {
+      case 'pp':
+        return `${abs.toFixed(1)} pp`;
+      case 'dias':
+        return `${abs.toFixed(0)} d`;
+      default:
+        return `${abs.toFixed(1)}%`;
+    }
   });
 
   /**

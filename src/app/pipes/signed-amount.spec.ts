@@ -1,4 +1,28 @@
-import { cumplimientoBand } from './signed-amount';
+import { comparisonBand, cumplimientoBand } from './signed-amount';
+
+describe('comparisonBand', () => {
+  it('defaults to today\'s higher-good behavior with 1 argument', () => {
+    expect(comparisonBand(6)).toBe('good');
+    expect(comparisonBand(-3)).toBe('medium');
+    expect(comparisonBand(-10)).toBe('bad');
+    expect(comparisonBand(null)).toBe('medium');
+  });
+
+  it('inverts the classification for "lower-good" metrics (e.g. %Vencido)', () => {
+    expect(comparisonBand(6, 'lower-good')).toBe('bad'); // rise in %vencido is bad
+    expect(comparisonBand(-6, 'lower-good')).toBe('good'); // drop in %vencido is good
+  });
+
+  it('treats moves within the sensitivity band as "medium" regardless of direction (e.g. DSO)', () => {
+    expect(comparisonBand(2, 'lower-good', 5)).toBe('medium');
+    expect(comparisonBand(-2, 'lower-good', 5)).toBe('medium');
+  });
+
+  it('sensitivity band does not affect calls that omit it (default 0)', () => {
+    expect(comparisonBand(0)).toBe('good');
+    expect(comparisonBand(0, 'lower-good')).toBe('good');
+  });
+});
 
 describe('cumplimientoBand', () => {
   it('is "good" at or above 80% cumplimiento', () => {

@@ -18,10 +18,24 @@ export type ComparisonBand = 'good' | 'medium' | 'bad';
  */
 const BAD_THRESHOLD_PCT = -5;
 
-export function comparisonBand(deltaPct: number | null): ComparisonBand {
+/**
+ * `direction` and `sensitivityPct` are additive params for Cobranzas metrics where a rise isn't
+ * always good (%Vencido, DSO) -- both default to Ventas's original semantics, so 1-arg call sites
+ * are byte-for-byte unchanged. `direction: 'lower-good'` flips the sign before classifying (a rise
+ * in %Vencido is bad, a drop is good). `sensitivityPct` (default 0, so it never fires unless a
+ * caller opts in) mutes small moves to 'medium' regardless of direction -- DSO shouldn't turn red
+ * over a 1-2% wobble.
+ */
+export function comparisonBand(
+  deltaPct: number | null,
+  direction: 'higher-good' | 'lower-good' = 'higher-good',
+  sensitivityPct = 0,
+): ComparisonBand {
   if (deltaPct === null) return 'medium';
-  if (deltaPct >= 0) return 'good';
-  if (deltaPct <= BAD_THRESHOLD_PCT) return 'bad';
+  if (sensitivityPct > 0 && Math.abs(deltaPct) <= sensitivityPct) return 'medium';
+  const effectivePct = direction === 'lower-good' ? -deltaPct : deltaPct;
+  if (effectivePct >= 0) return 'good';
+  if (effectivePct <= BAD_THRESHOLD_PCT) return 'bad';
   return 'medium';
 }
 
