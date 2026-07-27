@@ -1,0 +1,288 @@
+<div class="collections-context-filter-panel">
+  <span class="collections-context-filter-title">Contexto</span>
+
+  <p-iconfield class="collections-context-filter-global-search">
+    <p-inputicon>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+    </p-inputicon>
+    <input
+      pInputText
+      type="text"
+      placeholder="Buscar sector, marca, local o contraparte..."
+      [ngModel]="globalSearch.raw()"
+      (ngModelChange)="globalSearch.raw.set($event)"
+    />
+  </p-iconfield>
+
+  @if (globalSearch.debounced().length > 0) {
+    <div class="collections-context-filter-global-results">
+      @if (globalResults().length === 0) {
+        <p class="collections-context-filter-empty">Sin resultados</p>
+      } @else {
+        @for (result of globalResults(); track result.id) {
+          <button type="button" class="collections-context-filter-global-result" (click)="navigateToResult(result)">
+            <span class="collections-context-filter-result-path">{{ pathFor(result) }}</span>
+          </button>
+        }
+      }
+    </div>
+  }
+
+  <div class="collections-context-filter-breadcrumb">
+    <button type="button" class="collections-context-filter-breadcrumb-item" (click)="resetToAllSectors()">
+      Todos los sectores
+    </button>
+    @if (breadcrumbSectorLabel(); as sectorLabel) {
+      <span class="collections-context-filter-breadcrumb-sep">›</span>
+      <button type="button" class="collections-context-filter-breadcrumb-item" (click)="resetToSector()">
+        {{ sectorLabel }}
+      </button>
+    }
+    @if (breadcrumbMarcaLabel(); as marcaLabel) {
+      <span class="collections-context-filter-breadcrumb-sep">›</span>
+      <button type="button" class="collections-context-filter-breadcrumb-item" (click)="resetToMarca()">
+        {{ marcaLabel }}
+      </button>
+    }
+    @if (breadcrumbLocalLabel(); as localLabel) {
+      <span class="collections-context-filter-breadcrumb-sep">›</span>
+      <span class="collections-context-filter-breadcrumb-item is-current">{{ localLabel }}</span>
+    }
+  </div>
+
+  <div class="collections-context-filter-columns">
+    <div class="collections-context-filter-column">
+      <span class="collections-context-filter-column-title">{{ vocab.labelFor('sector') }}</span>
+      <p-iconfield class="collections-context-filter-column-search">
+        <p-inputicon>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </p-inputicon>
+        <input
+          pInputText
+          type="text"
+          placeholder="Buscar sector..."
+          [ngModel]="sectorSearch.raw()"
+          (ngModelChange)="sectorSearch.raw.set($event)"
+        />
+      </p-iconfield>
+      <div class="collections-context-filter-column-list">
+        @for (node of sectorRows(); track node.id) {
+          <div class="collections-context-filter-row">
+            <p-checkbox
+              [binary]="true"
+              [ngModel]="isChecked(node.id)"
+              [indeterminate]="isIndeterminate(node.id)"
+              (onChange)="toggleCheckbox(node.id)"
+            />
+            <button
+              type="button"
+              class="collections-context-filter-row-label"
+              [class.is-active]="navSectorId() === node.id"
+              (click)="navigateToSector(node)"
+            >
+              @if (highlight(node.label, sectorSearch.debounced()); as h) {
+                <span class="collections-context-filter-row-text">{{ h.before }}<mark>{{ h.match }}</mark>{{ h.after }}</span>
+              } @else {
+                <span class="collections-context-filter-row-text">{{ node.label }}</span>
+              }
+              <span class="collections-context-filter-row-badge">{{ descendantBadge(node.id).checked }}/{{ descendantBadge(node.id).total }}</span>
+            </button>
+          </div>
+        } @empty {
+          <p class="collections-context-filter-empty">Sin resultados</p>
+        }
+      </div>
+    </div>
+
+    <div class="collections-context-filter-column">
+      <span class="collections-context-filter-column-title">{{ vocab.labelFor('marca') }}</span>
+      <p-iconfield class="collections-context-filter-column-search">
+        <p-inputicon>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </p-inputicon>
+        <input
+          pInputText
+          type="text"
+          placeholder="Buscar marca..."
+          [disabled]="!navSectorId()"
+          [ngModel]="marcaSearch.raw()"
+          (ngModelChange)="marcaSearch.raw.set($event)"
+        />
+      </p-iconfield>
+      <div class="collections-context-filter-column-list">
+        @if (!navSectorId()) {
+          <p class="collections-context-filter-empty">Selecciona un sector</p>
+        } @else {
+          @for (node of marcaRows(); track node.id) {
+            <div class="collections-context-filter-row">
+              <p-checkbox
+                [binary]="true"
+                [ngModel]="isChecked(node.id)"
+                [indeterminate]="isIndeterminate(node.id)"
+                (onChange)="toggleCheckbox(node.id)"
+              />
+              <button
+                type="button"
+                class="collections-context-filter-row-label"
+                [class.is-active]="navMarcaId() === node.id"
+                (click)="navigateToMarca(node)"
+              >
+                @if (highlight(node.label, marcaSearch.debounced()); as h) {
+                  <span class="collections-context-filter-row-text">{{ h.before }}<mark>{{ h.match }}</mark>{{ h.after }}</span>
+                } @else {
+                  <span class="collections-context-filter-row-text">{{ node.label }}</span>
+                }
+                <span class="collections-context-filter-row-badge">{{ descendantBadge(node.id).checked }}/{{ descendantBadge(node.id).total }}</span>
+              </button>
+            </div>
+          } @empty {
+            <p class="collections-context-filter-empty">Sin resultados</p>
+          }
+        }
+      </div>
+    </div>
+
+    <div class="collections-context-filter-column">
+      <span class="collections-context-filter-column-title">{{ vocab.labelFor('tienda') }}</span>
+      <p-iconfield class="collections-context-filter-column-search">
+        <p-inputicon>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </p-inputicon>
+        <input
+          pInputText
+          type="text"
+          placeholder="Buscar local..."
+          [disabled]="!navMarcaId()"
+          [ngModel]="localSearch.raw()"
+          (ngModelChange)="localSearch.raw.set($event)"
+        />
+      </p-iconfield>
+      <div class="collections-context-filter-column-list">
+        @if (!navMarcaId()) {
+          <p class="collections-context-filter-empty">Selecciona una marca</p>
+        } @else {
+          @for (node of localRows(); track node.id) {
+            <div class="collections-context-filter-row">
+              <p-checkbox
+                [binary]="true"
+                [ngModel]="isChecked(node.id)"
+                [indeterminate]="isIndeterminate(node.id)"
+                (onChange)="toggleCheckbox(node.id)"
+              />
+              <button
+                type="button"
+                class="collections-context-filter-row-label"
+                [class.is-active]="navLocalId() === node.id"
+                (click)="navigateToLocal(node)"
+              >
+                @if (highlight(node.label, localSearch.debounced()); as h) {
+                  <span class="collections-context-filter-row-text">{{ h.before }}<mark>{{ h.match }}</mark>{{ h.after }}</span>
+                } @else {
+                  <span class="collections-context-filter-row-text">{{ node.label }}</span>
+                }
+                <span class="collections-context-filter-row-badge">{{ descendantBadge(node.id).checked }}/{{ descendantBadge(node.id).total }}</span>
+              </button>
+            </div>
+          } @empty {
+            <p class="collections-context-filter-empty">Sin resultados</p>
+          }
+        }
+      </div>
+    </div>
+
+    <div class="collections-context-filter-column">
+      <span class="collections-context-filter-column-title">{{ vocab.labelFor('contraparte') }}</span>
+
+      <div class="collections-context-filter-row collections-context-filter-row--pinned">
+        <p-checkbox
+          [binary]="true"
+          [ngModel]="isChecked(unassociatedNode.id)"
+          [indeterminate]="isIndeterminate(unassociatedNode.id)"
+          (onChange)="toggleCheckbox(unassociatedNode.id)"
+        />
+        <button
+          type="button"
+          class="collections-context-filter-row-label"
+          [class.is-active]="viewingUnassociated()"
+          (click)="navigateToUnassociated()"
+        >
+          <span class="collections-context-filter-row-text">Sin asociación comercial</span>
+          <span class="collections-context-filter-row-badge">{{ descendantBadge(unassociatedNode.id).checked }}/{{ descendantBadge(unassociatedNode.id).total }}</span>
+        </button>
+      </div>
+
+      <p-iconfield class="collections-context-filter-column-search">
+        <p-inputicon>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </p-inputicon>
+        <input
+          pInputText
+          type="text"
+          placeholder="Buscar contraparte..."
+          [disabled]="!contraparteParentId()"
+          [ngModel]="contraparteSearch.raw()"
+          (ngModelChange)="contraparteSearch.raw.set($event)"
+        />
+      </p-iconfield>
+
+      @if (viewingUnassociated()) {
+        <div class="collections-context-filter-context-tag">
+          <span>Mostrando: Sin asociación comercial</span>
+          <button type="button" class="collections-context-filter-context-tag-close" (click)="exitUnassociated()" aria-label="Volver">×</button>
+        </div>
+      }
+
+      <div class="collections-context-filter-column-list">
+        @if (!contraparteParentId()) {
+          <p class="collections-context-filter-empty">Selecciona un local, o "Sin asociación comercial" arriba</p>
+        } @else {
+          @for (node of contraparteRows(); track node.id) {
+            <div class="collections-context-filter-row">
+              <p-checkbox
+                [binary]="true"
+                [ngModel]="isChecked(node.id)"
+                [indeterminate]="isIndeterminate(node.id)"
+                (onChange)="toggleCheckbox(node.id)"
+              />
+              <span class="collections-context-filter-row-label collections-context-filter-row-label--static">
+                @if (highlight(node.label, contraparteSearch.debounced()); as h) {
+                  <span class="collections-context-filter-row-text">{{ h.before }}<mark>{{ h.match }}</mark>{{ h.after }}</span>
+                } @else {
+                  <span class="collections-context-filter-row-text">{{ node.label }}</span>
+                }
+              </span>
+            </div>
+          } @empty {
+            <p class="collections-context-filter-empty">Sin resultados</p>
+          }
+          @if (contraparteRemainingCount() > 0) {
+            <p-button
+              label="Cargar más ({{ contraparteRemainingCount() }})"
+              [text]="true"
+              size="small"
+              styleClass="collections-context-filter-load-more"
+              (onClick)="loadMoreCounterparties()"
+            />
+          }
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="collections-context-filter-summary">{{ summaryText() }}</div>
+</div>
