@@ -1,0 +1,76 @@
+@if (loading()) {
+  <app-loading-skeleton height="20rem" />
+} @else {
+  <div class="treemap-band">
+    <span class="treemap-band-label">Contraparte</span>
+    <div class="treemap-canvas">
+      @if (layout().length === 0) {
+        <p class="treemap-empty">Sin contrapartes con saldo en el alcance actual.</p>
+      }
+      @for (laid of layout(); track laid.entry.id) {
+        <button
+          type="button"
+          class="treemap-block"
+          [class.is-focused]="isFocused(laid.entry)"
+          [class.is-long-tail]="laid.entry.isLongTail"
+          [style]="blockStyle(laid.entry, laid.rect)"
+          [pTooltip]="blockTooltip(laid.entry)"
+          tooltipPosition="top"
+          (click)="laid.entry.isLongTail ? openLongTail(laid.entry) : null"
+        >
+          <span class="treemap-block-label">{{ laid.entry.label }}</span>
+          <span class="treemap-block-amount">{{ formattedAmount(laid.entry.saldo) }}</span>
+          @if (!laid.entry.isLongTail) {
+            <span class="treemap-block-mora">{{ moraLabel(laid.entry) }}</span>
+          }
+        </button>
+      }
+    </div>
+  </div>
+}
+
+<p-dialog
+  [visible]="!!longTailDialog()"
+  (visibleChange)="!$event ? closeLongTail() : null"
+  [modal]="true"
+  [header]="longTailDialog()?.label ?? ''"
+  styleClass="treemap-long-tail-dialog"
+>
+  @if (longTailDialog(); as dialog) {
+    <p-iconfield>
+      <p-inputicon>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </p-inputicon>
+      <input
+        pInputText
+        type="text"
+        placeholder="Buscar en la cola larga..."
+        [ngModel]="longTailSearch()"
+        (ngModelChange)="longTailSearch.set($event)"
+      />
+    </p-iconfield>
+
+    <div class="treemap-long-tail-list">
+      @for (item of longTailFilteredItems(); track item.id) {
+        <button
+          type="button"
+          class="treemap-long-tail-row"
+          [pTooltip]="blockTooltip(item)"
+          tooltipPosition="left"
+          (click)="onLongTailItemClick(item)"
+        >
+          <span class="treemap-long-tail-label">{{ item.label }}</span>
+          <span class="treemap-long-tail-meta">
+            <span class="treemap-long-tail-amount">{{ formattedAmount(item.saldo) }}</span>
+            <span class="treemap-long-tail-mora">{{ moraLabel(item) }}</span>
+          </span>
+        </button>
+      } @empty {
+        <p class="treemap-empty">Sin coincidencias.</p>
+      }
+    </div>
+  }
+</p-dialog>

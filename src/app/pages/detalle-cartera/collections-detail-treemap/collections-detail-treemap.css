@@ -1,0 +1,165 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.treemap-band {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+/* Mismo recipe de label que ranking-panel's .ranking-title / kpi-card's .kpi-label, para
+   consistencia visual con el resto de tarjetas de la app. */
+.treemap-band-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--p-text-muted-color);
+}
+
+/* Una sola banda (a diferencia de las 3 apiladas de Ventas) -- más alto para aprovechar el
+ * espacio vertical que ahí se repartía entre 3 canvases. */
+.treemap-canvas {
+  position: relative;
+  height: 26rem;
+}
+
+.treemap-block {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.125rem;
+  padding: 0.3125rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: var(--p-border-radius-md, 6px);
+  overflow: hidden;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition: border-color 0.15s ease, transform 0.1s ease-out;
+}
+
+.treemap-block:hover {
+  border-color: var(--p-primary-color);
+}
+
+.treemap-block:active {
+  transform: scale(0.98);
+}
+
+.treemap-block.is-focused {
+  border-color: var(--p-primary-color);
+  box-shadow: inset 0 0 0 2px var(--p-primary-color);
+}
+
+.treemap-block.is-long-tail {
+  border-style: dashed;
+  border-color: var(--p-content-border-color);
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.treemap-block-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+  font-size: 0.6875rem;
+  color: var(--p-text-color);
+}
+
+.treemap-block-amount {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--p-text-color);
+}
+
+/* Mora en vez del mini-trend de 3 puntos que tiene Ventas -- acá no hay periodos, hay un único
+   promedio de días de mora ponderado por saldo. */
+.treemap-block-mora {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.625rem;
+  color: var(--p-text-muted-color);
+}
+
+.treemap-empty {
+  margin: 0;
+  padding: 0.75rem;
+  color: var(--p-text-muted-color);
+  font-size: 0.8125rem;
+}
+
+.treemap-long-tail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  max-height: 20rem;
+  overflow-y: auto;
+  margin-top: 0.75rem;
+}
+
+.treemap-long-tail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: var(--p-border-radius-md, 6px);
+  background: var(--p-surface-100);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition: border-color 0.15s ease;
+}
+
+.treemap-long-tail-row:hover {
+  border-color: var(--p-primary-color);
+}
+
+.treemap-long-tail-label {
+  color: var(--p-text-color);
+  font-weight: 500;
+  font-size: 0.8125rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.treemap-long-tail-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.125rem;
+}
+
+.treemap-long-tail-amount {
+  color: var(--p-text-color);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.treemap-long-tail-mora {
+  color: var(--p-text-muted-color);
+  font-size: 0.6875rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .treemap-canvas {
+    height: 32rem;
+  }
+}
