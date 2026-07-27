@@ -1,0 +1,247 @@
+@if (collectionsData.loading()) {
+  <app-loading-skeleton height="420px" />
+} @else {
+  <div class="detail-tree-toolbar">
+    <p-iconfield class="detail-tree-search">
+      <p-inputicon>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </p-inputicon>
+      <input
+        pInputText
+        type="text"
+        placeholder="Buscar contraparte o folio de documento..."
+        [ngModel]="searchRaw()"
+        (ngModelChange)="searchRaw.set($event)"
+      />
+    </p-iconfield>
+
+    <div class="detail-tree-zero-balance-toggle">
+      <p-toggleswitch
+        inputId="detail-tree-zero-balance-toggle-input"
+        [ngModel]="includeZeroBalance()"
+        (onChange)="includeZeroBalance.set($event.checked)"
+      />
+      <label for="detail-tree-zero-balance-toggle-input">Mostrar filas sin saldo</label>
+    </div>
+  </div>
+
+  <div class="detail-tree-table-wrapper">
+    @if (stickyLabel(); as label) {
+      <div class="detail-tree-sticky-label" [style.top]="stickyLabelTop()">{{ label }}</div>
+    }
+
+    <p-treeTable
+      class="detail-tree-table"
+      [value]="displayTree()"
+      [columns]="columns"
+      [scrollable]="true"
+      [scrollHeight]="scrollHeight()"
+      (onNodeExpand)="onNodeExpand($event)"
+      (onNodeCollapse)="onNodeCollapse($event)"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th class="detail-tree-label-col detail-tree-col--sortable" (click)="sortBy('label')">
+            Contraparte / Documento
+            @if (sortIndicator('label'); as indicator) { <span class="sort-indicator">{{ indicator }}</span> }
+          </th>
+          @for (col of columns; track col.field) {
+            <th
+              class="detail-tree-amount-col detail-tree-col--sortable"
+              [class.detail-tree-col--share]="col.kind === 'share-bar'"
+              (click)="sortBy(col.field)"
+            >
+              {{ col.header }}
+              @if (sortIndicator(col.field); as indicator) { <span class="sort-indicator">{{ indicator }}</span> }
+            </th>
+          }
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
+        @if (isContraparteRow(rowData)) {
+          <tr
+            [ttRow]="rowNode"
+            class="detail-tree-row detail-tree-row--contraparte"
+            [class.detail-tree-row--over-limit]="isOverLimit(rowData.row)"
+            [attr.data-label]="rowData.row.label"
+            [attr.data-key]="rowNode.node.key"
+          >
+            <td class="detail-tree-label-col">
+              <p-treeTableToggler [rowNode]="rowNode" />
+              @if (isOverLimit(rowData.row)) {
+                <span class="over-limit-badge" pTooltip="Saldo sobre el límite de crédito pactado" tooltipPosition="top">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                  </svg>
+                </span>
+              }
+              @if (highlight(rowData.row.label); as h) {
+                <span class="detail-tree-label-text">{{ h.before }}<mark>{{ h.match }}</mark>{{ h.after }}</span>
+              } @else {
+                <span class="detail-tree-label-text">{{ rowData.row.label }}</span>
+              }
+            </td>
+            @for (col of columns; track col.field) {
+              <td class="detail-tree-amount-col" [class.detail-tree-col--share]="col.kind === 'share-bar'">
+                @switch (col.kind) {
+                  @case ('bucket') {
+                    <span [class.amount-negative]="isNegativeAmount(bucketAmount(rowData.row, col.field))">
+                      {{ bucketAmount(rowData.row, col.field) | signedAmount }}
+                    </span>
+                  }
+                  @case ('amount') {
+                    <span [class.amount-negative]="isNegativeAmount(rowData.row.saldo)">{{ rowData.row.saldo | signedAmount }}</span>
+                  }
+                  @case ('amount-or-dash') {
+                    @if (rowData.row.creditLimit === null) {
+                      <span>—</span>
+                    } @else {
+                      <span [class.amount-negative]="isNegativeAmount(rowData.row.creditLimit)">{{ rowData.row.creditLimit | signedAmount }}</span>
+                    }
+                  }
+                  @case ('percent-or-dash') {
+                    @if (rowData.row.utilizacionPct === null) {
+                      <span>—</span>
+                    } @else {
+                      <span>{{ formatUtilizacion(rowData.row.utilizacionPct) }}</span>
+                    }
+                  }
+                  @case ('days') {
+                    <span>{{ formatDays(rowData.row.avgDaysOverdueWeighted) }}</span>
+                  }
+                  @case ('share-bar') {
+                    <div class="share-bar-track">
+                      <span class="share-bar-fill" [style.width.%]="sharePct(rowData.row)"></span>
+                    </div>
+                    <span class="share-bar-value">{{ formatSharePct(sharePct(rowData.row)) }}</span>
+                  }
+                  @case ('days-or-dash') {
+                    @if (rowData.row.creditTermDays === null) {
+                      <span>—</span>
+                    } @else {
+                      <span>{{ rowData.row.creditTermDays }} días</span>
+                    }
+                  }
+                }
+              </td>
+            }
+          </tr>
+        } @else if (isDocumentHeaderRow(rowData)) {
+          <tr [ttRow]="rowNode" class="doc-subtable-row-wrapper doc-subtable-row-wrapper--header">
+            <td [attr.colspan]="columns.length + 1">
+              <div class="doc-subtable">
+                <button type="button" class="doc-cell doc-cell--header" (click)="sortDocuments(rowData.parentKey, 'externalRef')">
+                  Folio<span class="sort-indicator">{{ documentSortIndicator(rowData.parentKey, 'externalRef') }}</span>
+                </button>
+                <button type="button" class="doc-cell doc-cell--header" (click)="sortDocuments(rowData.parentKey, 'issueDate')">
+                  Emisión<span class="sort-indicator">{{ documentSortIndicator(rowData.parentKey, 'issueDate') }}</span>
+                </button>
+                <button type="button" class="doc-cell doc-cell--header" (click)="sortDocuments(rowData.parentKey, 'dueDate')">
+                  Vencimiento<span class="sort-indicator">{{ documentSortIndicator(rowData.parentKey, 'dueDate') }}</span>
+                </button>
+                <button type="button" class="doc-cell doc-cell--header" (click)="sortDocuments(rowData.parentKey, 'grossAmount')">
+                  Bruto<span class="sort-indicator">{{ documentSortIndicator(rowData.parentKey, 'grossAmount') }}</span>
+                </button>
+                <button type="button" class="doc-cell doc-cell--header" (click)="sortDocuments(rowData.parentKey, 'appliedAmount')">
+                  Aplicado<span class="sort-indicator">{{ documentSortIndicator(rowData.parentKey, 'appliedAmount') }}</span>
+                </button>
+                <button type="button" class="doc-cell doc-cell--header" (click)="sortDocuments(rowData.parentKey, 'creditNoteAmount')">
+                  N. Crédito<span class="sort-indicator">{{ documentSortIndicator(rowData.parentKey, 'creditNoteAmount') }}</span>
+                </button>
+                <button type="button" class="doc-cell doc-cell--header" (click)="sortDocuments(rowData.parentKey, 'balance')">
+                  Saldo<span class="sort-indicator">{{ documentSortIndicator(rowData.parentKey, 'balance') }}</span>
+                </button>
+                <button type="button" class="doc-cell doc-cell--header" (click)="sortDocuments(rowData.parentKey, 'daysOverdue')">
+                  Mora<span class="sort-indicator">{{ documentSortIndicator(rowData.parentKey, 'daysOverdue') }}</span>
+                </button>
+                <button type="button" class="doc-cell doc-cell--header" (click)="sortDocuments(rowData.parentKey, 'status')">
+                  Estado<span class="sort-indicator">{{ documentSortIndicator(rowData.parentKey, 'status') }}</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        } @else if (isDocumentRow(rowData)) {
+          <tr [ttRow]="rowNode" class="doc-subtable-row-wrapper" [attr.data-key]="rowNode.node.key">
+            <td [attr.colspan]="columns.length + 1">
+              <div class="doc-subtable doc-subtable--data">
+                <span class="doc-cell doc-cell--folio">
+                  @if (highlight(rowData.doc.externalRef); as h) {
+                    {{ h.before }}<mark>{{ h.match }}</mark>{{ h.after }}
+                  } @else {
+                    {{ rowData.doc.externalRef }}
+                  }
+                </span>
+                <span class="doc-cell">{{ rowData.doc.issueDate }}</span>
+                <span class="doc-cell">{{ rowData.doc.dueDate ?? '—' }}</span>
+                <span class="doc-cell" [class.amount-negative]="isNegativeAmount(rowData.doc.grossAmount)">{{ rowData.doc.grossAmount | signedAmount }}</span>
+                <span class="doc-cell" [class.amount-negative]="isNegativeAmount(rowData.doc.appliedAmount)">{{ rowData.doc.appliedAmount | signedAmount }}</span>
+                <span class="doc-cell" [class.amount-negative]="isNegativeAmount(rowData.doc.creditNoteAmount)">{{ rowData.doc.creditNoteAmount | signedAmount }}</span>
+                <span class="doc-cell" [class.amount-negative]="isNegativeAmount(rowData.doc.balance)">{{ rowData.doc.balance | signedAmount }}</span>
+                <span class="doc-cell">{{ rowData.doc.daysOverdue }}</span>
+                <span class="doc-cell doc-status" [class.doc-status--vencido]="rowData.doc.status === 'VENCIDO'">{{ statusLabel(rowData.doc.status) }}</span>
+              </div>
+            </td>
+          </tr>
+        } @else if (isLoadMoreRow(rowData)) {
+          <tr class="detail-tree-row detail-tree-row--load-more">
+            <td [attr.colspan]="columns.length + 1">
+              <button type="button" class="detail-tree-load-more" (click)="loadMore(rowData.parentKey)">
+                {{ rowData.label }}
+              </button>
+            </td>
+          </tr>
+        }
+      </ng-template>
+
+      <ng-template pTemplate="footer">
+        <tr class="detail-tree-totals-row">
+          <td class="detail-tree-label-col">Total</td>
+          @for (col of columns; track col.field) {
+            <td class="detail-tree-amount-col" [class.detail-tree-col--share]="col.kind === 'share-bar'">
+              @switch (col.kind) {
+                @case ('bucket') {
+                  <span [class.amount-negative]="isNegativeAmount(bucketTotal(col.field))">{{ bucketTotal(col.field) | signedAmount }}</span>
+                }
+                @case ('amount') {
+                  <span [class.amount-negative]="isNegativeAmount(totals().saldo)">{{ totals().saldo | signedAmount }}</span>
+                }
+                @case ('amount-or-dash') {
+                  <span>—</span>
+                }
+                @case ('percent-or-dash') {
+                  <span>—</span>
+                }
+                @case ('days') {
+                  <span>{{ formatDays(totals().avgDaysOverdueWeighted) }}</span>
+                }
+                @case ('share-bar') {
+                  <div class="share-bar-track">
+                    <span class="share-bar-fill" style="width: 100%"></span>
+                  </div>
+                  <span class="share-bar-value">100%</span>
+                }
+                @case ('days-or-dash') {
+                  <span>—</span>
+                }
+              }
+            </td>
+          }
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td [attr.colspan]="columns.length + 1" class="detail-tree-empty">
+            Sin datos para el filtro actual.
+          </td>
+        </tr>
+      </ng-template>
+    </p-treeTable>
+  </div>
+}

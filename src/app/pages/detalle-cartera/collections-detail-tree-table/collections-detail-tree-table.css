@@ -1,0 +1,238 @@
+:host {
+  display: block;
+  --p-treetable-body-cell-padding: 0.5rem 0.75rem;
+  --p-treetable-header-cell-padding: 0.625rem 0.75rem;
+}
+
+.detail-tree-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.detail-tree-search {
+  display: block;
+  max-width: 22rem;
+  flex: 1;
+}
+
+.detail-tree-zero-balance-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--p-text-color);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.detail-tree-table-wrapper {
+  position: relative;
+}
+
+.detail-tree-table {
+  display: block;
+  font-size: 0.875rem;
+}
+
+.detail-tree-sticky-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  padding: 0.375rem 0.75rem;
+  background: var(--p-surface-0);
+  border-bottom: 1px solid var(--p-content-border-color);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--p-text-muted-color);
+  pointer-events: none;
+}
+
+/* table-layout: fixed (PrimeNG default) ignores <td> min-width for sizing -- explicit widths on
+ * every column, same technique as sales-detail-tree-table.css (see [[feedback-primeng-treetable-fixed-layout]]). */
+.detail-tree-label-col {
+  width: 14rem;
+  text-align: left;
+}
+
+.detail-tree-amount-col {
+  width: 6.5rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.detail-tree-amount-col.detail-tree-col--share {
+  width: 8rem;
+}
+
+.detail-tree-col--sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.detail-tree-col--sortable:hover {
+  color: var(--p-primary-color);
+}
+
+.sort-indicator {
+  display: inline-block;
+  margin-left: 0.25rem;
+  font-size: 0.625rem;
+}
+
+.detail-tree-row--contraparte .detail-tree-label-text {
+  font-weight: 700;
+}
+
+.detail-tree-row--over-limit {
+  background: var(--p-orange-50, var(--p-surface-50));
+}
+
+.over-limit-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 0.375rem 0 0.25rem;
+  color: var(--p-orange-500);
+  vertical-align: middle;
+}
+
+.detail-tree-label-text mark {
+  background: var(--p-yellow-200);
+  color: inherit;
+  border-radius: 2px;
+}
+
+.amount-negative {
+  color: var(--p-red-500);
+}
+
+/* "% de la cartera" mini-bar -- misma técnica que concentracion-cartera.css: pista + relleno
+ * proporcional vía [style.width.%], sin reimportar ese componente. */
+.share-bar-track {
+  position: relative;
+  display: block;
+  height: 0.375rem;
+  border-radius: 999px;
+  background: var(--p-surface-100);
+  overflow: hidden;
+}
+
+.share-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--p-primary-color);
+}
+
+.share-bar-value {
+  display: block;
+  margin-top: 0.1875rem;
+  font-size: 0.75rem;
+  color: var(--p-text-muted-color);
+}
+
+/* Fila de totales fija al pie -- p-treeTable con [scrollable]="true" ya renderiza pTemplate="footer"
+ * en su propia sección `.p-treetable-scrollable-footer` (flex-shrink: 0, hermana de la sección con
+ * overflow:auto), fuera del cuerpo que scrollea -- sin necesitar position: sticky manual. */
+.detail-tree-totals-row {
+  font-weight: 700;
+  background: var(--p-surface-50);
+}
+
+.detail-tree-totals-row .detail-tree-label-col {
+  text-align: left;
+}
+
+/* Sub-tabla de documentos de una Contraparte expandida -- una fila ancha con colspan completo que
+ * dibuja sus propios "campos" vía CSS grid, ya que un documento no comparte la forma de columnas de
+ * tramo de antigüedad/límite/%util/plazo de la fila Contraparte (ver doc del componente). */
+.doc-subtable-row-wrapper td {
+  padding: 0;
+  border-bottom: 1px solid var(--p-content-border-color);
+}
+
+.doc-subtable {
+  display: grid;
+  grid-template-columns: 10rem 6rem 6rem 6.5rem 6.5rem 6.5rem 6.5rem 4.5rem 6rem;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem 0.375rem 2.5rem;
+  font-size: 0.8125rem;
+}
+
+.doc-subtable-row-wrapper--header .doc-subtable {
+  background: var(--p-surface-50);
+}
+
+.doc-cell {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--p-text-color);
+}
+
+.doc-cell--folio {
+  text-align: left;
+}
+
+.doc-cell--header {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: var(--p-text-muted-color);
+  cursor: pointer;
+  text-align: right;
+}
+
+.doc-cell--header:first-child {
+  text-align: left;
+}
+
+.doc-cell--header:hover {
+  color: var(--p-primary-color);
+}
+
+.doc-status {
+  text-align: right;
+  font-weight: 600;
+}
+
+.doc-status--vencido {
+  color: var(--p-red-500);
+}
+
+.detail-tree-row--load-more td {
+  padding: 0.25rem 0.75rem;
+}
+
+.detail-tree-load-more {
+  display: block;
+  margin: 0 auto;
+  padding: 0.25rem 0.5rem;
+  border: none;
+  background: transparent;
+  color: var(--p-primary-color);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.detail-tree-load-more:hover {
+  text-decoration: underline;
+}
+
+.detail-tree-empty {
+  text-align: center;
+  color: var(--p-text-muted-color);
+  padding: 1.5rem 0.75rem;
+}
