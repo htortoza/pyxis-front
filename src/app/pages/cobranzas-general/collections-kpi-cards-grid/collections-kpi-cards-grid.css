@@ -1,0 +1,35 @@
+:host { display: block; }
+
+/* minmax(0, 1fr), not a bare 1fr -- a plain 1fr track's minimum is "auto" (its content's
+   own min-content size), so a card that can't shrink further would push the whole grid
+   wider than .page-body and overflow past its padding instead of the grid shrinking to
+   fit. minmax(0, ...) lets the track (and PrimeNG's Card inside it) actually shrink. */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+/* Grid item's own min-width defaults to auto (its content's min-content size) regardless of
+   the track being minmax(0, ...) -- without this, a very large peso amount (holding-level
+   totals can run past mil millones) would push its card wider than the track instead of the
+   card's own text truncating (see .kpi-value's overflow handling in kpi-card.css). */
+.kpi-grid > * {
+  min-width: 0;
+}
+
+/* Queries the actual remaining width after the sidebar (container-type: inline-size is
+   set on .page-body, see cobranzas-general.css) instead of the raw viewport. Two intermediate
+   breakpoints for 5 cards: 3 columns (2 rows), then 2 columns (3 rows), before finally
+   reaching the narrowest layout at the 900px mobile breakpoint. */
+@container (max-width: 1100px) {
+  .kpi-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@container (max-width: 900px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

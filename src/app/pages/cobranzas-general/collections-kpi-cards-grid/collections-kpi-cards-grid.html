@@ -1,0 +1,52 @@
+@if (collectionsData.loading()) {
+  <div class="kpi-grid">
+    <app-loading-skeleton height="90px" />
+    <app-loading-skeleton height="90px" />
+    <app-loading-skeleton height="90px" />
+    <app-loading-skeleton height="90px" />
+    <app-loading-skeleton height="90px" />
+  </div>
+} @else {
+  <div class="kpi-grid">
+    <app-kpi-card
+      label="Saldo por Cobrar"
+      [value]="saldoPorCobrarValue()"
+      [deltaPct]="collectionsData.compareToPrevious() ? saldoPorCobrarDelta() : null"
+      [trendPoints]="collectionsData.compareToPrevious() ? saldoPorCobrarTrend() : []"
+    />
+    <app-kpi-card
+      label="% Vencido"
+      [value]="porcentajeVencidoValue()"
+      [deltaPct]="collectionsData.compareToPrevious() ? porcentajeVencidoDelta() : null"
+      [trendPoints]="collectionsData.compareToPrevious() ? porcentajeVencidoTrend() : []"
+      deltaUnit="pp"
+      deltaDirection="lower-good"
+    />
+    <!-- DSO y CEI SIEMPRE se muestran juntas (regla no-negociable del plan): si en el futuro se
+         oculta una franja de esta grilla, se quitan o mantienen ambas cards juntas. -->
+    <app-kpi-card
+      label="DSO"
+      [value]="dsoValue()"
+      [deltaPct]="collectionsData.compareToPrevious() ? dsoDelta() : null"
+      [trendPoints]="collectionsData.compareToPrevious() ? dsoTrend() : []"
+      deltaUnit="dias"
+      deltaDirection="lower-good"
+      [deltaSensitivityPct]="2"
+    />
+    <app-kpi-card
+      label="CEI"
+      [value]="ceiValue()"
+      [deltaPct]="collectionsData.compareToPrevious() ? ceiDelta() : null"
+      [trendPoints]="collectionsData.compareToPrevious() ? ceiTrend() : []"
+      deltaUnit="pp"
+      deltaDirection="higher-good"
+      [bandOverride]="ceiBandValue()"
+    />
+    <app-kpi-card
+      label="Recuperado en el Periodo"
+      [value]="recuperadoValue()"
+      [deltaPct]="collectionsData.compareToPrevious() ? recuperadoDelta() : null"
+      [trendPoints]="collectionsData.compareToPrevious() ? recuperadoTrend() : []"
+    />
+  </div>
+}

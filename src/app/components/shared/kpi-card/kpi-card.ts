@@ -3,7 +3,7 @@ import { Card } from 'primeng/card';
 
 import type { TrendPoint } from '../../../data/models/kpi.model';
 import { MIN_TREND_POINTS } from '../../../data/utils/sales-fact.utils';
-import { comparisonBand, cumplimientoBand } from '../../../pipes/signed-amount';
+import { comparisonBand, cumplimientoBand, type ComparisonBand } from '../../../pipes/signed-amount';
 
 /** Fixed sparkline viewBox -- coordinates are computed as percentages of this, not real px. */
 const SPARKLINE_VIEWBOX_WIDTH = 100;
@@ -83,13 +83,19 @@ export class KpiCardComponent {
    * colored -- default 0 never fires, so Ventas cards are unaffected. DSO uses this so a small
    * day-count wobble doesn't flip red/green. */
   readonly deltaSensitivityPct = input<number>(0);
+  /** Semáforo ya resuelto por el caller (p.ej. ceiBand de Cobranzas) -- cuando no es null, PISA
+   * por completo la lógica interna de comparisonBand/cumplimientoBand. Default null preserva el
+   * comportamiento de toda card existente (Ventas y las otras 4 de Cobranzas) sin cambios. */
+  readonly bandOverride = input<ComparisonBand | null>(null);
 
   /** Semaphore band (good/medium/bad) -- single source of truth for the delta text and the sparkline color. */
-  readonly band = computed(() =>
-    this.isMetaMode()
+  readonly band = computed(() => {
+    const override = this.bandOverride();
+    if (override !== null) return override;
+    return this.isMetaMode()
       ? cumplimientoBand(this.deltaPct())
-      : comparisonBand(this.deltaPct(), this.deltaDirection(), this.deltaSensitivityPct()),
-  );
+      : comparisonBand(this.deltaPct(), this.deltaDirection(), this.deltaSensitivityPct());
+  });
   readonly isPositive = computed(() => (this.deltaPct() ?? 0) >= 0);
   readonly deltaText = computed(() => {
     const pct = this.deltaPct();
@@ -179,9 +185,9 @@ export class KpiCardComponent {
       fit();
       // Observes the parent (not el itself) so the fit's own font-size writes -- which change
       // el's height via the font-size-relative line-height -- can't feed back into a resize loop.
-      const resizeObserver = new ResizeObserver(fit);
-      resizeObserver.observe(el.parentElement!);
-      onCleanup(() => resizeObserver.disconnect());
+      const resizeObserver = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(fit) : null;
+      resizeObserver?.observe(el.parentElement!);
+      onCleanup(() => resizeObserver?.disconnect());
     });
   }
 }
