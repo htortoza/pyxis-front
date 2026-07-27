@@ -14,6 +14,7 @@ import {
   buildCollectionsFilterTree,
   type CollectionsFilterNode,
 } from '../data/utils/collections-filter-tree.utils';
+import { documentStateAsOf } from '../data/utils/collections-history.utils';
 import {
   buildHardcodedDefaultCollectionsView,
   loadDefaultCollectionsView,
@@ -163,12 +164,14 @@ export class CollectionsDataService {
   });
 
   /**
-   * Non-PAGADO documents in scope (Contraparte + Sector/Marca/Local filters + cross-filter) as of
-   * `cutoffDate`, with the IVA toggle applied to `balance`. "As of cutoffDate" for SP1 means
-   * "existed by that date" (`issueDate <= cutoffDate`) -- the mock bakes `status`/`daysOverdue`
-   * relative to a single fixed TODAY_ISO snapshot (no per-payment history to replay), so
-   * recomputing status/aging for an arbitrary historical cutoff is deferred to when the Antigüedad
-   * component (SP2) actually needs it. At the default cutoff (== TODAY_ISO) this is exact.
+   * Documents in scope (Contraparte + Sector/Marca/Local filters + cross-filter) as of
+   * `cutoffDate`, with the IVA toggle applied to `balance`. "As of cutoffDate" means the full
+   * historical reconstruction from `documentStateAsOf` (Task 1, SP2): a document is in scope only
+   * if it existed by that date and hadn't been paid off yet as of that date, and the `status`/
+   * `daysOverdue`/`balance` exposed here are the RECONSTRUCTED values for that cutoff, never the
+   * raw mock fields (which are baked relative to TODAY_ISO). This is exact for ANY `cutoffDate`,
+   * not just the default -- the SP1 limitation documented here previously ("exact only at the
+   * default cutoff") is resolved.
    *
    * Declared before `filterKey`/`dashboardData` on purpose -- class fields initialize in
    * declaration order, and `dashboardData`'s `initialValue` calls `computeCollectionsData()`
@@ -323,24 +326,26 @@ export class CollectionsDataService {
     return allowed;
   }
 
-  /** Non-PAGADO, cutoff-scoped, dimension-scoped documents, gross balances (IVA toggle not yet
-   * applied) -- shared base for both `scopedDocuments` and `scopedDocumentsGross`. */
+  /** Cutoff-reconstructed, dimension-scoped documents, gross balances (IVA toggle not yet applied)
+   * -- shared base for both `scopedDocuments` and `scopedDocumentsGross`. A document is in scope
+   * only if `documentStateAsOf(doc, cutoffDate) !== null` (Task 1, SP2); the returned objects carry
+   * the RECONSTRUCTED `status`/`daysOverdue`/`balance` for that cutoff, not the raw mock fields. */
   private filteredDocuments(): ReceivableDocument[] {
     const cutoffDate = this.cutoffDate();
     const allowedCounterpartyIds = this.scopedCounterpartyIds();
 
-    return RECEIVABLE_DOCUMENTS.filter((doc) => {
-      if (doc.status === 'PAGADO') {
-        return false;
-      }
-      if (doc.issueDate > cutoffDate) {
-        return false;
-      }
+    const result: ReceivableDocument[] = [];
+    for (const doc of RECEIVABLE_DOCUMENTS) {
       if (allowedCounterpartyIds !== null && !allowedCounterpartyIds.has(doc.counterpartyId)) {
-        return false;
+        continue;
       }
-      return true;
-    });
+      const state = documentStateAsOf(doc, cutoffDate);
+      if (state === null) {
+        continue;
+      }
+      result.push({ ...doc, status: state.status, daysOverdue: state.daysOverdue, balance: state.balance });
+    }
+    return result;
   }
 
   private computeCollectionsData(): CollectionsDashboardData {

@@ -6,7 +6,7 @@ import type {
   DocumentStatus,
   ReceivableDocument,
 } from '../models/collections.model';
-import { addDaysIso } from '../utils/date.utils';
+import { addDaysIso, daysBetweenIso } from '../utils/date.utils';
 import { CONTEXT_TREE } from './context-tree.mock';
 import { PERIODS_MES } from './periods.mock';
 import { SALES_FACTS } from './sales-facts.mock';
@@ -354,6 +354,8 @@ function buildOpenDocument(
     status,
     daysOverdue,
     currency: 'CLP',
+    // Abierto -- todavía no se paga, así que no hay fecha de pago que reconstruir (Task 1, SP2).
+    paidDate: null,
   };
 }
 
@@ -387,6 +389,34 @@ interface ClosedDocResult {
   closedDocumentCount: number;
 }
 
+/**
+ * Fecha de pago determinista para un documento cerrado (PAGADO), dentro de
+ * `[issueDate, min(dueDate ?? issueDate+30, TODAY_ISO)]` -- nunca fuera de ese rango (Task 1, SP2:
+ * `documentStateAsOf` depende de que esto sea siempre cierto). Sesgada por `daysLate` (el mismo
+ * valor por-documento que alimenta `avgDaysLate` de la contraparte, spec §8.D): documentos con
+ * mora alta tienden a pagarse más cerca del tope del rango; buenos pagadores, más cerca de la
+ * emisión. Reusa el stream mulberry32 ya en curso -- ninguna fuente de aleatoriedad nueva.
+ */
+function pickPaidDate(
+  issueDate: string,
+  dueDate: string | null,
+  daysLate: number,
+  rng: () => number,
+): string {
+  const naturalUpperIso = dueDate ?? addDaysIso(issueDate, 30);
+  const upperIso = naturalUpperIso < TODAY_ISO ? naturalUpperIso : TODAY_ISO;
+  const clampedUpperIso = upperIso < issueDate ? issueDate : upperIso;
+  const spanDays = daysBetweenIso(issueDate, clampedUpperIso);
+  if (spanDays <= 0) {
+    return issueDate;
+  }
+  // daysLate ronda entre ~-28 y ~+45 en este dataset -- normalizado a [0,1] como sesgo hacia el tope.
+  const bias = Math.min(1, Math.max(0, (daysLate + 20) / 40));
+  const fraction = 0.4 * rng() + 0.6 * bias;
+  const offsetDays = Math.min(spanDays, Math.round(fraction * spanDays));
+  return addDaysIso(issueDate, offsetDays);
+}
+
 function buildClosedDocuments(
   counterpartyId: string,
   weight: number,
@@ -411,6 +441,10 @@ function buildClosedDocuments(
     const creditNoteAmount = rng() < 0.1 ? Math.round(grossAmount * (0.05 + rng() * 0.1)) : 0;
     const appliedAmount = grossAmount - creditNoteAmount; // cerrado: saldo siempre 0
     const balance = grossAmount - appliedAmount - creditNoteAmount;
+    // Calculado después de daysLate (arriba) a propósito: consumir rng acá no cambia el daysLate
+    // ya fijado para ESTE documento, solo desplaza el stream para los draws siguientes -- ver
+    // collections.mock.spec.ts "es reproducible" (el desplazamiento sigue siendo determinista).
+    const paidDate = pickPaidDate(issueDate, dueDate, daysLate, rng);
 
     documents.push({
       id: nextDocId('closed'),
@@ -426,6 +460,7 @@ function buildClosedDocuments(
       status: 'PAGADO',
       daysOverdue: 0,
       currency: 'CLP',
+      paidDate,
     });
   }
 

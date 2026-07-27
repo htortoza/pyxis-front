@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 
 import { COUNTERPARTIES, RECEIVABLE_DOCUMENTS, TODAY_ISO } from '../data/mock/collections.mock';
+import { addDaysIso } from '../data/utils/date.utils';
 import { CollectionsDataService } from './collections-data.service';
 
 /** Cross-check contra el mock crudo -- documentos no-PAGADO existentes a la fecha de corte por
@@ -92,6 +93,23 @@ describe('CollectionsDataService', () => {
     expect(service.hasActiveFilter()).toBe(false);
     service.cutoffDate.set('2026-06-30');
     expect(service.hasActiveFilter()).toBe(true);
+  });
+
+  it('a un corte histórico (~1 mes antes de TODAY_ISO), un documento PAGADO hoy pero pagado DESPUÉS de ese corte reaparece reconstruido', () => {
+    // Corte histórico -- ~1 mes antes de TODAY_ISO (spec Task 1: "análogo a restar 1 mes a cutoffDate").
+    const historicalCutoff = addDaysIso(TODAY_ISO, -30);
+    // Buscado en el mock real (no un ID hardcodeado): un documento PAGADO cuya paidDate cae DESPUÉS
+    // de ese corte -- por Task 1, `documentStateAsOf` debe reconstruirlo como POR_VENCER/VENCIDO en
+    // vez de excluirlo, aunque hoy (TODAY_ISO) ya esté PAGADO.
+    const candidate = RECEIVABLE_DOCUMENTS.find(
+      (doc) => doc.status === 'PAGADO' && doc.paidDate !== null && doc.paidDate > historicalCutoff,
+    );
+    expect(candidate).toBeDefined();
+
+    service.cutoffDate.set(historicalCutoff);
+    const reconstructed = service.scopedDocuments().find((doc) => doc.id === candidate!.id);
+    expect(reconstructed).toBeDefined();
+    expect(['POR_VENCER', 'VENCIDO']).toContain(reconstructed!.status);
   });
 
   it('saldoTotal (tras el pipeline de carga de 400ms) refleja el scope actual', async () => {

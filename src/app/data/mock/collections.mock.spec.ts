@@ -4,6 +4,7 @@ import {
   COUNTERPARTY_BEHAVIORS,
   PERIOD_SALES_TOTAL_CLP,
   RECEIVABLE_DOCUMENTS,
+  TODAY_ISO,
   UNMAPPED_COUNTERPARTY_ID,
   generateCollectionsMockData,
 } from './collections.mock';
@@ -54,6 +55,25 @@ describe('collections.mock', () => {
     for (const doc of RECEIVABLE_DOCUMENTS) {
       expect(doc.balance).toBe(doc.grossAmount - doc.appliedAmount - doc.creditNoteAmount);
     }
+  });
+
+  describe('paidDate', () => {
+    it('todo documento PAGADO tiene paidDate no-null, entre issueDate y TODAY_ISO', () => {
+      const paid = RECEIVABLE_DOCUMENTS.filter((doc) => doc.status === 'PAGADO');
+      expect(paid.length).toBeGreaterThan(0);
+      for (const doc of paid) {
+        expect(doc.paidDate).not.toBeNull();
+        const paidDate = doc.paidDate as string;
+        expect(paidDate >= doc.issueDate).toBe(true);
+        expect(paidDate <= TODAY_ISO).toBe(true);
+      }
+    });
+
+    it('todo documento no-PAGADO tiene paidDate === null', () => {
+      const open = RECEIVABLE_DOCUMENTS.filter((doc) => doc.status !== 'PAGADO');
+      expect(open.length).toBeGreaterThan(0);
+      expect(open.every((doc) => doc.paidDate === null)).toBe(true);
+    });
   });
 
   it('existe al menos 1 documento sin dueDate', () => {

@@ -69,6 +69,12 @@ export interface ReceivableDocument {
   /** Días de mora a la fecha de corte activa; 0 si `status !== 'VENCIDO'`. */
   daysOverdue: number;
   currency: string;
+  /**
+   * `null` mientras el documento no esté PAGADO; para documentos PAGADO, la fecha real en que se
+   * saldó. Habilita reconstruir el estado del documento en cualquier fecha de corte pasada sin
+   * inventar datos.
+   */
+  paidDate: string | null;
 }
 
 /**
