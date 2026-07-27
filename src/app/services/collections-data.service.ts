@@ -6,7 +6,12 @@ import type { ComparisonAlignment, ComparisonMode } from '../data/models/compari
 import type { ReceivableDocument } from '../data/models/collections.model';
 import type { IvaMode } from '../data/models/iva.model';
 import type { Period, PeriodGranularity } from '../data/models/period.model';
-import { COUNTERPARTIES, RECEIVABLE_DOCUMENTS } from '../data/mock/collections.mock';
+import {
+  COLLECTION_TARGETS,
+  COUNTERPARTIES,
+  PERIOD_SALES_TOTAL_CLP,
+  RECEIVABLE_DOCUMENTS,
+} from '../data/mock/collections.mock';
 import { CONTEXT_TREE, MARCAS, SECTORES } from '../data/mock/context-tree.mock';
 import { CURRENT_USER } from '../data/mock/mock-user.mock';
 import { PERIODS_BY_GRANULARITY } from '../data/mock/periods.mock';
@@ -15,6 +20,7 @@ import {
   type CollectionsFilterNode,
 } from '../data/utils/collections-filter-tree.utils';
 import { documentStateAsOf } from '../data/utils/collections-history.utils';
+import { computeCollectionsKpis, type CollectionsKpiSet } from '../data/utils/collections-kpi.utils';
 import {
   buildHardcodedDefaultCollectionsView,
   loadDefaultCollectionsView,
@@ -38,11 +44,15 @@ export interface CollectionsCrossFilter {
 }
 
 interface CollectionsDashboardData {
-  /** Placeholder shape for SP1 -- the heavy aggregations (aging/bridge/projection/concentration/
-   * kpis) land in SP2-SP3. Kept behind the same toSignal(toObservable(filterKey)...) pipeline as
+  /** Placeholder shape for SP1 -- the heavy aggregations (aging/bridge/projection/concentration)
+   * land in SP2-SP3. Kept behind the same toSignal(toObservable(filterKey)...) pipeline as
    * SalesDataService from day 1 so those facets can be added here later without re-plumbing the
    * loading UX. */
   saldoTotal: number;
+  /** The 5 KPI cards aggregate (Task 2, SP2) -- computed from documents scoped by dimension but
+   * NOT yet cut off by `cutoffDate` (see `scopedDocumentsByDimension`), since the trend inside
+   * `computeCollectionsKpis` needs to reconstruct PAST cutoffs, not just the active one. */
+  kpis: CollectionsKpiSet;
 }
 
 function intersect(a: Set<string>, b: Set<string>): Set<string> {
@@ -223,9 +233,15 @@ export class CollectionsDataService {
     { initialValue: this.computeCollectionsData() },
   );
 
-  /** Exposed for parity with SalesDataService.kpis/etc.; SP1 only needs saldoTotal, more facets
-   * join `CollectionsDashboardData` in SP2-SP3 without touching this wiring. */
+  /** Exposed for parity with SalesDataService.kpis/etc.; SP1 only needed saldoTotal, more facets
+   * join `CollectionsDashboardData` in SP2-SP3 without touching this wiring. Kept derived from
+   * `saldoTotalFromScope()` (net-of-IVA aware) rather than `kpis().saldoPorCobrar.current` (always
+   * gross) so the two never mix bruto/neto semantics -- see Task 3 plan notes. */
   readonly saldoTotal = computed(() => this.dashboardData().saldoTotal);
+
+  /** The 5 KPI cards aggregate (Task 2, SP2) -- Saldo por Cobrar/%Vencido/DSO/CEI/Recuperado, each
+   * with current/previous/deltaPct/trend (Task 4 reads this to render kpi-cards-grid). */
+  readonly kpis = computed(() => this.dashboardData().kpis);
 
   /** Toggles a drill-down cross-filter: clicking the active segment again clears it. */
   setCrossFilter(dimension: string, id: string): void {
@@ -326,19 +342,29 @@ export class CollectionsDataService {
     return allowed;
   }
 
+  /** Dimension-scoped documents (Contraparte + Sector/Marca/Local + cross-filter), raw mock fields,
+   * NOT yet filtered/reconstructed by `cutoffDate` -- the "allDocuments" shape `computeCollectionsKpis`
+   * (Task 2, SP2) expects, since its trend needs to reconstruct PAST cutoffs itself via
+   * `documentStateAsOf`. Split out of `filteredDocuments` (Task 3, SP2) so the cutoff step can be
+   * applied AFTER dimension scoping in one place, and skipped entirely by callers (like the KPI
+   * aggregate) that need every cutoff, not just the active one. */
+  private scopedDocumentsByDimension(): ReceivableDocument[] {
+    const allowedCounterpartyIds = this.scopedCounterpartyIds();
+    if (allowedCounterpartyIds === null) {
+      return RECEIVABLE_DOCUMENTS;
+    }
+    return RECEIVABLE_DOCUMENTS.filter((doc) => allowedCounterpartyIds.has(doc.counterpartyId));
+  }
+
   /** Cutoff-reconstructed, dimension-scoped documents, gross balances (IVA toggle not yet applied)
    * -- shared base for both `scopedDocuments` and `scopedDocumentsGross`. A document is in scope
    * only if `documentStateAsOf(doc, cutoffDate) !== null` (Task 1, SP2); the returned objects carry
    * the RECONSTRUCTED `status`/`daysOverdue`/`balance` for that cutoff, not the raw mock fields. */
   private filteredDocuments(): ReceivableDocument[] {
     const cutoffDate = this.cutoffDate();
-    const allowedCounterpartyIds = this.scopedCounterpartyIds();
 
     const result: ReceivableDocument[] = [];
-    for (const doc of RECEIVABLE_DOCUMENTS) {
-      if (allowedCounterpartyIds !== null && !allowedCounterpartyIds.has(doc.counterpartyId)) {
-        continue;
-      }
+    for (const doc of this.scopedDocumentsByDimension()) {
       const state = documentStateAsOf(doc, cutoffDate);
       if (state === null) {
         continue;
@@ -349,6 +375,15 @@ export class CollectionsDataService {
   }
 
   private computeCollectionsData(): CollectionsDashboardData {
-    return { saldoTotal: this.saldoTotalFromScope() };
+    const kpis = computeCollectionsKpis({
+      allDocuments: this.scopedDocumentsByDimension(),
+      cutoffIso: this.cutoffDate(),
+      selectedPeriodIds: this.selectedPeriodIds(),
+      periods: this.periods(),
+      allPeriodsForGranularity: this.periods(),
+      periodSalesTotal: PERIOD_SALES_TOTAL_CLP,
+      collectionTargets: COLLECTION_TARGETS,
+    });
+    return { saldoTotal: this.saldoTotalFromScope(), kpis };
   }
 }

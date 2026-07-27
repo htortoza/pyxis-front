@@ -118,4 +118,16 @@ describe('CollectionsDataService', () => {
     await new Promise((resolve) => setTimeout(resolve, 500));
     expect(service.saldoTotal()).toBe(service.saldoTotalFromScope());
   });
+
+  it('kpis (tras el pipeline de carga de 400ms) expone las 5 métricas de Cobranzas bajo el default', async () => {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    const kpis = service.kpis();
+    expect(kpis).toBeDefined();
+    expect(Number.isNaN(kpis.saldoPorCobrar.current)).toBe(false);
+    expect(kpis.saldoPorCobrar.current).toBeGreaterThan(0);
+    expect(kpis.porcentajeVencido).toBeDefined();
+    expect(kpis.dso).toBeDefined();
+    expect(kpis.cei).toBeDefined();
+    expect(kpis.recuperado).toBeDefined();
+  });
 });
