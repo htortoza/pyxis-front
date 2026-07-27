@@ -1,0 +1,122 @@
+<p-button
+  class="collections-filters-modal-trigger"
+  label="Filtros"
+  severity="secondary"
+  [outlined]="true"
+  (onClick)="open()"
+>
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+  </svg>
+</p-button>
+
+<p-dialog
+  [(visible)]="isOpen"
+  [modal]="true"
+  [appendTo]="'body'"
+  [focusOnShow]="false"
+  header="Filtros"
+  [style]="{ width: '72vw', height: '84vh' }"
+  [contentStyle]="{ flex: '1', overflow: 'auto' }"
+>
+  <div class="collections-filters-modal-body">
+    <div class="collections-filters-modal-top-row">
+      <button type="button" class="collections-filters-modal-top-trigger" (click)="periodPopoverEl.toggle($event)">
+        <span class="collections-filters-modal-config-title">Período</span>
+        <span class="collections-filters-modal-config-summary">{{ periodSummary() }}</span>
+      </button>
+
+      <button type="button" class="collections-filters-modal-top-trigger" (click)="cutoffPopoverEl.toggle($event)">
+        <span class="collections-filters-modal-config-title">Fecha de corte</span>
+        <span class="collections-filters-modal-config-summary">{{ cutoffSummary() }}</span>
+      </button>
+
+      <button type="button" class="collections-filters-modal-top-trigger" (click)="comparisonPopoverEl.toggle($event)">
+        <span class="collections-filters-modal-config-title">Comparación</span>
+        <span class="collections-filters-modal-config-summary">{{ comparisonSummary() }}</span>
+      </button>
+
+      <div class="collections-filters-modal-top-trigger collections-filters-modal-iva">
+        <span class="collections-filters-modal-config-title">IVA</span>
+        <label class="collections-filters-modal-iva-switch">
+          <span class="collections-filters-modal-config-summary">{{ ivaSummary() }}</span>
+          <p-toggleswitch
+            [ngModel]="draftIvaMode() === 'sin_iva'"
+            (onChange)="draftIvaMode.set($event.checked ? 'sin_iva' : 'con_iva')"
+          />
+        </label>
+      </div>
+    </div>
+
+    @if (coherenceWarning(); as warning) {
+      <p-message severity="warn" [closable]="false" styleClass="collections-filters-modal-warning">
+        {{ warning }}
+      </p-message>
+    }
+
+    <app-collections-context-filter [(checkedIds)]="draftCheckedIds" />
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="collections-filters-modal-actions">
+      <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="cancel()" />
+      <p-button label="Aplicar" (onClick)="apply()" />
+    </div>
+  </ng-template>
+</p-dialog>
+
+<p-popover
+  #periodPopoverEl
+  styleClass="collections-filters-modal-popover-panel"
+  [style]="{ width: '26rem', maxWidth: '92vw' }"
+  [appendTo]="'body'"
+>
+  <span class="collections-filters-modal-popover-title">Período</span>
+  <app-period-picker
+    [(granularity)]="draftGranularity"
+    [(periodIds)]="draftPeriodIds"
+  />
+  <div class="collections-filters-modal-popover-actions">
+    <p-button label="Aceptar" size="small" (onClick)="periodPopoverEl.hide()" />
+  </div>
+</p-popover>
+
+<p-popover
+  #cutoffPopoverEl
+  styleClass="collections-filters-modal-popover-panel"
+  [style]="{ width: '20rem', maxWidth: '92vw' }"
+  [appendTo]="'body'"
+>
+  <span class="collections-filters-modal-popover-title">Fecha de corte</span>
+  <p-datepicker
+    [ngModel]="cutoffDateValue()"
+    (ngModelChange)="onCutoffDateChange($event)"
+    [minDate]="cutoffMinDate"
+    [maxDate]="cutoffMaxDate"
+    dateFormat="dd/mm/yy"
+    [showIcon]="true"
+    [showButtonBar]="true"
+    [appendTo]="'body'"
+  />
+  <div class="collections-filters-modal-popover-actions">
+    <p-button label="Aceptar" size="small" (onClick)="cutoffPopoverEl.hide()" />
+  </div>
+</p-popover>
+
+<p-popover
+  #comparisonPopoverEl
+  styleClass="collections-filters-modal-popover-panel"
+  [style]="{ width: '26rem', maxWidth: '92vw' }"
+  [appendTo]="'body'"
+>
+  <span class="collections-filters-modal-popover-title">Comparación</span>
+  <app-comparison-selector
+    [granularity]="draftGranularity()"
+    [(mode)]="draftComparisonMode"
+    [(alignment)]="draftComparisonAlignment"
+    [(explicitPeriodIds)]="draftExplicitComparisonPeriodIds"
+  />
+  <div class="collections-filters-modal-popover-actions">
+    <p-button label="Aceptar" size="small" (onClick)="comparisonPopoverEl.hide()" />
+  </div>
+</p-popover>

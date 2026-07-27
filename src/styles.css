@@ -187,3 +187,29 @@ body {
     margin-left: 1rem;
   }
 }
+
+/*
+ * Cobranzas' "Filtros" trigger (collections-filters-modal.html) -- same FAB treatment as Ventas'
+ * above (see that block's comment for why this lives in the global stylesheet and not the
+ * component's own scoped CSS: PrimeNG's internal <button>/<span> are unreachable from there).
+ * Additive block, doesn't touch the `.filters-modal-trigger` rules above.
+ */
+@media (max-width: 900px) {
+  .collections-filters-modal-trigger .p-button {
+    width: 3.5rem;
+    height: 3.5rem;
+    padding: 0;
+    border-radius: 50%;
+    background: var(--p-surface-0);
+    border-color: var(--p-surface-0);
+    box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.25);
+  }
+
+  .collections-filters-modal-trigger .p-button-label {
+    display: none;
+  }
+
+  .collections-filters-modal-popover-panel.p-popover {
+    margin-left: 1rem;
+  }
+}
