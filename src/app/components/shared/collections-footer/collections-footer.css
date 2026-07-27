@@ -1,0 +1,32 @@
+:host {
+  display: block;
+}
+
+.collections-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1rem 0 0;
+  border-top: 1px solid var(--p-content-border-color);
+  color: var(--p-text-muted-color);
+  font-size: 0.8125rem;
+}
+
+.collections-footer-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.collections-footer-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--p-text-muted-color);
+  flex-shrink: 0;
+}
+
+.collections-footer-dot--cutoff {
+  background: var(--p-primary-color);
+}

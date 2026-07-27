@@ -28,12 +28,15 @@ const SOON_BADGE = { badge: 'Pronto', badgeStyleClass: 'sidebar-badge-soon' };
  * Ventas is a single entry routed to '/' -- the General/Detalle split lives as sub-navigation
  * inside the global header, not as two sidebar items. Its default routerLinkActiveOptions
  * ({ exact: false }) is exactly what makes it read active on both '/' and '/detalle-ventas'.
+ * Cobranzas mirrors that exact pattern at '/cobranzas' (active on both '/cobranzas' and
+ * '/cobranzas/cartera').
  */
 const MENU_MODEL: MenuItem[] = [
   {
     label: 'Visor Estratégico',
     items: [
       { label: 'Ventas', icon: 'pi pi-chart-line', routerLink: '/' },
+      { label: 'Cobranzas', icon: 'pi pi-wallet', routerLink: '/cobranzas' },
       { label: 'Márgenes', icon: 'pi pi-percentage', disabled: true, ...SOON_BADGE },
       { label: 'Comparativos', icon: 'pi pi-clone', disabled: true, ...SOON_BADGE },
     ],
