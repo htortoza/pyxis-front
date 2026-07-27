@@ -1,47 +1,33 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { MessageService, PrimeTemplate } from 'primeng/api';
-import { Button } from 'primeng/button';
 import { Toolbar } from 'primeng/toolbar';
-import { Tooltip } from 'primeng/tooltip';
+import { PrimeTemplate } from 'primeng/api';
 
 import { MobileNavService } from '../../../services/mobile-nav.service';
-import { SalesDataService } from '../../../services/sales-data.service';
-import { FilterChipsSummaryComponent } from '../filter-chips-summary/filter-chips-summary';
-import { FiltersModalComponent } from '../filters-modal/filters-modal';
 
+export interface GlobalHeaderTab {
+  label: string;
+  route: string;
+  exact?: boolean;
+}
+
+/**
+ * Module-agnostic shell: toolbar (mobile logo + tabs + hamburger) and the chips-scroll row.
+ * Every module-specific bit (filters trigger, chips, Limpiar/Guardar actions) is content
+ * projected in by the page that owns it -- this component no longer knows about
+ * SalesDataService or any particular module's filter stack. See `[filters-trigger]`/`[chips]`/
+ * `[actions]` slots in global-header.html.
+ */
 @Component({
   selector: 'app-global-header',
   standalone: true,
-  imports: [
-    Toolbar,
-    Button,
-    PrimeTemplate,
-    RouterLink,
-    RouterLinkActive,
-    FiltersModalComponent,
-    FilterChipsSummaryComponent,
-    Tooltip,
-  ],
+  imports: [Toolbar, PrimeTemplate, RouterLink, RouterLinkActive],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './global-header.html',
   styleUrl: './global-header.css',
 })
 export class GlobalHeaderComponent {
-  protected readonly salesData = inject(SalesDataService);
   protected readonly mobileNav = inject(MobileNavService);
-  private readonly messageService = inject(MessageService);
 
-  /** SalesDataService.saveAsDefault() stays UI-agnostic (it's also reachable from anywhere
-   * else that ends up calling it later) -- the toast is this component's own concern, fired
-   * right after the save actually happens. No `life` here -- the app-wide <p-toast [life]>
-   * in app.html (4000ms) is the single source of truth for every toast's auto-dismiss time. */
-  onSaveAsDefault(): void {
-    this.salesData.saveAsDefault();
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Filtros guardados',
-      detail: 'Esta será la vista que se cargue siempre que abras la página.',
-    });
-  }
+  readonly tabs = input<GlobalHeaderTab[]>([]);
 }

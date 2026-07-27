@@ -1,9 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
+import { MessageService } from 'primeng/api';
+import { Button } from 'primeng/button';
 import { SelectButton } from 'primeng/selectbutton';
+import { Tooltip } from 'primeng/tooltip';
 
-import { GlobalHeaderComponent } from '../../components/shared/global-header/global-header';
+import { FilterChipsSummaryComponent } from '../../components/shared/filter-chips-summary/filter-chips-summary';
+import { FiltersModalComponent } from '../../components/shared/filters-modal/filters-modal';
+import { GlobalHeaderComponent, type GlobalHeaderTab } from '../../components/shared/global-header/global-header';
 import { LoadingSkeletonComponent } from '../../components/shared/loading-skeleton/loading-skeleton';
 import { PERIODS } from '../../data/mock/periods.mock';
 import { PRODUCTS } from '../../data/mock/products.mock';
@@ -24,6 +29,11 @@ const VIEW_MODE_OPTIONS: ViewModeOption[] = [
   { label: 'Mapa', value: 'mapa' },
 ];
 
+const HEADER_TABS: GlobalHeaderTab[] = [
+  { label: 'Ventas General', route: '/', exact: true },
+  { label: 'Detalle de Ventas', route: '/detalle-ventas' },
+];
+
 /**
  * Composition root for "Detalle de Ventas". All filters (context/period/Sector-Marca-Tienda)
  * live in the shared GlobalHeaderComponent -- scopedFacts just reads SalesDataService's own
@@ -40,7 +50,11 @@ const VIEW_MODE_OPTIONS: ViewModeOption[] = [
   imports: [
     FormsModule,
     SelectButton,
+    Button,
+    Tooltip,
     GlobalHeaderComponent,
+    FiltersModalComponent,
+    FilterChipsSummaryComponent,
     LoadingSkeletonComponent,
     SalesDetailTreeTableComponent,
     SalesDetailTreemapComponent,
@@ -51,7 +65,10 @@ const VIEW_MODE_OPTIONS: ViewModeOption[] = [
 })
 export class DetalleVentasComponent {
   protected readonly salesData = inject(SalesDataService);
+  private readonly messageService = inject(MessageService);
   protected readonly scopedFacts = this.salesData.scopedFacts;
+
+  protected readonly headerTabs = HEADER_TABS;
 
   protected readonly viewModeOptions = VIEW_MODE_OPTIONS;
   protected readonly viewMode = signal<ViewMode>('tabla');
@@ -67,5 +84,18 @@ export class DetalleVentasComponent {
 
   protected onViewModeChange(mode: ViewMode): void {
     this.viewMode.set(mode);
+  }
+
+  /** SalesDataService.saveAsDefault() stays UI-agnostic (it's also reachable from anywhere
+   * else that ends up calling it later) -- the toast is this component's own concern, fired
+   * right after the save actually happens. No `life` here -- the app-wide <p-toast [life]>
+   * in app.html (4000ms) is the single source of truth for every toast's auto-dismiss time. */
+  onSaveAsDefault(): void {
+    this.salesData.saveAsDefault();
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Filtros guardados',
+      detail: 'Esta será la vista que se cargue siempre que abras la página.',
+    });
   }
 }
