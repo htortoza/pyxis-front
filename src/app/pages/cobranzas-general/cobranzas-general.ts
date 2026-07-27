@@ -11,6 +11,8 @@ import { LoadingSkeletonComponent } from '../../components/shared/loading-skelet
 import { CollectionsDataService } from '../../services/collections-data.service';
 import { AgingChartComponent } from './aging-chart/aging-chart';
 import { CollectionsKpiCardsGridComponent } from './collections-kpi-cards-grid/collections-kpi-cards-grid';
+import { ConcentracionCarteraComponent } from './concentracion-cartera/concentracion-cartera';
+import { RecaudacionProjectionComponent } from './recaudacion-projection/recaudacion-projection';
 import { VentaCajaBridgeComponent } from './venta-caja-bridge/venta-caja-bridge';
 
 const HEADER_TABS: GlobalHeaderTab[] = [
@@ -20,9 +22,9 @@ const HEADER_TABS: GlobalHeaderTab[] = [
 
 /**
  * Composition root for "Cobranzas General": wires the page around CollectionsDataService
- * (filters, loading, footer) and composes the SP2 visualizations -- 5 KPI cards, Puente
- * Venta->Caja, Antigüedad de Cartera. Proyección de Recaudación y Concentración de Cartera land
- * in SP3 without touching this shell's plumbing.
+ * (filters, loading, footer) and composes all 5 visualizations in spec priority order -- KPI
+ * cards, Puente Venta->Caja, Antigüedad de Cartera (SP2), Proyección de Recaudación y
+ * Concentración de Cartera (SP3) -- without touching this shell's plumbing.
  */
 @Component({
   selector: 'app-cobranzas-general',
@@ -36,6 +38,8 @@ const HEADER_TABS: GlobalHeaderTab[] = [
     CollectionsKpiCardsGridComponent,
     VentaCajaBridgeComponent,
     AgingChartComponent,
+    RecaudacionProjectionComponent,
+    ConcentracionCarteraComponent,
     Button,
     Tooltip,
   ],
