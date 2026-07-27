@@ -1,0 +1,23 @@
+<div class="filter-chips-summary-row">
+  <span class="filter-chips-summary-legend">Filtros aplicados</span>
+
+  <p-chip [label]="periodsChipLabel()" [removable]="true" (onRemove)="resetPeriods()" />
+
+  <p-chip [label]="cutoffChipLabel()" [removable]="true" (onRemove)="resetCutoff()" />
+
+  @if (comparisonChipLabel(); as label) {
+    <p-chip [label]="label" [removable]="true" (onRemove)="resetComparison()" />
+  }
+
+  @if (ivaChipLabel(); as label) {
+    <p-chip [label]="label" [removable]="true" (onRemove)="resetIva()" />
+  }
+
+  @for (chip of dimensionChips(); track chip.id) {
+    <p-chip [label]="chip.label" [removable]="true" (onRemove)="removeDimension(chip.id)" />
+  }
+
+  @for (chip of counterpartyChips(); track chip.id) {
+    <p-chip [label]="chip.label" [removable]="true" (onRemove)="removeCounterparty(chip.id)" />
+  }
+</div>
