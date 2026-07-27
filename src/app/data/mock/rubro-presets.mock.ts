@@ -10,5 +10,6 @@ export const RUBRO_PRESETS: Record<RubroId, DimensionVocabulary> = {
     sector: 'Sectores',
     marca: 'Marcas',
     tienda: 'Tiendas',
+    contraparte: 'Recaudador',
   },
 };
