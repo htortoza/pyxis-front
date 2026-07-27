@@ -1,0 +1,178 @@
+:host { display: block; }
+
+.aging-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: var(--p-surface-0);
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--p-border-radius-md, 6px);
+}
+
+.aging-title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--p-text-color);
+}
+
+/* Rótulo explícito: esta vista es de STOCK al corte activo (spec §4.3), no de flujo del periodo
+   como el Puente -- debe quedar visible, no solo documentado en un comentario. */
+.aging-subtitle {
+  margin: -0.5rem 0 0;
+  font-size: 0.75rem;
+  color: var(--p-text-muted-color);
+}
+
+.aging-clusters {
+  display: flex;
+  align-items: stretch;
+  gap: 1.5rem;
+}
+
+.cluster {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.cluster-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--p-text-muted-color);
+}
+
+.cluster-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* Divisor EXPLÍCITO entre los 2 clusters (spec: borde vertical, no solo espaciado) -- separa las 2
+   familias de color (Por Vencer vs. Vencido) para que nunca se lean como una escala continua. */
+.cluster-divider {
+  align-self: stretch;
+  width: 1px;
+  background: var(--p-content-border-color);
+}
+
+.bar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 4.5rem;
+  padding: 0.5rem 0.375rem;
+  border: none;
+  border-radius: var(--p-border-radius-md, 6px);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  transition: background 0.15s ease;
+}
+
+.bar-col:hover {
+  background: var(--p-surface-100);
+}
+
+.bar-col.is-active {
+  background: var(--p-surface-100);
+  outline: 1px solid var(--p-primary-color);
+  outline-offset: -1px;
+}
+
+.bar-amount {
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--p-text-color);
+  white-space: nowrap;
+}
+
+.bar-track {
+  display: flex;
+  align-items: flex-end;
+  width: 2.5rem;
+  height: 140px;
+  border-radius: var(--p-border-radius-sm, 4px);
+  background: var(--p-surface-100);
+  overflow: hidden;
+}
+
+.bar-fill {
+  width: 100%;
+  min-height: 2px;
+  border-radius: var(--p-border-radius-sm, 4px) var(--p-border-radius-sm, 4px) 0 0;
+  transition: height 0.2s ease;
+}
+
+/* Paleta "Por Vencer" (azul/verde) -- NUNCA comparte tono con "Vencido" (rojo/coral). */
+.bar-fill[data-bucket='POR_VENCER_0_30'] { background: var(--p-blue-500); }
+.bar-fill[data-bucket='POR_VENCER_30_PLUS'] { background: var(--p-green-500); }
+
+/* Paleta "Vencido" (roja/coral) en intensidad CRECIENTE con la mora. */
+.bar-fill[data-bucket='VENCIDO_1_30'] { background: var(--p-red-300); }
+.bar-fill[data-bucket='VENCIDO_31_60'] { background: var(--p-red-400); }
+.bar-fill[data-bucket='VENCIDO_61_90'] { background: var(--p-red-600); }
+.bar-fill[data-bucket='VENCIDO_90_PLUS'] { background: var(--p-red-800); }
+
+.bar-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--p-text-muted-color);
+  text-align: center;
+  white-space: normal;
+  line-height: 1.2;
+}
+
+/* Nota aparte, fuera de ambos clusters y de su escala de altura -- spec: NO es una escala continua. */
+.no-due-date-note {
+  align-self: flex-start;
+  padding: 0.5rem 0.75rem;
+  border: 1px dashed var(--p-content-border-color);
+  border-radius: var(--p-border-radius-md, 6px);
+  background: transparent;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--p-text-muted-color);
+  cursor: pointer;
+  white-space: normal;
+  text-align: left;
+  transition: background 0.15s ease;
+}
+
+.no-due-date-note:hover {
+  background: var(--p-surface-100);
+}
+
+.no-due-date-note.is-active {
+  background: var(--p-surface-100);
+  outline: 1px solid var(--p-primary-color);
+  outline-offset: -1px;
+}
+
+/* Mismo breakpoint 900px que el resto de Cobranzas/Ventas -- los clusters pasan a apilarse
+   verticalmente (el divisor se vuelve una línea horizontal) en vez de comprimir las barras hasta
+   perder legibilidad; nunca se trunca un monto ni una etiqueta. */
+@media (max-width: 900px) {
+  .aging-clusters {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .cluster-divider {
+    width: 100%;
+    height: 1px;
+  }
+
+  .bar-track {
+    height: 100px;
+  }
+}

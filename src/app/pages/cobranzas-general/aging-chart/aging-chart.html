@@ -1,0 +1,71 @@
+@if (collectionsData.loading()) {
+  <app-loading-skeleton height="220px" />
+} @else {
+  <section class="aging-chart">
+    <h3 class="aging-title">Antigüedad de Cartera</h3>
+    <p class="aging-subtitle">Saldo al {{ cutoffLabel() }}</p>
+
+    <div class="aging-clusters" role="img" aria-label="Antigüedad de cartera por tramos de vencimiento">
+      <div class="cluster">
+        <span class="cluster-label">Por Vencer</span>
+        <div class="cluster-bars">
+          @for (bucket of porVencerBuckets(); track bucket.key) {
+            <button
+              type="button"
+              class="bar-col"
+              [class.is-active]="isActive(bucket)"
+              [pTooltip]="tooltipText(bucket)"
+              tooltipPosition="top"
+              (click)="onBucketClick(bucket)"
+            >
+              <span class="bar-amount">{{ formattedAmount(bucket) }}</span>
+              <span class="bar-track">
+                <span class="bar-fill" [attr.data-bucket]="bucket.key" [style.height.%]="barHeightPct(bucket)"></span>
+              </span>
+              <span class="bar-label">{{ bucket.label }}</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="cluster-divider"></div>
+
+      <div class="cluster">
+        <span class="cluster-label">Vencido</span>
+        <div class="cluster-bars">
+          @for (bucket of vencidoBuckets(); track bucket.key) {
+            <button
+              type="button"
+              class="bar-col"
+              [class.is-active]="isActive(bucket)"
+              [pTooltip]="tooltipText(bucket)"
+              tooltipPosition="top"
+              (click)="onBucketClick(bucket)"
+            >
+              <span class="bar-amount">{{ formattedAmount(bucket) }}</span>
+              <span class="bar-track">
+                <span class="bar-fill" [attr.data-bucket]="bucket.key" [style.height.%]="barHeightPct(bucket)"></span>
+              </span>
+              <span class="bar-label">{{ bucket.label }}</span>
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+
+    @if (noDueDateBucket(); as bucket) {
+      @if (bucket.documentCount > 0) {
+        <button
+          type="button"
+          class="no-due-date-note"
+          [class.is-active]="isActive(bucket)"
+          [pTooltip]="tooltipText(bucket)"
+          tooltipPosition="top"
+          (click)="onBucketClick(bucket)"
+        >
+          Sin vencimiento definido: {{ formattedAmount(bucket) }}
+        </button>
+      }
+    }
+  </section>
+}
