@@ -31,22 +31,9 @@
   @if (collectionsData.loading()) {
     <app-loading-skeleton height="480px" />
   } @else {
-    <p-card class="cobranzas-placeholder-card">
-      <div class="cobranzas-placeholder">
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="4" width="18" height="16" rx="2"></rect>
-          <line x1="3" y1="10" x2="21" y2="10"></line>
-          <line x1="8" y1="15" x2="14" y2="15"></line>
-        </svg>
-        <span class="cobranzas-placeholder-title">Próximamente</span>
-        <p class="cobranzas-placeholder-text">
-          Los KPIs de cartera, el Puente Venta→Caja, la Antigüedad, la Proyección de Recaudación y la
-          Concentración de Cartera se suman en los próximos sub-proyectos. El estado, los filtros
-          (Sector, Marca, Local, Contraparte, Fecha de corte, Período, IVA) y las vistas guardadas ya
-          funcionan.
-        </p>
-      </div>
-    </p-card>
+    <app-collections-kpi-cards-grid />
+    <app-venta-caja-bridge />
+    <app-aging-chart />
   }
 
   <app-collections-footer />

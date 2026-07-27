@@ -8,10 +8,11 @@
   background: var(--p-surface-50);
 }
 
-/* Same layout contract as ventas-general.css's .page-body: container-type lets future
-   descendants (KPI grid, Puente, Antigüedad, etc. from SP2-SP3) query the actual remaining
-   width via @container; min-width: 0 on every direct child plus overflow-x: hidden are the
-   overflow backstops (see that file's comment for the full explanation). */
+/* Same layout contract as ventas-general.css's .page-body: container-type lets the composed
+   sections (KPI grid, Puente, Antigüedad, plus Proyección/Concentración from SP3) query the
+   actual remaining width via @container; min-width: 0 on every direct child plus
+   overflow-x: hidden are the overflow backstops (see that file's comment for the full
+   explanation). display: grid with a single implicit column stacks the sections vertically. */
 .page-body {
   max-width: 1400px;
   margin: 0 auto;
@@ -24,31 +25,4 @@
 
 .page-body > * {
   min-width: 0;
-}
-
-.cobranzas-placeholder-card ::ng-deep .p-card-body {
-  padding: 3rem 1.5rem;
-}
-
-.cobranzas-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  max-width: 32rem;
-  margin: 0 auto;
-  text-align: center;
-  color: var(--p-text-muted-color);
-}
-
-.cobranzas-placeholder-title {
-  color: var(--p-text-color);
-  font-size: 1.125rem;
-  font-weight: 700;
-}
-
-.cobranzas-placeholder-text {
-  margin: 0;
-  font-size: 0.875rem;
-  line-height: 1.5;
 }

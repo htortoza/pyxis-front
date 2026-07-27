@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { Button } from 'primeng/button';
-import { Card } from 'primeng/card';
 import { Tooltip } from 'primeng/tooltip';
 
 import { CollectionsFilterChipsSummaryComponent } from '../../components/shared/collections-filter-chips-summary/collections-filter-chips-summary';
@@ -10,6 +9,9 @@ import { CollectionsFooterComponent } from '../../components/shared/collections-
 import { GlobalHeaderComponent, type GlobalHeaderTab } from '../../components/shared/global-header/global-header';
 import { LoadingSkeletonComponent } from '../../components/shared/loading-skeleton/loading-skeleton';
 import { CollectionsDataService } from '../../services/collections-data.service';
+import { AgingChartComponent } from './aging-chart/aging-chart';
+import { CollectionsKpiCardsGridComponent } from './collections-kpi-cards-grid/collections-kpi-cards-grid';
+import { VentaCajaBridgeComponent } from './venta-caja-bridge/venta-caja-bridge';
 
 const HEADER_TABS: GlobalHeaderTab[] = [
   { label: 'Cobranzas General', route: '/cobranzas', exact: true },
@@ -17,9 +19,10 @@ const HEADER_TABS: GlobalHeaderTab[] = [
 ];
 
 /**
- * Shell for "Cobranzas General" -- SP1 only wires the page around CollectionsDataService (filters,
- * loading, footer); the 4 real visualizations (KPIs, Puente Venta->Caja, Antigüedad, Proyección,
- * Concentración) land in SP2-SP3 without touching this composition root's plumbing.
+ * Composition root for "Cobranzas General": wires the page around CollectionsDataService
+ * (filters, loading, footer) and composes the SP2 visualizations -- 5 KPI cards, Puente
+ * Venta->Caja, Antigüedad de Cartera. Proyección de Recaudación y Concentración de Cartera land
+ * in SP3 without touching this shell's plumbing.
  */
 @Component({
   selector: 'app-cobranzas-general',
@@ -30,8 +33,10 @@ const HEADER_TABS: GlobalHeaderTab[] = [
     CollectionsFilterChipsSummaryComponent,
     CollectionsFooterComponent,
     LoadingSkeletonComponent,
+    CollectionsKpiCardsGridComponent,
+    VentaCajaBridgeComponent,
+    AgingChartComponent,
     Button,
-    Card,
     Tooltip,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
